@@ -53,8 +53,7 @@ M3/M4 (2026-10-09) and in the pilot. (pilot rule 6)
 
 | Override | Hook work | Shape |
 |---|---|---|
-| Pre Launch Init | create the resources (`af-shapes.resources`); the hook reads the pre-launch settings itself (`af-shapes.prelaunch-settings`) | B-after on class and error |
-| Pre Launch Init | create everything and clean up after its own failure, via `createResources` (`af-shapes.pli-failure-cleanup`) | F (hook measured; the member's case structure unmeasured) |
+| Pre Launch Init | `createResources`, the one creating hook: it reads the pre-launch settings (`af-shapes.prelaunch-settings`), creates the resources (`af-shapes.resources`) and cleans up after its own failure (`af-shapes.pli-failure-cleanup`) | F = B-after on class and error (hook measured; the member's case structure unmeasured) |
 | Pre Launch Init | start the children (`af-shapes.launch-owner`): send the launch message to self | A (`kit/example_pli_deferred_start.xml`) |
 | Actor Core | the helper loop beside Call Parent | A, or C after a series hook |
 | Actor Core | a body that returns a changed object to Call Parent | B |
