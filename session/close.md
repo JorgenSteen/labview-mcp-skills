@@ -16,8 +16,9 @@ stays running); the last sweep, tests and runs, which a subagent does before the
   `briefs_folder`, `mcp_reports_folder`, `proof_folder`, `knowledge_files`, `commit_attribution`. A schema 1 file is
   read as it is: its `rules_file` and `guide_file` stand for `knowledge_files`.
 - **A key is absent** (or there is no `project.json`, as in local mode): ask the user once where those files go. If
-  the user leaves it open, put them all into one session folder `session-<X>/` (`<X>` = the session id) in a place
-  the user can see, outside the product tree when that tree may not be written. Name the folder in the report.
+  the user leaves it open, put them all into `.labview/sessions/<X>/` (`<X>` = the session id), committed with the
+  rest of `.labview/`. When the product tree may not be written, use a folder the user names outside it. Name the
+  folder in the report.
 - **The close folder** is the folder of `status_file`, or that session folder. Files that have no place of their own
   go there: the main-session notes, candidates for files the session may not edit, proposed kit scripts.
 - **The start HEAD:** the commit the session started from (the parent of its first commit). The side-effect and

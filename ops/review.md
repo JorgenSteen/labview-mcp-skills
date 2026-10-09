@@ -78,9 +78,10 @@ A finding without evidence is not a finding.
 against the odd one out. Two areas with different shapes are reported as "area A: shape X; area B: shape Y" (note).
 New code inside an existing area is compared with that area's shape (the local pattern wins for a small change).
 
-**Open, no verdict:** PLI failure cleanup (proposal DR-6, with AP-4, OV-5): whether a PLI that created resources must
-call its parent only on no error and release what it created on error. Not settled (`knowledge/actor-framework.md`,
-"Not yet measured"). Report what the PLI does as an observation, never as a finding or a pass.
+**PLI failure cleanup and Stop Core order** (DR-6, settled 2026-10-09): compare against `convention:
+af-shapes.pli-failure-cleanup` and `af-shapes.stop-core-order`. On new code, a PLI that creates resources but does not
+release them on its own error is a finding (Stop Core will not run); release before Stop Core's Call Parent is a note.
+On existing code both are notes.
 
 ## Severity and the fix column
 
@@ -104,7 +105,7 @@ decisions read <file | none, asked the user>   LabVIEW calls <n> (exports only) 
 concerns: <concern>: <shape> (<actors>) | ...
 rows:
 kind | id or hazard | place (file, VI, node/wire) | evidence | severity | new/existing | fix (op | report only)
-accepted deviations: <id> <place> <decision>     open (no verdict): PLI failure cleanup <observations>
+accepted deviations: <id> <place> <decision>     PLI failure cleanup: <pass | finding | note> <place>
 unverified: <row> <what would settle it>
 ```
 

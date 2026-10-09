@@ -64,7 +64,24 @@ source: default
 Queues, notifiers, DVRs, files and user events are created in Pre Launch Init.
 - What the helper loop uses (its user events, its queue) is released in `close` (`close-vi`).
 - Everything else Pre Launch Init opened (DVRs, notifiers, files the loop does not use) is released in Stop Core.
+- Release work lives in member VIs (`close`, or a release method per group of resources), not loose on an override's
+  diagram, so the same VI serves Stop Core, `close` and a failed Pre Launch Init (`pli-failure-cleanup`). A release VI
+  must accept a resource that was never created: its errors from an invalid reference end in Clear Errors.
 - A Stop Core that would only call its parent is not created.
+source: default
+
+## stop-core-order
+Stop Core calls its parent first, then releases. The parent Stop Core tells the auto-stop children to stop, so a child
+is told to stop before the resources it may use are released.
+Existing actors that release before Call Parent keep that order.
+source: default
+
+## pli-failure-cleanup
+A Pre Launch Init that fails cleans up after itself, because Stop Core does not run after a failed Pre Launch Init
+(`knowledge/actor-framework.md`). Pre Launch Init merges the errors of what it creates. A case structure on that merged
+error runs, in its Error case, the same release VIs that Stop Core and `close` use (`resources`), on whatever was
+created, and Pre Launch Init returns the error so the launch fails. The No Error case does nothing.
+Why: one release VI per resource group, reused, so a cleanup is written once and cannot drift between the paths.
 source: default
 
 ## events-typedef

@@ -281,13 +281,9 @@ Open questions. They are not decided, and nothing in the skill may assume an ans
 
 - **What Actor Core returns after an error into its Call Parent** (the rest is measured, see "Call order and
   lifecycle"). Needs a nested actor and a caller that reads its Last Ack.
-- **PLI failure cleanup** (open proposals AP-4, OV-5, DR-6). Should a PLI that created resources merge its errors and
-  call its parent only on no error, releasing what it created on error? Stop Core does not run after a failed PLI
-  (measured), so the release has to happen in PLI. Observed in production code: most GUI PLIs do exactly that, and one RT actor destroys its events on a PLI error. Skipping the empty parent PLI on error changes nothing
-  documented, but the shape is not run here, and the kit cannot yet script a case structure around Call Parent.
-- **Release order in Stop Core** (open proposals AP-2, OV-3): release before or after Stop Core's Call Parent. The base
-  Stop Core only stops auto-stop children, so the order matters only when a release depends on them. production code uses both
-  orders. Not decided.
+- **PLI failure cleanup and the Stop Core release order** were open proposals (AP-2, AP-4, OV-3, OV-5, DR-6). The user
+  settled them on 2026-10-09 as conventions (`convention: af-shapes.pli-failure-cleanup`, `af-shapes.stop-core-order`).
+  The PLI shape (a case structure on the merged error that reuses the release VIs) has not been run yet.
 - **A stop that comes before the loop has registered** (an actor stopped right after launch) is lost by documented
   behaviour. Whether that can happen with the stop sent after Call Parent was not measured.
 - **1608 in the parent Handle Error:** whether it is cleared like 43 or passed on.

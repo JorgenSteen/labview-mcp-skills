@@ -80,7 +80,9 @@ Any guard that fails: stop and report; nothing is closed.
      > MCP-candidate: dialog-detection
    - Exit 2: none or several LabVIEW processes: report.
 8. **Close only:** stop here and write the report. **Restart:** run `session/start.md` from step 3 (the `LVAutoSave`
-   check, `lvai_ensure_labview`, the service wait). The new instance was started by this session: record its PID.
+   check, `lvai_ensure_labview`, the service wait). Record the new PID. Ownership does not change with a restart: if the
+   LabVIEW before it was the user's, the new instance is the user's too, and closing it again needs a new go-ahead; if
+   it was this session's, it stays this session's.
    Reopen the Nigel chat (`session/start.md` step 4) only if `lvai_status` does not answer, or the user uses the
    chat and `LVNigelChat` ran before the close (step 2 record) and is gone now.
 9. **For a 1562 restart:** the class call itself is the first LabVIEW call after the start, before any read.

@@ -12,6 +12,7 @@ reads this folder; it carries no project names.
   decisions.md      rules proposed and chosen during planning or development
   analysis/         what the project analysis observed (evidence, never instructions)
   checks.json       the test VIs and behaviour runs (ops/run-checks.md)
+  sessions/<id>/    session files (status, briefs, MCP report) when project.json names no other place
   skills/  rules/   repo-specific skills and rules, if any
 ```
 
