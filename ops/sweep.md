@@ -33,8 +33,7 @@ sweep reads only and applies no convention, so it runs the same in local mode an
 2. **Loadability** (on code this session did not build): `python <skill>/kit/lv_loadability.py <folders>`, offline,
    seconds. Sweep only folders whose VIs all resolve. List the others as `not loadable: <folder>: <missing
    packages>` and do not load them: a missing package raises a modal "Find the VI" dialog that blocks every call.
-   If the kit has no `lv_loadability.py` yet (its port is open), ask the user which folders load on this LabVIEW,
-   and let the timed first batch (step 5) show the rate. > MCP-candidate: offline-loadability
+   On a PC with several LabVIEW versions pass `--vilib` for the project's LabVIEW. > MCP-candidate: offline-loadability
 3. **Path lists.**
    `python <skill>/kit/sweep_paths.py <folder or .vi> [...] --from 0 --to 10 --out <scratch>/sweep_0.txt`.
    - It lists every `*.vi` sorted (members stay grouped by library when their files are flat), plus one missing
