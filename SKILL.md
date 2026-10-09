@@ -85,7 +85,7 @@ These protect the files and the toolchain. They are not conventions and cannot b
 | Create an AF override and put hook VIs into it | `ops/override.md` |
 | Build an actor's helper loop | `ops/helper-loop.md` |
 | Add, change or remove a class field and its accessors | `ops/class-field.md` |
-| Rename a class member | `ops/rename.md` |
+| Rename a class member, class, library or typedef (always through LabVIEW) | `ops/rename.md` |
 | Icons: standard, apply, read back | `ops/icons.md` |
 | Clean Up Diagram on generated VIs | `ops/cleanup.md` |
 | Cold sweep: every VI runnable, membership consistent | `ops/sweep.md` |
