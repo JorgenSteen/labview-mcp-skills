@@ -70,6 +70,10 @@ sweep reads only and applies no convention, so it runs the same in local mode an
    - After the change, per path: state 1 before and after = fine; 1 before, not 1 after = **failure of this task**;
      not 1 before and after = **pre-existing** (reported; on code the task does not touch it is not fixed, `SKILL.md`,
      "Scope (maintenance)"); a VI the task added = must read 1.
+   - **A VI that was not runnable and that the task edited** is fine when it ends no worse than it started: the same
+     state and the same code as in the BEFORE run. Report it as **pre-existing, edited**. A different code means the
+     edit changed what is wrong with it: report it as **changed** (it may be better or worse; say which if the error
+     text shows it). The task does not have to make it runnable unless that is the task.
    - On a tree this session built from nothing there is no baseline: every VI must read 1.
 9. **Membership.** `python <skill>/kit/check_membership.py <folder>` per swept folder. Read its exit code directly:
    a pipe into `head`/`tail` hides it.
@@ -97,7 +101,7 @@ cold sweep <folders>  labview-mcp <version>  LabVIEW up <s> s  baseline <file | 
 not loadable: <folder: packages> | none
 batch <i>  <n> VIs  <ok>/<n> state 1  control <state> <code>  <s> s       (one line per batch)
 stopped at batch <i>: <reason>                                           (only if it stopped)
-not state 1: <path> <state> <code> <new | pre-existing>                   (or: none)
+not state 1: <path> <state> <code> <new | pre-existing | pre-existing, edited | changed>   (or: none)
 membership: checked <n>  not a member <m> (<new> new, <pre> pre-existing)  plain <p>
 git: unchanged | changed: <files>   side effects: <project closed: what it rewrote> | none
 LabVIEW calls <n>   sweep calls <s> s in total

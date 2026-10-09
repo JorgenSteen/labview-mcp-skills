@@ -74,7 +74,8 @@ These protect the files and the toolchain. They are not conventions and cannot b
 
 - **Scope (maintenance).** Conventions apply to new code. On existing code, change only what the task needs. Files
   and parts the task does not touch stay as they are, even where they break the conventions, unless the user asks.
-  Findings in untouched parts are reported, not fixed.
+  Findings in untouched parts are reported, not fixed. A VI that was not runnable may be edited; it must end no worse
+  than it started (same state and error code in the cold sweep, `ops/sweep.md`), and that is reported.
 - **New code in an old area.** A small change inside existing code follows that area's existing pattern; the local
   setup is the boss. A major change means asking the user which pattern to use before building.
 - **Precedence.** Rules come from three sources: (1) what the project already does (`observed`), (2) what was
