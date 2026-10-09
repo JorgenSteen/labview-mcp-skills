@@ -9,6 +9,12 @@ This file is the router. Everything else is in files beside it; read only those 
 `<skill>` below means this skill's folder. A project's conventions live in its repo, in `<repo>/.labview/`
 (format: `<skill>/conventions/dot-labview.md`).
 
+## LabVIEW must answer first
+
+Before the first LabVIEW call of a session, run `session/start.md`: it checks that LabVIEW and the labview-mcp
+service answer and starts them if not. Every other file assumes LabVIEW is running. A subagent that loses LabVIEW
+during its work stops and reports; it never starts or restarts LabVIEW itself.
+
 ## How much setup a task needs
 
 Decide the level before the first LabVIEW call. If the level is unclear, ask the user.
@@ -78,6 +84,7 @@ These protect the files and the toolchain. They are not conventions and cannot b
 | Cold sweep: every VI runnable, membership consistent | `ops/sweep.md` |
 | Run the project's test VIs and behaviour runs | `ops/run-checks.md` |
 | Review an AF design or a built actor against the conventions | `ops/review.md` |
+| LabVIEW or the labview-mcp service does not answer; start of a session | `session/start.md` |
 | Write a brief for a LabVIEW subagent, or brief a labview-mcp agent | `session/brief.md` |
 | Restart LabVIEW unattended | `session/restart.md` |
 | End a session: status, side-effects report, commit | `session/close.md` |

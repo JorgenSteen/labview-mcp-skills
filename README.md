@@ -13,9 +13,9 @@ pilot project.
 |---|---|---|
 | 1 Backbone | `SKILL.md`, `conventions/setup.md`, `conventions/dot-labview.md`, `conventions/templates/` | done |
 | 2 Default conventions | `conventions/defaults/{naming,af-shapes,errors,layout,configuration,icons,hygiene}.md` | done (the icon-spec template moves to step 5 with `make_icons.py`, whose format changes) |
-| 3 Knowledge + MCP index | `knowledge/actor-framework.md`, `knowledge/labview-mcp.md`, `MCP-CANDIDATES.md` | - |
+| 3 Knowledge + MCP index | `knowledge/actor-framework.md`, `knowledge/labview-mcp.md`, `MCP-CANDIDATES.md` | done |
 | 4 Ops | `ops/{analysis,override,helper-loop,class-field,rename,icons,cleanup,sweep,run-checks,review}.md` | - |
-| 5 Session + kit | `session/{brief,restart,close}.md`, `kit/` | - |
+| 5 Session + kit | `session/{start,brief,restart,close}.md`, `kit/` | `session/start.md` done (user's request), with `kit/lv_windows.ps1`, `lv_start_nigel_chat.ps1`, `lv_press_ok.ps1` ported unchanged; the rest is still to do |
 
 Choices made while building:
 - **Rule ids** use the form `convention: <concern>.<rule-id>`, with a `source:` tag and an optional `area:` per rule
