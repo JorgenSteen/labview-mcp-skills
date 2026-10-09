@@ -55,12 +55,12 @@ Any guard that fails: stop and report; nothing is closed.
    - Files this session made and has not saved: save them now, through the open project.
 3. **Does the service answer?** `lvai_status`. If it answers `DeadlineExceeded` or nothing, a helper may still run
    inside LabVIEW and steps 4–6 cannot run. Sample LabVIEW's CPU, with no LabVIEW call:
-   `$p = Get-Process -Id <pid>; $a = $p.TotalProcessorTime.TotalSeconds; Start-Sleep -Seconds 15; $p.Refresh();`
-   `$p.TotalProcessorTime.TotalSeconds - $a`
-   - **Busy** (more than about 0.5 s of CPU per 10 s): never close a busy LabVIEW; it does not take the close message.
+   `powershell -NoProfile -ExecutionPolicy Bypass -File <skill>/kit/wait_lv_idle.ps1 -Once` twice, at least 15 s
+   apart (exit 0 quiet, 1 busy), or without `-Once` to wait until it is idle (`-MaxMinutes` bounds the wait).
+   - **Busy:** never close a busy LabVIEW; it does not take the close message.
      Wait, re-sample, and report "busy since <time>" with the samples. One idle sample can be stale within minutes
      (a sweep read 0 s over 20 s, then 11.3 s over 15 s a minute later).
-   - **Idle** in two samples in a row: `lvai_status` again. Answers: go on. Still dead and no dialog: stop and report;
+   - **Idle** in two samples in a row (idle is not "safe": run `lv_windows.ps1` again for a dialog): `lvai_status` again. Answers: go on. Still dead and no dialog: stop and report;
      the user decides whether to close on the window list alone. > MCP-candidate: deadline-abort
 4. **Your project closed.** `lvai_close_active_project` saves and closes whatever is active, so if this session has
    a project open, make it the active one first: `lvai_open_file` with its `projectPath` (check `activeProjectPath`).
