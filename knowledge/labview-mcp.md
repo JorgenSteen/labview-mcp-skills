@@ -36,8 +36,9 @@ not repeated here.
 - Before loading code this session did not build, check offline that its dependencies resolve: every hang in the
   audit came from loading code with missing packages (proposal X-1, open in the audit).
   > MCP-candidate: offline-loadability
-- Restart LabVIEW only with the user's go-ahead in this session (`session/restart.md`). Never kill LabVIEW
-  (`Stop-Process`) on your own.
+- Close, restart or kill LabVIEW only with the user's go-ahead in this context (`session/restart.md`). The one
+  exception is a LabVIEW this session started itself (`session/start.md` records its PID), which this session may
+  close. Never close a LabVIEW the user opened without asking.
 
 ### Project open or closed, per kind of call
 
@@ -79,8 +80,8 @@ VI run while a project is open is adopted into that project. > MCP-candidate: pr
   went on. Pass `timeoutSeconds` 300 or more, then check the window list for a dialog. [1.8.5]
   > MCP-candidate: project-open-report
 - **`LVAutoSave` files while a project is open mean unsaved edits in memory**; the tool's close discards them with no
-  dialog (18 files to 0). Tell the user before such a close; whether it becomes a hard guard is open in the audit
-  (RS-2). [1.8.5] (audit rule candidate 111)
+  dialog (18 files to 0). If this session did not make those edits, the user is probably working in LabVIEW: ask
+  before the close (`SKILL.md`, "Save what you made; ask about the rest"). [1.8.5] (audit rule candidate 111)
 - Calls that close and save the active project as a side effect: `lvai_create_typedef` with another project's
   `projectPath`, `lvai_generate_vi` with `panePattern`, `lvai_wire_dynamic_events` with its default `finishUserEvents`.
   [1.8.0–1.8.5] (pilot rules 54, 67)
@@ -156,8 +157,9 @@ newer IDE is fine; upgrading the files is not (the user's decision). Route:
 3. **Save through the open project.** Saves with the project open kept their 2020 version; saves with **no project
    open** went to 26.0, VIs and `.lvclass` alike (Clean Up Diagram and icon helpers run cold). Unverified: whether
    `Save.Instrument` on a VI opened by path, not through the project, follows the project's setting. Helpers that must
-   run with the project closed (icons, cleanup, re-save, property setters) therefore need a `.lvversion` over the tree
-   or a library/class Save version on code older than the IDE (documented by NI, not measured here).
+   run with the project closed (icons, cleanup, re-save, property setters) would upgrade code older than the IDE. A
+   `.lvversion` over the tree or a library/class Save version may prevent that (documented by NI, not measured here).
+   When such a conflict comes up, ask the user before the save.
 4. **Re-scan after the step.** Any file newer than `save_version`: stop and report; restore it from git with the
    project closed. Never use Save for Previous (it writes lossy copies).
 5. Every version change and every Save version written goes into the end report's side effects.

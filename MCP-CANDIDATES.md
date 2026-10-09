@@ -11,6 +11,13 @@ lists, set the status to `shipped in <version>`, and keep the entry.
 decided by the user), `possibly fixed upstream` (labview-mcp's source or docs suggest it is covered; no run here
 confirms it), `submitted` (issue or PR open upstream), `shipped`.
 
+**Contributing upstream** (the user's decision, 2026-10-09). The candidates stay in this skill until labview-mcp
+ships them. What goes upstream is both the candidates (as issues or pull requests) and the knowledge behind them: the
+gap descriptions and measured facts in `knowledge/labview-mcp.md`, in the form of labview-mcp's own `docs/*.md`.
+- Check each one against the newest labview-mcp release first, not against the old local checkout.
+- Nothing is sent without the user's go-ahead for that batch, since it publishes to an outside repository.
+- After a send, set the status to `submitted` with the link.
+
 **Baseline:** labview-mcp 1.8.5 (`133df69`, the installed version). The local checkout of the plugin repository is at
 `f3091d4`, which is the **v1.8.0** tag, older than 1.8.5; upstream has v1.8.6 (`7702e6d`), not inspected. Check each
 entry against the newest release before submitting it.

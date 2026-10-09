@@ -49,8 +49,11 @@ with its guards and the user's go-ahead.
 
 ## Report (one line per session)
 
-`LabVIEW: <already running | started (<s> s, launchMethod <m>)> port <p>, up <s> s; Nigel chat: <running | opened |
-not needed>; LVAutoSave: <n> files <kept | cleared with the user's ok>`
+`LabVIEW: <already running (the user's) | started by this session (<s> s, launchMethod <m>, PID <pid>)> port <p>, up <s> s;
+Nigel chat: <running | opened | not needed>; LVAutoSave: <n> files <kept | cleared with the user's ok>`
+
+Who started LabVIEW decides who may close it (`SKILL.md`, "The user's LabVIEW is the user's"). Keep the PID: a
+LabVIEW with another PID later is not the one this session started.
 
 Starting LabVIEW, opening the Nigel chat and clearing `LVAutoSave` are side effects. They go into the end-of-session
 report (`session/close.md`).

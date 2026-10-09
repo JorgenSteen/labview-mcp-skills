@@ -39,8 +39,15 @@ These protect the files and the toolchain. They are not conventions and cannot b
 - **Save version.** Before the first save, scan the version of the files to be saved, and make sure the save cannot
   upgrade them. Use the project's Save version (`project.json` `save_version`, or what the files show), and save
   through the open project. Re-scan after the step: any file newer than the project's version means stop and report.
-  A one-VI fix saved from a newer LabVIEW makes that VI unloadable in the project's version. Route:
+  If a step cannot avoid changing a file's version (e.g. a helper that must run with the project closed), ask the user
+  before the save. A one-VI fix saved from a newer LabVIEW makes that VI unloadable in the project's version. Route:
   `knowledge/labview-mcp.md`, "Save version".
+- **The user's LabVIEW is the user's.** A LabVIEW this session did not start is closed, restarted or killed only with
+  the user's go-ahead in this context (`session/restart.md`). A LabVIEW this session started itself
+  (`session/start.md` records it) may be closed by this session.
+- **Save what you made; ask about the rest.** Files this session created or changed, it saves. Open, unsaved files it
+  did not make (`*` in a window title, or `LVAutoSave` files while a project is open) mean the user is probably
+  working in LabVIEW: ask before any close, restart, save or discard that would touch them.
 - **Git is the only undo.** Commit before every structural step. If there is no git, see `dot-labview.md`, "No git".
 - **One LabVIEW caller at a time.** Make calls strictly in sequence. A crash or a hung call stops the work and is
   reported, with no retry loops (`knowledge/labview-mcp.md`).
