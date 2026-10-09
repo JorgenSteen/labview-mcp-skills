@@ -411,6 +411,15 @@ They hold for any VI Server or AIXML route, the kit's included.
 - A string constant is not visible to `grep -a` on a `.vi` (the diagram is compressed); a subVI link and the VI
   description are. A raw grep also hits inherited help text: grep qualified names. (pilot rule 87)
 
+- **Merge Errors by scripting:** New VI Object with `vi object class` **GrowableFunction**, style **2147** (the palette
+  id); the node then reads Class Name "Bundler". `Function` answers error 1057. Pick its inputs as the terminals with
+  `Is Source?` = F, in pane order. [LabVIEW 2026 Q3] (skillsaudit M-CLOSE, 2026-10-09)
+- **A flat-sequence tunnel with no wire on either side is deleted by LabVIEW.** A helper that deletes a net and then
+  wires to "the old tunnel" fails with 1055: rebuild the tunnel by wiring through it again. [LabVIEW 2026 Q3]
+  (skillsaudit M-CLOSE, 2026-10-09)
+- **The `close` join is scripted by `<skill>/kit/pa_close_join.xml`** (measured 2026-10-09, one run with the project
+  active, then `pa_save_member`; ~25 s generate + < 1 s run). `ops/helper-loop.md` has the route. > MCP-candidate: add-hook
+
 ## Harness quirks
 - Parallel Bash calls share one shell and one working directory: absolute paths everywhere. (pilot rule 18)
 - Long heredocs with nested quotes corrupt Windows paths and escapes: write the script or AIXML with the Write tool and

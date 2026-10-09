@@ -33,7 +33,8 @@ docs, or NI/AF designers on the NI forum), **observed in production code** (the 
   measured in the pilot project pilot (its rule 93); documented (AristosQueue, NI forum 2016).*
 - **Stop Core runs only if Actor Core started.** It does not run after a failed PLI. So a PLI that fails must release
   what it already created itself. *Evidence: documented (AristosQueue, NI forum, "Cleanup after Pre Launch Init");
-  unmeasured here (see "Not yet measured").*
+  measured 2026-10-09 (skillsaudit M-CLOSE M3): a PLI returning error 5000 after its Call Parent made Launch return
+  5000 with no Stop Core log line and no hang; the control run without the error logged Stop Core.*
 - **Stop Core's pane has no error in or error out,** only `final error code`, which tells whether the actor stopped
   because of an error. The base Stop Core passes the stop to every auto-stop nested actor. A child launched with
   auto-stop FALSE must be stopped by the caller's own Stop Core. AF gives Stop Core no error report because the caller
@@ -43,8 +44,11 @@ docs, or NI/AF designers on the NI forum), **observed in production code** (the 
   so Handle Error is called once at each stop, before Stop Core. Emergency Stop returns 1608. Outside a stop, Handle
   Error runs only when a message's `Do.vi` returned an error. *Evidence: measured in the pilot project pilot (its rules
   27 and 88).*
-- **An error wired into Actor Core's Call Parent** skips Handle Error, but Stop Core still runs and Actor Core returns
-  the error. *Evidence: documented (AristosQueue 2016, CaseyM 2023, NI forum); unmeasured here.*
+- **An error wired into Actor Core's Call Parent** skips Handle Error, but Stop Core still runs and the actor stops by
+  itself. The launcher sees nothing at Launch (error 0); its next `Send` to the actor fails with 1556. *Evidence:
+  documented (AristosQueue 2016, CaseyM 2023, NI forum); measured 2026-10-09 (skillsaudit M-CLOSE M4, error 5001, with
+  a control run where Handle Error logged 43). What Actor Core then returns was not observed: a root actor's output
+  reaches no caller.*
 - **Handle Last Ack Core** runs in the caller when a nested actor has stopped. Its Last Ack carries the stopped actor's
   object and its error. The base version only returns that error, so by default a child's error stops its caller,
   and the stop travels up the tree. *Evidence: documented (AF help).* (`convention: af-shapes.handle-last-ack`.)
@@ -102,6 +106,12 @@ docs, or NI/AF designers on the NI forum), **observed in production code** (the 
   the opposite; the newer R&D statements and the measurement agree. *Evidence: measured in the pilot project pilot (its
   rule 97); documented (justACS 2016, Darren 2023, NI forum).* The same holds when both the generate and the destroy
   sit in Stop Core. *Evidence: documented (NI forum); observed in production code, where several actors do exactly that.*
+- **`close` after the joined error wires works.** Actor Core: the helper loop beside Call Parent; after Call Parent the
+  stop hook on a fresh chain; Merge Errors(loop `error out`, stop hook `error out`) → `close` (Destroy User Event);
+  Merge Errors(Call Parent `error out`, `close` `error out`) → Actor Core `error out`. In 5 of 5 runs (four with a
+  launcher that stops the actor after 1 s, one with a launcher that exits at once and a stop ~16 s later) `close` ran
+  7–112 ms after both the loop's exit and the stop, error 0, the actor stopped, no hang. *Evidence: measured
+  2026-10-09 (skillsaudit `measure/PB-CLOSE`, run/close_M1.txt).* (`convention: af-shapes.close-vi`.)
 - **A hung helper loop cannot be freed by VI Server.** Abort VI on it answers error 1000, and Callers' Names returns
   the original `Actor Core.vi`, not the running clone. Only a LabVIEW restart frees it. *Evidence: measured in the
   pilot project pilot (its rule 94).*
@@ -119,6 +129,9 @@ docs, or NI/AF designers on the NI forum), **observed in production code** (the 
 - **Events generated before Register are not seen.** Registration starts queuing from the moment Register runs. A
   stop generated before the loop has registered is lost. *Evidence: documented (LabVIEW help); the consequence for
   an actor that stops very early is reasoned, unmeasured.*
+- **Destroy on an already destroyed user event answered error 0** in 5 of 5 runs (the loop VI had destroyed the events
+  and `close` destroyed them again). *Evidence: measured indirectly, 2026-10-09 (skillsaudit M-CLOSE M1).* Do not build
+  on it; destroy each event in one place.
 - **Error behaviour of the event nodes.** Generate User Event skips on an incoming error. Destroy User Event and
   Unregister For Events run even with an error in, so both are safe at the end of an error chain. *Evidence:
   documented (LabVIEW help).*
@@ -266,21 +279,15 @@ af-shapes.one-pattern-per-area`). NI recommends one data-transfer mechanism per 
 
 Open questions. They are not decided, and nothing in the skill may assume an answer.
 
-- **Does Stop Core run after a failed PLI?** AristosQueue says no (Stop Core's predicate is that Actor Core started),
-  but no run here confirms it. It decides whether PLI needs its own failure cleanup.
-- **What does the parent Actor Core do with an error on `error in`?** Forum posts say: no Handle Error, Stop Core still
-  runs, Actor Core returns the error. Not run here. It matters for an actor whose own code before Call Parent fails.
+- **What Actor Core returns after an error into its Call Parent** (the rest is measured, see "Call order and
+  lifecycle"). Needs a nested actor and a caller that reads its Last Ack.
 - **PLI failure cleanup** (open proposals AP-4, OV-5, DR-6). Should a PLI that created resources merge its errors and
-  call its parent only on no error, releasing what it created on error? Observed in production code: most GUI PLIs do exactly
-  that, and one RT actor destroys its events on a PLI error. Skipping the empty parent PLI on error changes nothing
+  call its parent only on no error, releasing what it created on error? Stop Core does not run after a failed PLI
+  (measured), so the release has to happen in PLI. Observed in production code: most GUI PLIs do exactly that, and one RT actor destroys its events on a PLI error. Skipping the empty parent PLI on error changes nothing
   documented, but the shape is not run here, and the kit cannot yet script a case structure around Call Parent.
 - **Release order in Stop Core** (open proposals AP-2, OV-3): release before or after Stop Core's Call Parent. The base
   Stop Core only stops auto-stop children, so the order matters only when a release depends on them. production code uses both
   orders. Not decided.
-- **`close` after the joined error wires.** Destroying the user events in a VI fed by both the helper loop's
-  `error out` and the stop's `error out` follows from data flow (it cannot run before the loop has exited and the stop
-  is sent), but this shape has not been run. Only "destroy right after the stop" is measured (see "Generate, then
-  Destroy" above).
 - **A stop that comes before the loop has registered** (an actor stopped right after launch) is lost by documented
   behaviour. Whether that can happen with the stop sent after Call Parent was not measured.
 - **1608 in the parent Handle Error:** whether it is cleared like 43 or passed on.

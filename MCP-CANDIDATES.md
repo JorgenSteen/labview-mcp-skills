@@ -48,6 +48,12 @@ files it found, with a `dryRun` that only counts them. **Evidence** the tool's o
 99; H19, H21. **Workaround** `session/start.md` with `kit/lv_windows.ps1`, `kit/lv_start_nigel_chat.ps1`.
 **Removes** steps 2–4 of `session/start.md`.
 
+## exec-state-target
+**Status** proposed. **Gap** no tool reads a VI's execution state inside a project target, so a cold sweep never sees
+Conditional Disable symbols set on a target. **Proposed** `lvai_exec_state(viPaths, projectPath, target)`, or a
+`target` option on `exec-state-batch`. **Evidence** CS-6; Q27; audit D10. **Workaround** none; the sweep report says
+which variant it checked. **Removes** the coverage note in `ops/sweep.md`.
+
 ## dialog-detection
 **Status** proposed (S9); its dependency-check half (MC-2) is open in audit. **Gap** a modal dialog (`Find the VI
 Named …`, a library search, a save prompt, autosave recovery) blocks the service; the agent sees only a timeout.
