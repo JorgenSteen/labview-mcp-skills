@@ -38,5 +38,4 @@ The actor that owns a part of the system reads its configuration, e.g. the root 
 hardware manager the hardware configuration. Values a child actor needs at launch are passed down in its pre-launch
 settings (`af-shapes.prelaunch-settings`). The settings may decide which nested actors are launched. An actor that
 must pick up changed settings at run time gets a reload message.
-Inferred from production code's layout; setup confirms it with the user.
 source: default

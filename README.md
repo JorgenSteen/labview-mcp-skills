@@ -42,6 +42,5 @@ Step 2, settled by the user on 2026-10-09:
 - Actor Core returns the merged error including Call Parent's, so an error ends the actor by default.
 - **A seventh concern, `configuration.md`:** the user chose the INI config class. It follows production code RT: one parent
   config class, one child per INI file, a `[metadata]` section with the version. The user's principle: each topic
-  gets its own default, and the default is how the user works now. `who-reads` is inferred from production code and still to
-  be confirmed.
+  gets its own default, and the default is how the user works now. The user confirmed `who-reads`.
 - Disabled instrumentation and an actor template kept in the project are not defaults.
