@@ -109,26 +109,31 @@ lives in `Helpers` (`layout.class-folders`).
 source: default
 
 ## helper-loop-error-case
-The loop VI wraps all its content in a case structure on `error in`.
-- **Error case:** nothing runs, the error passes through, and the VI returns at once.
-- **No Error case:** Register For Events → loop(s) → Unregister For Events → Merge Errors → `error out`.
-Why: on an upstream error the loop never starts, so nothing waits for a stop that cannot arrive.
+The error case is INSIDE the loop. Register For Events and Unregister For Events sit outside it and run regardless of
+an incoming error (`registration`). The loop carries the error in a shift register; inside the loop, a case structure on
+that error:
+- **Error case:** the loop stops at this iteration and passes the error on.
+- **No Error case:** the loop's work (the event structure, or the timed or polling work).
+After the loop: Unregister → Merge Errors → `error out`.
+Why: the registration always exists, so the stop always reaches the loop, and an error ends the loop on its next
+iteration instead of leaving it waiting.
 source: default
 
 ## registration
-Register For Events sits in the loop VI's No Error case, right before the loop. Unregister For Events sits right
-after the loop, in the same case. New code never registers in Pre Launch Init. The registration refnum enters the
+Register For Events sits right before the loop and Unregister For Events right after it, both outside the error case
+and both run regardless of an incoming error: Register gets no incoming error (a fresh "no error"), Unregister runs
+with one anyway. New code never registers in Pre Launch Init. The registration refnum enters the
 event structure's dynamic event terminal (left edge), and the terminal's right-side output is wired out of the loop
 into Unregister. There is no separate tunnel for the refnum, and no wire around the event structure.
 source: default
 
 ## stop-mechanism
-How a loop is told to stop depends on the loop:
-- A purely event-driven loop stops on the stop user event.
-- Any other loop (polling, timed producer, ...) stops on a local `stop` variable.
-- Mixed is normal: the event loop receives the stop event and writes the local that stops the other loops. All the
-  loops sit in the one loop VI, because a local works only inside the VI that owns the control. `stop` is written F
-  before the loops start, because an off-pane control keeps its last value between calls.
+Every helper-loop VI has at least one loop that waits on an asynchronous stop: a user event by default, or another
+async mechanism (a notifier, a queue). That loop exits on the stop and sets a local `stop` to T, which stops every
+other loop in the VI (polling, timed producer, ...).
+- A loop VI with only one loop: that loop is the event loop, and the stop event ends it.
+- All the loops sit in the one loop VI, because a local works only inside the VI that owns the control (Actor Core
+  cannot write it). `stop` is written F before the loops start, because an off-pane control keeps its last value.
 - Never stop a loop by aborting it.
 source: default
 

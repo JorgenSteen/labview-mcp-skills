@@ -26,10 +26,10 @@ or when a concern is off, follow the surrounding code instead.
   `session/brief.md` with the parent `vi.lib\ActorFramework\Actor\Actor.lvclass`, the `events` and
   `prelaunchSettings` fields, "make only the accessors `Read events`, `Write events`, static, private" (or none yet),
   and the folder, naming and scope rules from that file's table; check it afterwards as that file says.
-- **The kind of loop** (`convention: af-shapes.stop-mechanism`): variant 1 is one event loop; variant 2 is an event
-  loop plus other loops (timed producer, polling) in the same VI, joined by the local `stop`. A loop VI with no event
-  loop at all cannot be stopped from Actor Core by a local, because a local works only inside its own VI. The measured
-  form is variant 2; any other (a notifier, ...) is a convention question: ask.
+- **The kind of loop** (`convention: af-shapes.stop-mechanism`): every loop VI has at least one loop on an async stop
+  (a user event by default). Variant 1 is that event loop alone; variant 2 adds other loops (timed producer, polling)
+  in the same VI, stopped by the local `stop` the event loop sets. A polling-only loop VI therefore gets an event loop
+  too. A notifier or queue instead of the user event is allowed by the convention but not measured here.
 - **Build order, project state, commits:** `knowledge/labview-mcp.md`, "Evidence, git, build order" and "Project open
   or closed, per kind of call". Commit before each structural step (typedef, field, each member, the loop, each hook).
 
@@ -52,15 +52,17 @@ or when a concern is off, follow the surrounding code instead.
    build on a second destroy answering 0.
 3. **Loop VI AIXML** at the member path (`convention: af-shapes.helper-loop-vi`), class terminal `<C> in` as a `path`
    stand-in, accessor and `Send` calls as stubs:
-   - **The error case** (`convention: af-shapes.helper-loop-error-case`): a `<Structure _name="Case Structure">` with
-     `selectin` = the `error in` wire. The AIXML reference lists error-cluster selectors (`No Error`, `Error 1..5`,
-     `Default`), so it can be authored before generation; which selector gives LabVIEW's plain "Error" frame, and every
-     step below inside the frame, is **unmeasured** (the measured loops used a fresh "no error" into Register). Every
-     output tunnel needs a value in both frames.
-   - In the No Error frame (`convention: af-shapes.registration`): `Read events` → `Unbundle By Name` → `Register For
-     Events` with one `event source` per element (the measured form; the whole cluster compiles, not run here) → the
-     loop(s) → `Unregister For Events` → `Merge Errors`. Leave Register's output and Unregister's `event registration
-     refnum` input unwired, and author **no** refnum `<Tunnel>`: the dynamic wiring is steps 5 and 6.
+   - **Registration, outside the loop** (`convention: af-shapes.registration`): `Read events` → `Unbundle By Name` →
+     `Register For Events` with one `event source` per element (the measured form; the whole cluster compiles, not run
+     here) and **no incoming error** (a fresh "no error", measured in the pilot) → the loop(s) → `Unregister For
+     Events` → `Merge Errors` (`error in`, the loop's error, Unregister's) → `error out`. Leave Register's output and
+     Unregister's `event registration refnum` input unwired, and author **no** refnum `<Tunnel>`: the dynamic wiring is
+     steps 5 and 6.
+   - **The error case, inside the loop** (`convention: af-shapes.helper-loop-error-case`): `error in` enters the loop in
+     a shift register; a `<Structure _name="Case Structure">` with `selectin` = that error. Error frame: the loop's stop
+     terminal T, the error passed on. No Error frame: the event structure (or the loop's work). The AIXML reference
+     lists error-cluster selectors (`No Error`, `Error 1..5`, `Default`). Every output tunnel needs a value in both
+     frames. **Unmeasured:** this shape was not built in the measurement (the measured loop had no case structure).
    - Frames select the element label, e.g. ` <stop>\3A User Event `. Timeout frame per `convention:
      af-shapes.timed-work`; an event structure whose frames are all user events needs an empty one for step 7.
    - Sends to its own actor: `Read Self Enqueuer` → a generated `Send <method>.vi` (protected: the VI must be a member).
@@ -72,7 +74,7 @@ or when a concern is off, follow the surrounding code instead.
    - `kit/example_helper_loop.xml` is an older body with a notifier exit: copy spellings from it, not its stop shape.
 4. **Generate**, project closed: `lvai_generate_vi_with_events(aiXmlFilePath, viPath = <member path>)`. `ok:false` and
    state 0 are expected until step 9. It refuses two event structures in one document. Whether it keeps an event
-   structure nested in a case frame is unmeasured. > MCP-candidate: generate-with-events-fixes
+   structure nested in a case frame inside the loop is unmeasured. > MCP-candidate: generate-with-events-fixes
 5. **Left side of the registration**, project open and active (the VI is not a member yet; the `.lvproj` lists it
    loose until step 9): `lvai_wire_dynamic_events(viPath, finishUserEvents: false)`. Expected: `sourceFrom diagram`,
    `wireEndsAfter 2`, Error 91 / `helperDidNotAnswer`. The default `finishUserEvents` closes and saves the active
@@ -80,8 +82,8 @@ or when a concern is off, follow the surrounding code instead.
 6. **Right side**, project open and active: `kit/pa_wire_dyn_right.xml` (`VI Path`, capitals as written): `event
    structure found`, `dyn out found`, `unregister found` T, `wire ends after` 2, `wire broken` F. **Gap:** as written it
    looks for the event structure one level inside a top-level loop or case, and for Unregister on the top-level
-   diagram. Inside the error case the event structure is two levels down and Unregister is in the frame, so it will
-   not find them. Extend its search to the No Error frame and measure that on a throwaway first.
+   diagram. Unregister is still on the top-level diagram, but the event structure is now two levels down (loop → case No
+   Error frame), so it will not find it. Extend its search one level and measure that on a throwaway first.
    > MCP-candidate: wire-dynamic-events-fix
 7. **User-event specs**, project closed: `pylv_extract` → `python <skill>/kit/set_user_event_specs.py <bundle> <base>
    <diagramIdx>:<element label>:<dynIndex> ...` → `pylv_rebuild`. `diagramIdx` = the frame's position in the document
@@ -110,16 +112,15 @@ or when a concern is off, follow the surrounding code instead.
       shape D (`source terminal name` = `<C> in` finds the loop's node on that wire); then shape D-close with
       `close vi path` = `close`, `loop vi regex` = the loop VI's name, `stop vi regex` = the stop hook's name.
     - The kit's branch hook wires the class terminal only: the loop's `error in` stays unwired (no error), as in the
-      measured run. Feeding it from Actor Core's `error in` needs a second wire no helper makes: unmeasured.
-      > MCP-candidate: add-hook
+      measured run. That is the user's decision (2026-10-09): no extra wiring.
     - No Stop Core override is made for the loop (`convention: af-shapes.resources`).
 
 ## Checks
 
 - Close the project. Cold sweep of the class folder with a negative control, and `kit/check_membership.py <class
   folder>` (`ops/sweep.md`). State 0 on the loop before step 9 is expected; after it, every member reads 1.
-- Export the loop VI (`lvai_convert_vi_to_aixml`; create the folder first): the case structure with both frames; in
-  No Error, a loop `<Tunnel ... inputs="value:<Register>.event registration refnum">` whose inside net has no
+- Export the loop VI (`lvai_convert_vi_to_aixml`; create the folder first): Register before the loop with no incoming
+  error, the case structure with both frames inside the loop, Unregister after it; a loop `<Tunnel ... inputs="value:<Register>.event registration refnum">` whose inside net has no
   consumer, a loop output tunnel feeding Unregister, no refnum `<Tunnel>` on the event structure; variant 2 lists its
   locals (init write, event-loop write, producer read). `python <skill>/kit/vi_nets.py <vi>` shows the dynamic
   terminal's wire offline.

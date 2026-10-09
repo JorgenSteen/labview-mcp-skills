@@ -49,7 +49,7 @@ A finding without evidence is not a finding.
 |---|---|---|
 | a Destroy that can run before the stop is generated or before the loop exits | Stop Core, Actor Core after Call Parent, `close`, the loop VI (nets) | Destroy in Stop Core while the stop is sent after Call Parent; Destroy in the loop VI. Generate-then-Destroy both in Stop Core is not this hazard |
 | the stop's Generate chained on Call Parent's error | Actor Core nets: Generate's `error in` source | skipped exactly when Call Parent failed |
-| a loop whose only exit is an event, with Register skippable by an upstream error | loop VI nets: Register's `error in`, an error case around the loop | the loop can start unregistered and wait for ever |
+| a loop whose only exit is an event, with Register skippable by an upstream error | loop VI nets: Register's `error in` (no incoming error in the convention), the error case inside the loop | the loop can start unregistered and wait for ever |
 | a launch in Pre Launch Init | PLI nets: Launch Root/Nested Actor | hangs |
 | private dynamic-dispatch member; static VI inside a dynamic recursion cycle | `.lvclass` scope and `IsStaticMethod` | broken VI |
 | a handler before Call Parent that is meant to keep the actor running | Handle Error nets | the parent still returns `stop actor?` = T |
