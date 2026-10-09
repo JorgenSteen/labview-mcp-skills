@@ -60,7 +60,9 @@ These protect the files and the toolchain. They are not conventions and cannot b
   `knowledge/labview-mcp.md`, "Save version".
 - **The user's LabVIEW is the user's.** A LabVIEW this session did not start is closed, restarted or killed only with
   the user's go-ahead in this context (`session/restart.md`), or, for a restart only, the project's standing
-  go-ahead (`project.json` `restart_go_ahead: always`, set by the user; default `ask`). A LabVIEW this session started itself
+  go-ahead (`project.json` `restart_go_ahead: always`, set by the user; default `ask`). An **empty** LabVIEW (only
+  LabVIEW's own windows and Nigel, nothing of the user's open, no autosave files, idle) may be closed or restarted
+  without asking; the check is in `session/restart.md`. A kill always needs its own go-ahead. A LabVIEW this session started itself
   (`session/start.md` records it) may be closed by this session.
 - **Save what you made; ask about the rest.** Files this session created or changed, it saves. Open, unsaved files it
   did not make (`*` in a window title, or `LVAutoSave` files while a project is open) mean the user is probably

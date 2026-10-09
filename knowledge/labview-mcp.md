@@ -37,8 +37,9 @@ not repeated here.
   audit came from loading code with missing packages (proposal X-1, open in the audit).
   > MCP-candidate: offline-loadability
 - Close, restart or kill LabVIEW only with the user's go-ahead in this context (`session/restart.md`). The one
-  exception is a LabVIEW this session started itself (`session/start.md` records its PID), which this session may
-  close. Never close a LabVIEW the user opened without asking.
+  exceptions are a LabVIEW this session started itself (`session/start.md` records its PID) and an empty LabVIEW
+  (nothing of the user's open; the check is in `session/restart.md`), which this session may close. Never close a
+  LabVIEW with the user's work open without asking.
 
 ### Project open or closed, per kind of call
 

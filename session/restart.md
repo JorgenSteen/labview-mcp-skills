@@ -17,9 +17,19 @@ How a timed-out call blocks the service: `knowledge/labview-mcp.md`, "A failed, 
 | LabVIEW | Close or restart |
 |---|---|
 | started by this session: its PID is the one `session/start.md` recorded | this session may close it, no go-ahead |
+| any other, but **empty** (below): nothing open that this session did not start | this session may close or restart it, no go-ahead |
 | any other: the user opened it, an earlier session started it, or the PID differs | only with the user's go-ahead in this context, or the project's standing go-ahead (below) |
 | kill (`Stop-Process`), any LabVIEW, this session's own included | only with an explicit go-ahead for that kill |
 
+- **An empty LabVIEW** (the user's rule, 2026-10-09: "if Nigel and basic LabVIEW is open, it is ok to close and
+  restart at will"). LabVIEW counts as empty when all of these hold, checked with no LabVIEW call where possible:
+  - the window list (`<skill>/kit/lv_windows.ps1`) shows only LabVIEW's own frame windows (Getting Started, the
+    hidden system windows) and the Nigel chat: no VI panel or diagram, no project window, no dialog, no `*` title;
+  - `LVAutoSave` holds no files;
+  - LabVIEW is idle (`<skill>/kit/wait_lv_idle.ps1 -Once`, quiet);
+  - if the service answers, `pa_vis_in_memory` lists only labview-mcp's own helpers and VIs this session made (step 5).
+  Anything else open, or any check that cannot run, means it is not empty: the go-ahead rule applies. Write in the
+  report which checks made it empty. A kill still needs its own explicit go-ahead.
 - **A standing go-ahead per project** (the user's rule, 2026-10-09): `project.json` `restart_go_ahead` is `ask` by
   default. Only the user sets it to `always` (with `restart_go_ahead_note`: who, when, their words). With `always`,
   a restart this project needs is done without asking each time, but every guard below still runs; unsaved files
