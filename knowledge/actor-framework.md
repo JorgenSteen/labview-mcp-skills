@@ -26,8 +26,8 @@ docs, or NI/AF designers on the NI forum), **observed in production code** (the 
 - **Actor Core** is the message loop. An override runs its own code in parallel with Call Parent. Call Parent
   returns only when the message loop has ended and Stop Core has run.
 - **Run order, measured.** PLI → Actor Core (series hooks, then branch hooks) → (a Normal Stop arrives) →
-  Handle Error → Stop Core → Call Parent returns → code placed after Call Parent → the override's branches finish. *Evidence:
-  measured in the pilot project pilot (2026-09, its rule 88).*
+  Handle Error → Stop Core → Call Parent returns → code placed after Call Parent → the override's branches finish.
+  *Evidence: measured in the pilot project pilot (2026-09, its rule 88).*
 - **Stop Core runs inside Actor Core's Call Parent,** so it runs before anything placed after Call Parent. A log line
   from Stop Core came first, in the same millisecond tick as a line from the after-Call-Parent hook. *Evidence:
   measured in the pilot project pilot (its rule 93); documented (AristosQueue, NI forum 2016).*
