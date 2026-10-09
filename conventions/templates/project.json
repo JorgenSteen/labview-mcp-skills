@@ -9,6 +9,7 @@
   "save_version": "20.0",
   "git": true,
   "conventions_mode": "full",
+  "analysis_depth": "standard",
   "proof_folder": "proof",
   "proof_prefix": "PB-",
   "briefs_folder": "docs/briefs/session-<X>/",

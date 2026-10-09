@@ -15,6 +15,22 @@ Before the first LabVIEW call of a session, run `session/start.md`: it checks th
 service answer and starts them if not. Every other file assumes LabVIEW is running. A subagent that loses LabVIEW
 during its work stops and reports; it never starts or restarts LabVIEW itself.
 
+## First time in a project
+
+When a task touches a project that has never used this skill (no `<repo>/.labview/`), ask once, before the work,
+how thoroughly the code should be analysed. Give the cost of each option:
+
+| Option | What is read | Cost (rough) |
+|---|---|---|
+| **None** | nothing; local mode: every change follows the code around it | no extra time or tokens |
+| **Quick** | offline: inventory, file versions, loadability, naming, layout | minutes; few tokens |
+| **Standard** | Quick + AF shapes, error handling, configuration (offline, per actor) | tens of minutes; more tokens, grows with the number of actors |
+| **Full** | Standard + icons, tests, and the parts that need LabVIEW (frame names, Timeout values, test runs) | an hour or more on a large tree; many tokens; loads code in LabVIEW |
+
+The analysis is `ops/analysis.md`. Write the answer to `.labview/project.json` (`analysis_depth`, and for None
+`"conventions_mode": "local"`) only with the user's ok, so the question does not come back. The depth chosen also
+sets how much a later level-4 setup reads before it asks.
+
 ## How much setup a task needs
 
 Decide the level before the first LabVIEW call. If the level is unclear, ask the user.

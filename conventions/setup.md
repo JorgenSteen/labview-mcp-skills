@@ -23,7 +23,7 @@ its own, and never overrides what the project already does without asking.
 | Some concerns in scope are missing | Section 3 or 4, for those concerns only. |
 | `project.json` says `"conventions_mode": "local"` | Ask the user first: conventions for this change (which concerns), or follow the surrounding code. On "conventions", set the mode to `full` and continue. |
 | `.labview/project.json` is schema 1 (the pilot project pilot) | Offer the migration (`dot-labview.md`). Without the user's yes, read it as it is and write the conventions beside it. |
-| No `.labview/`, and LabVIEW code exists | Section 2, then section 3. |
+| No `.labview/`, and LabVIEW code exists | Ask the first-contact question (`SKILL.md`, "First time in a project") if it was not asked yet, then section 2, then section 3 at the chosen depth. |
 | No `.labview/`, and no or almost no LabVIEW code | Section 2, then section 4. |
 | The repo is not under git | Ask first (`dot-labview.md`, "No git"). |
 

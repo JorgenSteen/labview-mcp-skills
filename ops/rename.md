@@ -32,9 +32,11 @@ instead.
 - **Setup level 3** (a minor edit) for a rename the user asked for; the new name follows the convention files, or
   the neighbours in local mode. A rename that a naming change drives over several items is level 4: ask first.
 - **What is measured:** the member route below (`Save.Instrument` to the new path with the class and the callers
-  loaded; pilot rules 64, 85). **Classes, libraries and typedefs: unmeasured.** Ask the user before the first one,
-  and offer two ways: they rename it in the Project Explorer themselves with every user loaded, or a measurement on
-  a scratch copy comes first. Until one is measured, this file has no route for them.
+  loaded; pilot rules 64, 85). **Classes, libraries and typedefs: the user renames them in the Project Explorer**
+  (the user's choice, 2026-10-09). The skill does everything around it: steps 1–4 (every user found, loadable, in the
+  project, committed, versions scanned), then hands the user the list of users to load and the new name, and after
+  the user's rename runs steps 6–8 (old file gone, string references, checks). A scripted route is measured on a
+  scratch copy only if the user asks for one.
   > MCP-candidate: rename-member (proposal: extend it to `.lvclass`, `.lvlib` and `.ctl`, with the same "load every
   > user, report each relink" contract)
 - **A dynamic-dispatch member** that child classes override: each override must be renamed with it, or the children

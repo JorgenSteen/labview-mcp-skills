@@ -20,6 +20,10 @@ here: the analysis records what the code does, whatever the convention files say
 - **Offline first.** Every item below can be read from the files with no LabVIEW call, except the parts marked
   "needs LabVIEW". Loading foreign code is what hangs the service (`knowledge/labview-mcp.md`, "A failed, hung or
   blocked call"); a cold sweep of an unloadable library cost about 30 s per VI in the audit.
+- **Depth** (`project.json` `analysis_depth`, the user's answer to the first-contact question in `SKILL.md`):
+  **quick** = inventory, versions, loadability, naming, layout; **standard** = quick + af-shapes, errors,
+  configuration; **full** = standard + icons, tests and the "needs LabVIEW" parts. Never go deeper than chosen
+  without asking; say what the chosen depth left out.
 - **Items in scope:** the concerns the task touches (`conventions/setup.md`, section 1), or all on request. If this
   session already read the code at level 2, write that evidence instead of reading again.
 - **Exclude** spike, trash, `_old`, template and test folders from the counts (count them separately), and say which.
