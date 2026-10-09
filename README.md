@@ -1,5 +1,9 @@
 # labview-mcp-skills
 
+> **Disclaimer: early phase.** This skill is new and still being tested. It is detailed by design, so using it is
+> probably token-heavy and time-consuming: it reads conventions, checks, sweeps and verifies at almost every step.
+> Several of its routes are marked unmeasured. Expect to adjust it as it meets real projects.
+
 The `labview` Claude Code skill: LabVIEW and Actor Framework development with the labview-mcp tools. Claude does not
 load this README; `SKILL.md` is the skill's entry point (the router). This repository holds only this skill.
 
