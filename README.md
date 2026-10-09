@@ -12,7 +12,7 @@ pilot project.
 | Step | Files | State |
 |---|---|---|
 | 1 Backbone | `SKILL.md`, `conventions/setup.md`, `conventions/dot-labview.md`, `conventions/templates/` | done |
-| 2 Default conventions | `conventions/defaults/{naming,af-shapes,errors,layout,icons,hygiene}.md`, icon-spec template | - |
+| 2 Default conventions | `conventions/defaults/{naming,af-shapes,errors,layout,icons,hygiene}.md` | done (the icon-spec template moves to step 5 with `make_icons.py`, whose format changes) |
 | 3 Knowledge + MCP index | `knowledge/actor-framework.md`, `knowledge/labview-mcp.md`, `MCP-CANDIDATES.md` | - |
 | 4 Ops | `ops/{analysis,override,helper-loop,class-field,rename,icons,cleanup,sweep,run-checks,review}.md` | - |
 | 5 Session + kit | `session/{brief,restart,close}.md`, `kit/` | - |
@@ -32,3 +32,17 @@ Confirmed by the user 2026-10-09: the five choices above. Added on the user's re
   conventions and cannot be switched off.
 - **The name** "code of conduct" became **conventions** (`.labview/conventions/`), because CODE_OF_CONDUCT.md means
   contributor behaviour.
+
+Step 2, open points for the user (each is marked in the default file or listed here):
+- `naming.class-library-names` (`<P>-<ABBR>-<name>`, snake_case) and `naming.field-names` (camelCase) were never
+  settled. They are marked "setup asks".
+- `af-shapes.global-events`: the events are passed down inside the child's pre-launch settings (the audit left the
+  route open).
+- `af-shapes.close-vi`: Actor Core returns the merged error *including Call Parent's*. The answers say "the merged
+  error".
+- From af-patterns, not carried over as conventions:
+  - INI configuration via a config class
+  - instrumentation left in but disabled
+  - an actor template kept in the project
+  - the messaging patterns (payload hierarchy, message router, time-delayed messages), which become design
+    knowledge in step 3

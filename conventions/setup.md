@@ -82,7 +82,9 @@ colours, and the class glyphs, in `icon-spec.json` (`ops/icons.md`, "Icon standa
 
 1. For each concern settled, copy `<skill>/conventions/defaults/<concern>.md` to
    `.labview/conventions/<concern>.md`, then replace or annotate each rule with the settled version and its
-   `source`. Rules the user removed are deleted, not left in commented out. Add `written: <date>`.
+   `source`. Rules the user removed are deleted, not left in commented out. Drop the "Default template"
+   note at the top, and add `written: <date>`. Rules marked "Not settled by the user; setup asks" are always
+   asked.
 2. `decisions.md`: one entry per `decided` rule (template `conventions/templates/decisions.md`).
 3. Commit the `.labview/` changes alone, with a message such as `docs(labview): set up naming and layout
    conventions`.
