@@ -1,0 +1,4 @@
+<VI _name="PB_carrier.vi" description="Icon carrier for the icon measurement: holds an icon in memory so its image data can be read and moved to a library/class. Never saved by the helpers.">
+  <Control _name="x" type="int32" uid="10" uid_parent="root" value="0" outputs="value:10.value"/>
+  <Indicator _name="y" type="int32" uid="11" uid_parent="root" value="0" inputs="value:10.value"/>
+</VI>

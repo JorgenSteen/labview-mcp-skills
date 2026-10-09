@@ -1,0 +1,115 @@
+<VI _name="PA-ui_stop_test.vi" description="Headless Phase 0 launcher for P0.11 (D12 option 2). Truncates output\5CPA-log.txt\2C launches PA-R-root with Launch Root Actor (deferred start\2C no launch message)\2C waits run_ms\2C then PRESSES the Stop button of the running PA-R-ui_loop.vi through Open VI Reference by qualified name + Ctrl Val.Set - the launcher sends NO Normal Stop itself. If the press fails it logs that and falls back to Send Normal Stop so the tree never stays up. Waits drain_ms\2C reads the log back. Built with lvai_convert_aixml_to_vi and lvai_swap_subvis (root seed -&gt; PA-R-root constant).">
+  <Control _name="run_ms" type="int32" uid="4100" uid_parent="root" value="3000" outputs="value:4100.value"/>
+  <Control _name="ui vi name" type="string" uid="4101" uid_parent="root" value="PA-R-root.lvlib\3APA-R-root.lvclass\3APA-R-ui_loop.vi" outputs="value:4101.value"/>
+  <Control _name="drain_ms" type="int32" uid="4102" uid_parent="root" value="1500" outputs="value:4102.value"/>
+  <Constant _name="root seed" type="path" uid="4110" uid_parent="root" value="" outputs="value:4110.value"/>
+  <Constant _name="log path" type="string" uid="4111" uid_parent="root" value="C\3A\5Cyour\5Cpath\5Coutput\5CPA-log.txt" outputs="value:4111.value"/>
+  <Constant _name="replace or create" type="uint16{open,replace,create,open or create,replace or create,replace or create with confirmation}" uid="4112" uid_parent="root" value="4" outputs="value:4112.value"/>
+  <Constant _name="all" type="int32" uid="4114" uid_parent="root" value="-1" outputs="value:4114.value"/>
+  <Constant _name="stop name" type="string" uid="4115" uid_parent="root" value="Stop" outputs="value:4115.value"/>
+  <Constant _name="true" type="bool" uid="4116" uid_parent="root" value="true" outputs="value:4116.value"/>
+  <Constant _name="once" type="bool" uid="4118" uid_parent="root" value="true" outputs="value:4118.value"/>
+  <Constant _name="line pressed" type="string" uid="4119" uid_parent="root" value="L\3AStop pressed on ui_loop" outputs="value:4119.value"/>
+  <Constant _name="line fallback" type="string" uid="4117" uid_parent="root" value="L\3Apress FAILED\2C fallback Normal Stop" outputs="value:4117.value"/>
+  <Node _name="String To Path" inputs="string:4111.value" outputs="path:4120.path" uid="4120" uid_parent="root"/>
+  <Node _name="Open/Create/Replace File" inputs="file path (use dialog):4120.path,operation (0\3Aopen):4112.value,access (0\3Aread/write):,error in:,prompt:,disable buffering (F):" outputs="refnum out:4121.ref,cancelled:,error out:4121.err" uid="4121" uid_parent="root"/>
+  <Node _name="Close File" inputs="refnum:4121.ref,error in:4121.err" outputs="path:,error out:4122.err" uid="4122" uid_parent="root"/>
+  <Call target="Actor Framework.lvlib\3AActor.lvclass\3ALaunch Root Actor.vi" inputs="Actor:4110.value,error in (no error):4122.err,Open Actor Core front panel? (F):,Debug Alias:" outputs="error out:4130.err,Actor's Enqueuer:4130.enq" uid="4130" uid_parent="root"/>
+  <Structure _name="While Loop" count="" uid="4300" uid_parent="root">
+    <Tunnel _id="In1" inputs="value:4130.err" outputs="value:4301.err" uid="4301" uid_parent="4300"/>
+    <Tunnel _id="In2" inputs="value:4100.value" outputs="value:4302.ms" uid="4302" uid_parent="4300"/>
+    <Tunnel _id="In3" inputs="value:4118.value" outputs="value:4303.once" uid="4303" uid_parent="4300"/>
+    <Node _name="Wait (ms)" inputs="milliseconds to wait:4302.ms" outputs="millisecond timer value:4310.t" uid="4310" uid_parent="4300"/>
+    <Node _name="Unbundle By Name" fields="status" inputs="input cluster:4301.err" outputs="status:4311.s" uid="4311" uid_parent="4300"/>
+    <Node _name="Or" inputs="x:4303.once,y:4311.s" outputs="x .or. y?:4312.stop" uid="4312" uid_parent="4300"/>
+    <Condition inputs="value:4312.stop" uid="4313" uid_parent="4300" value="stop"/>
+    <Tunnel _id="Out1" inputs="value:4301.err" outputs="value:4320.err" uid="4320" uid_parent="4300"/>
+    <Tunnel _id="Out2" inputs="value:4310.t" outputs="value:4321.t" uid="4321" uid_parent="4300"/>
+  </Structure>
+  <Node _name="Add" inputs="x:4321.t,y:4114.value" outputs="x+y:4322.dummy" uid="4322" uid_parent="root"/>
+  <Structure _name="Case Structure" selectin="4118.value" uid="4330" uid_parent="root">
+    <Tunnel _id="In1" inputs="value:4320.err" uid="4331" uid_parent="4330"/>
+    <Tunnel _id="In2" inputs="value:4322.dummy" uid="4332" uid_parent="4330"/>
+    <Tunnel _id="In3" inputs="value:4101.value" uid="4333" uid_parent="4330"/>
+    <CaseFrame selector="True" selectout="" uid="4340" uid_parent="4330">
+      <Tunnel _id="In1" outputs="value:4341.err" uid="4341" uid_parent="4340"/>
+      <Tunnel _id="In2" outputs="value:" uid="4342" uid_parent="4340"/>
+      <Tunnel _id="In3" outputs="value:4343.name" uid="4343" uid_parent="4340"/>
+      <Node _name="Open VI Reference" inputs="application reference (local):,vi path:4343.name,error in (no error):4341.err" outputs="vi reference:4344.vi,error out:4344.err" uid="4344" uid_parent="4340"/>
+      <Node _name="To Variant" inputs="anything:4116.value" outputs="Variant:4345.var" uid="4345" uid_parent="4340"/>
+      <Node _name="Invoke Node" target="Ctrl Val.Set" type="{LV.VI}" inputs="reference:4344.vi,error in (no error):4344.err,Control Name:4115.value,Value:4345.var" outputs="reference out:4346.ref,error out:4346.err" uid="4346" uid_parent="4340"/>
+      <Node _name="Close Reference" inputs="reference:4346.ref,error in (no error):4346.err" outputs="error out:4347.err" uid="4347" uid_parent="4340"/>
+      <Tunnel _id="Out1" inputs="value:4347.err" uid="4348" uid_parent="4340"/>
+    </CaseFrame>
+    <CaseFrame selector="False" selectout="" uid="4350" uid_parent="4330">
+      <Tunnel _id="In1" outputs="value:4351.err" uid="4351" uid_parent="4350"/>
+      <Tunnel _id="In2" outputs="value:" uid="4352" uid_parent="4350"/>
+      <Tunnel _id="In3" outputs="value:" uid="4353" uid_parent="4350"/>
+      <Tunnel _id="Out1" inputs="value:4351.err" uid="4354" uid_parent="4350"/>
+    </CaseFrame>
+    <Tunnel _id="Out1" outputs="value:4360.err" uid="4360" uid_parent="4330"/>
+  </Structure>
+  <Node _name="Unbundle By Name" fields="status" inputs="input cluster:4360.err" outputs="status:4361.failed" uid="4361" uid_parent="root"/>
+  <Structure _name="Case Structure" selectin="4361.failed" uid="4370" uid_parent="root">
+    <Tunnel _id="In1" inputs="value:4130.enq" uid="4371" uid_parent="4370"/>
+    <Tunnel _id="In2" inputs="value:4117.value" uid="4372" uid_parent="4370"/>
+    <Tunnel _id="In3" inputs="value:4119.value" uid="4373" uid_parent="4370"/>
+    <CaseFrame selector="True" selectout="" uid="4380" uid_parent="4370">
+      <Tunnel _id="In1" outputs="value:4381.enq" uid="4381" uid_parent="4380"/>
+      <Tunnel _id="In2" outputs="value:4382.line" uid="4382" uid_parent="4380"/>
+      <Tunnel _id="In3" outputs="value:" uid="4383" uid_parent="4380"/>
+      <Call target="PA-log.vi" inputs="line:4382.line,error in:" outputs="error out:4384.err" uid="4384" uid_parent="4380"/>
+      <Call target="Actor Framework.lvlib\3AStop Msg.lvclass\3ASend Normal Stop.vi" inputs="error in (no error):4384.err,Message Enqueuer:4381.enq" outputs="error out:4385.err" uid="4385" uid_parent="4380"/>
+      <Tunnel _id="Out1" inputs="value:4385.err" uid="4386" uid_parent="4380"/>
+    </CaseFrame>
+    <CaseFrame selector="False" selectout="" uid="4390" uid_parent="4370">
+      <Tunnel _id="In1" outputs="value:" uid="4391" uid_parent="4390"/>
+      <Tunnel _id="In2" outputs="value:" uid="4392" uid_parent="4390"/>
+      <Tunnel _id="In3" outputs="value:4393.line" uid="4393" uid_parent="4390"/>
+      <Call target="PA-log.vi" inputs="line:4393.line,error in:" outputs="error out:4394.err" uid="4394" uid_parent="4390"/>
+      <Tunnel _id="Out1" inputs="value:4394.err" uid="4395" uid_parent="4390"/>
+    </CaseFrame>
+    <Tunnel _id="Out1" outputs="value:4400.err" uid="4396" uid_parent="4370"/>
+  </Structure>
+  <Structure _name="While Loop" count="" uid="4410" uid_parent="root">
+    <Tunnel _id="In1" inputs="value:4400.err" outputs="value:4411.err" uid="4411" uid_parent="4410"/>
+    <Tunnel _id="In2" inputs="value:4102.value" outputs="value:4412.ms" uid="4412" uid_parent="4410"/>
+    <Tunnel _id="In3" inputs="value:4118.value" outputs="value:4413.once" uid="4413" uid_parent="4410"/>
+    <Node _name="Wait (ms)" inputs="milliseconds to wait:4412.ms" outputs="millisecond timer value:4414.t" uid="4414" uid_parent="4410"/>
+    <Node _name="Unbundle By Name" fields="status" inputs="input cluster:4411.err" outputs="status:4415.s" uid="4415" uid_parent="4410"/>
+    <Node _name="Or" inputs="x:4413.once,y:4415.s" outputs="x .or. y?:4416.stop" uid="4416" uid_parent="4410"/>
+    <Condition inputs="value:4416.stop" uid="4417" uid_parent="4410" value="stop"/>
+    <Tunnel _id="Out1" inputs="value:4411.err" outputs="value:4420.err" uid="4420" uid_parent="4410"/>
+    <Tunnel _id="Out2" inputs="value:4414.t" outputs="value:4421.t" uid="4421" uid_parent="4410"/>
+  </Structure>
+  <Node _name="Add" inputs="x:4421.t,y:4114.value" outputs="x+y:4422.dummy2" uid="4422" uid_parent="root"/>
+  <Structure _name="Case Structure" selectin="4118.value" uid="4430" uid_parent="root">
+    <Tunnel _id="In1" inputs="value:4420.err" uid="4431" uid_parent="4430"/>
+    <Tunnel _id="In2" inputs="value:4422.dummy2" uid="4432" uid_parent="4430"/>
+    <Tunnel _id="In3" inputs="value:4120.path" uid="4433" uid_parent="4430"/>
+    <Tunnel _id="In4" inputs="value:4114.value" uid="4434" uid_parent="4430"/>
+    <CaseFrame selector="True" selectout="" uid="4440" uid_parent="4430">
+      <Tunnel _id="In1" outputs="value:4441.err" uid="4441" uid_parent="4440"/>
+      <Tunnel _id="In2" outputs="value:" uid="4442" uid_parent="4440"/>
+      <Tunnel _id="In3" outputs="value:4443.path" uid="4443" uid_parent="4440"/>
+      <Tunnel _id="In4" outputs="value:4444.all" uid="4444" uid_parent="4440"/>
+      <Node _name="Read from Text File" inputs="file (use dialog):4443.path,count:4444.all,error in:4441.err,prompt (Open existing file):" outputs="refnum out:,text:4445.text,cancelled:,error out:4445.err" uid="4445" uid_parent="4440"/>
+      <Tunnel _id="Out1" inputs="value:4445.text" uid="4446" uid_parent="4440"/>
+      <Tunnel _id="Out2" inputs="value:4445.err" uid="4447" uid_parent="4440"/>
+    </CaseFrame>
+    <CaseFrame selector="False" selectout="" uid="4450" uid_parent="4430">
+      <Tunnel _id="In1" outputs="value:4451.err" uid="4451" uid_parent="4450"/>
+      <Tunnel _id="In2" outputs="value:" uid="4452" uid_parent="4450"/>
+      <Tunnel _id="In3" outputs="value:" uid="4453" uid_parent="4450"/>
+      <Tunnel _id="In4" outputs="value:" uid="4454" uid_parent="4450"/>
+      <Constant _name="empty" type="string" uid="4455" uid_parent="4450" value="" outputs="value:4455.value"/>
+      <Tunnel _id="Out1" inputs="value:4455.value" uid="4456" uid_parent="4450"/>
+      <Tunnel _id="Out2" inputs="value:4451.err" uid="4457" uid_parent="4450"/>
+    </CaseFrame>
+    <Tunnel _id="Out1" outputs="value:4460.text" uid="4460" uid_parent="4430"/>
+    <Tunnel _id="Out2" outputs="value:4461.err" uid="4461" uid_parent="4430"/>
+  </Structure>
+  <Indicator _name="log" type="string" uid="4480" uid_parent="root" value="" inputs="value:4460.text"/>
+  <Indicator _name="press error" type="cluster{bool.status,int32.code,string.source}" uid="4481" uid_parent="root" value="[false,0,]" inputs="value:4360.err"/>
+  <Indicator _name="error out" type="cluster{bool.status,int32.code,string.source}" uid="4482" uid_parent="root" value="[false,0,]" inputs="value:4461.err"/>
+</VI>

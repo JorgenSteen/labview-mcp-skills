@@ -1,0 +1,11 @@
+<VI _name="pa_read_panel_on_call.vi" description="M3 helper\3A reads Execution\3AShow Front Panel On Call and Execution\3AClose After Call of a VI from a cold load (Open VI Reference by path in the default application instance\2C project CLOSED). The read twin of pa_set_panel_on_call.">
+  <Control _name="vi path" type="string" uid="4100" uid_parent="root" value="" outputs="value:4100.value"/>
+  <Node _name="String To Path" inputs="string:4100.value" outputs="path:4220.path" uid="4220" uid_parent="root"/>
+  <Node _name="Open VI Reference" inputs="application reference (local):,vi path:4220.path,error in (no error):" outputs="vi reference:4225.vi,error out:4225.err" uid="4225" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Execution\3AShow Front Panel On Call,read+Execution\3AClose After Call,read+Execution\3AState" type="{LV.VI}" inputs="reference:4225.vi,error in (no error):4225.err" outputs="Execution\3AShow Front Panel On Call:4235.show,Execution\3AClose After Call:4235.close,Execution\3AState:4235.state,reference out:4235.vi,error out:4235.err" uid="4235" uid_parent="root"/>
+  <Indicator _name="show on call" type="bool" uid="4236" uid_parent="root" value="false" inputs="value:4235.show"/>
+  <Indicator _name="close after call" type="bool" uid="4237" uid_parent="root" value="false" inputs="value:4235.close"/>
+  <Indicator _name="state" type="uint32" uid="4238" uid_parent="root" value="0" inputs="value:4235.state"/>
+  <Node _name="Close Reference" inputs="reference:4235.vi,error in (no error):4235.err" outputs="error out:4250.err" uid="4250" uid_parent="root"/>
+  <Indicator _name="error out" type="cluster{bool.status,int32.code,string.source}" uid="4260" uid_parent="root" value="[false,0,]" inputs="value:4250.err"/>
+</VI>

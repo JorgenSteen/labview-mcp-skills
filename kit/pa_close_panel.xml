@@ -1,0 +1,8 @@
+<VI _name="pa_close_panel.vi" description="E7 helper\3A Open VI Reference by name (a VI already in memory\2C default instance) and write Front Panel Window\3AOpen = F\2C so an idle top-level VI whose panel was opened leaves memory.">
+  <Control _name="vi name" type="string" uid="4100" uid_parent="root" value="" outputs="value:4100.value"/>
+  <Constant _name="false" type="bool" uid="4102" uid_parent="root" value="false" outputs="value:4102.value"/>
+  <Node _name="Open VI Reference" inputs="vi path:4100.value,error in (no error):" outputs="vi reference:4203.vi,error out:4203.err" uid="4203" uid_parent="root"/>
+  <Node _name="Property Node" fields="write+Front Panel Window\3AOpen" type="{LV.VI}" inputs="reference:4203.vi,error in (no error):4203.err,Front Panel Window\3AOpen:4102.value" outputs="reference out:,error out:4204.err" uid="4204" uid_parent="root"/>
+  <Node _name="Close Reference" inputs="reference:4203.vi,error in (no error):4204.err" outputs="error out:4205.err" uid="4205" uid_parent="root"/>
+  <Indicator _name="error out" type="cluster{bool.status,int32.code,string.source}" uid="4502" uid_parent="root" value="[false,0,]" inputs="value:4205.err"/>
+</VI>

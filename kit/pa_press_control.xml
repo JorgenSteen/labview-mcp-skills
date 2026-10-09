@@ -1,0 +1,12 @@
+<VI _name="pa_press_control.vi" description="Phase 0 helper (P0.11)\3A presses a boolean control of a VI that is already RUNNING\2C addressed by its qualified name in memory (e.g. PA-R-root.lvlib\3APA-R-root.lvclass\3APA-R-ui_loop.vi)\2C through Open VI Reference (string name) + Ctrl Val.Set. Used to press the root UI loop's Stop headlessly. Reads the VI's Execution\3AState before and after.">
+  <Control _name="vi name" type="string" uid="10" uid_parent="root" value="PA-R-root.lvlib\3APA-R-root.lvclass\3APA-R-ui_loop.vi" outputs="value:10.value"/>
+  <Control _name="control name" type="string" uid="11" uid_parent="root" value="Stop" outputs="value:11.value"/>
+  <Constant _name="true" type="bool" uid="12" uid_parent="root" value="true" outputs="value:12.value"/>
+  <Node _name="Open VI Reference" inputs="application reference (local):,vi path:10.value,error in (no error):" outputs="vi reference:20.vi,error out:20.err" uid="20" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Execution\3AState" inputs="reference:20.vi,error in (no error):20.err" outputs="Execution\3AState:21.state,reference out:21.ref,error out:21.err" type="{LV.VI}" uid="21" uid_parent="root"/>
+  <Node _name="To Variant" inputs="anything:12.value" outputs="Variant:22.var" uid="22" uid_parent="root"/>
+  <Node _name="Invoke Node" target="Ctrl Val.Set" type="{LV.VI}" inputs="reference:21.ref,error in (no error):21.err,Control Name:11.value,Value:22.var" outputs="reference out:23.ref,error out:23.err" uid="23" uid_parent="root"/>
+  <Node _name="Close Reference" inputs="reference:23.ref,error in (no error):23.err" outputs="error out:24.err" uid="24" uid_parent="root"/>
+  <Indicator _name="state before" type="uint32" uid="80" uid_parent="root" value="0" inputs="value:21.state"/>
+  <Indicator _name="error out" type="cluster{bool.status,int32.code,string.source}" uid="81" uid_parent="root" value="[false,0,]" inputs="value:24.err"/>
+</VI>

@@ -1,0 +1,3 @@
+<VI _name="PA-A-stop_notifier.ctl" description="Phase 0 fixture\2C Boolean notifier refnum typedef for the actor's stop_notifier field (P0.8). Generated to a .ctl path\2C then flag-patched and resaved by LabVIEW.">
+  <Control _name="PA-A-stop_notifier" type="ref{Notifier}{bool}" uid="4100" uid_parent="root" value="" outputs="value:"/>
+</VI>

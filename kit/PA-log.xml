@@ -1,0 +1,19 @@
+<VI _name="PA-log.vi" description="Phase 0 instrumentation\2C appends one time-stamped line to output\5CPA-log.txt. Opens or creates the file\2C seeks to the end\2C writes time TAB line LF\2C closes. Installed under user.lib\5CLV_MCP so AIXML can Call it by bare name.">
+  <Control _name="line" conIdx="11" connection="required" type="string" uid="10" uid_parent="root" value="" outputs="value:10.value"/>
+  <Control _name="error in" conIdx="8" connection="recommended" type="cluster{bool.status,int32.code,string.source}" uid="11" uid_parent="root" value="[false,0,]" outputs="value:11.value"/>
+  <Constant _name="log path" type="string" uid="20" uid_parent="root" value="C\3A\5Cyour\5Cpath\5Coutput\5CPA-log.txt" outputs="value:20.value"/>
+  <Constant _name="time format" type="string" uid="21" uid_parent="root" value="%H\3A%M\3A%S%3u" outputs="value:21.value"/>
+  <Constant _name="tab" type="string" uid="22" uid_parent="root" value="\09" outputs="value:22.value"/>
+  <Constant _name="newline" type="string" uid="23" uid_parent="root" value="\0A" outputs="value:23.value"/>
+  <Constant _name="open or create" type="uint16{open,replace,create,open or create,replace or create,replace or create with confirmation}" uid="24" uid_parent="root" value="3" outputs="value:24.value"/>
+  <Constant _name="end" type="uint16{start,end,current}" uid="25" uid_parent="root" value="1" outputs="value:25.value"/>
+  <Node _name="String To Path" inputs="string:20.value" outputs="path:30.path" uid="30" uid_parent="root"/>
+  <Node _name="Get Date/Time In Seconds" outputs="seconds since 1Jan1904:31.now" uid="31" uid_parent="root"/>
+  <Node _name="Format Date/Time String" inputs="time format string (%c):21.value,seconds (now):31.now,UTC format:" outputs="date/time string:32.time" uid="32" uid_parent="root"/>
+  <Node _name="Concatenate Strings" inputs="string:32.time,string:22.value,string:10.value,string:23.value" outputs="concatenated string:33.text" uid="33" uid_parent="root"/>
+  <Node _name="Open/Create/Replace File" inputs="file path (use dialog):30.path,operation (0\3Aopen):24.value,access (0\3Aread/write):,error in:11.value,prompt:,disable buffering (F):" outputs="refnum out:40.ref,cancelled:,error out:40.err" uid="40" uid_parent="root"/>
+  <Node _name="Set File Position" inputs="refnum:40.ref,offset (in bytes) (0):,from (0\3Astart):25.value,error in:40.err" outputs="refnum out:41.ref,error out:41.err" uid="41" uid_parent="root"/>
+  <Node _name="Write to Text File" inputs="file (use dialog):41.ref,text:33.text,error in:41.err,prompt (Choose or enter file path):" outputs="refnum out:42.ref,cancelled:,error out:42.err" uid="42" uid_parent="root"/>
+  <Node _name="Close File" inputs="refnum:42.ref,error in:42.err" outputs="path:,error out:43.err" uid="43" uid_parent="root"/>
+  <Indicator _name="error out" conIdx="0" connection="recommended" type="cluster{bool.status,int32.code,string.source}" uid="50" uid_parent="root" value="[false,0,]" inputs="value:43.err"/>
+</VI>

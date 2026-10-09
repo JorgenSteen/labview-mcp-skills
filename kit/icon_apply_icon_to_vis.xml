@@ -1,0 +1,11 @@
+<VI _name="PB_apply_icon_to_vis.vi" description="Icon measurement helper: runs {LV.Library} ApplyIconToVIs on a .lvclass/.lvlib (what NI's LIBUIP_SetLibIconAndApplyToVIs.vi calls after the user answers Yes), then saves the library.">
+  <Control _name="class path" type="string" uid="12" uid_parent="root" value="" outputs="value:12.value"/>
+  <Node _name="String To Path" inputs="string:12.value" outputs="path:15.path" uid="15" uid_parent="root"/>
+  <Node _name="Invoke Node" target="LVClass.Open" type="{LV.Application}" inputs="Path:15.path" outputs="reference out:,error out:40.err,LVClass.Open:40.cls" uid="40" uid_parent="root"/>
+  <Node _name="Invoke Node" target="ApplyIconToVIs" type="{LV.LVClassLibrary}" inputs="reference:40.cls,error in (no error):40.err" outputs="reference out:,error out:45.err" uid="45" uid_parent="root"/>
+  <Indicator _name="apply error" type="cluster{bool.status,int32.code,string.source}" uid="46" uid_parent="root" value="[false,0,]" inputs="value:45.err"/>
+  <Node _name="Invoke Node" target="Save" type="{LV.LVClassLibrary}" inputs="reference:40.cls,error in (no error):45.err" outputs="reference out:,error out:50.err" uid="50" uid_parent="root"/>
+  <Indicator _name="save class error" type="cluster{bool.status,int32.code,string.source}" uid="51" uid_parent="root" value="[false,0,]" inputs="value:50.err"/>
+  <Node _name="Close Reference" inputs="reference:40.cls,error in (no error):50.err" outputs="error out:55.err" uid="55" uid_parent="root"/>
+  <Indicator _name="error out" type="cluster{bool.status,int32.code,string.source}" uid="60" uid_parent="root" value="[false,0,]" inputs="value:55.err"/>
+</VI>

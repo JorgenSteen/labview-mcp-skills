@@ -1,0 +1,10 @@
+<VI _name="PA-R-launch.vi" description="PA-R-root public method (P0.4)\2C launches one PA-A-actor as a nested actor of the root from inside a method body (Launch Nested Actor with Caller Actor in = the root)\2C then logs. Target of PA-R-launch Msg. Cluster stand-in for the class terminals\2C the nested actor seed is swapped to a class constant afterwards.">
+  <Control _name="PA-R-root in" conIdx="11" connection="required" type="cluster{int32.handled_count}" uid="4100" uid_parent="root" value="[0]" outputs="value:4100.value"/>
+  <Control _name="error in" conIdx="8" connection="recommended" type="cluster{bool.status,int32.code,string.source}" uid="4101" uid_parent="root" value="[false,0,]" outputs="value:4101.value"/>
+  <Constant _name="nested seed" type="path" uid="4110" uid_parent="root" value="" outputs="value:4110.value"/>
+  <Constant _name="line" type="string" uid="4111" uid_parent="root" value="R\3Alaunch nested" outputs="value:4111.value"/>
+  <Call target="Actor Framework.lvlib\3AActor.lvclass\3ALaunch Nested Actor.vi" inputs="Nested Actor:4110.value,error in (no error):4101.value,Open Actor Core front panel? (F):,Caller Actor in:4100.value,Auto-stop? (T):,Debug Alias:" outputs="error out:4120.err,Caller Actor out:4120.root,Nested Actor's Enqueuer:" uid="4120" uid_parent="root"/>
+  <Call target="PA-log.vi" inputs="line:4111.value,error in:4120.err" outputs="error out:4121.err" uid="4121" uid_parent="root"/>
+  <Indicator _name="PA-R-root out" conIdx="3" connection="recommended" type="cluster{int32.handled_count}" uid="4140" uid_parent="root" value="[0]" inputs="value:4120.root"/>
+  <Indicator _name="error out" conIdx="0" connection="recommended" type="cluster{bool.status,int32.code,string.source}" uid="4141" uid_parent="root" value="[false,0,]" inputs="value:4121.err"/>
+</VI>

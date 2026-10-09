@@ -1,0 +1,12 @@
+<VI _name="PA-A-pli_body.vi" description="PA-A-actor Pre Launch Init body (in series with Call Parent\2C P0.7 and P0.8)\2C obtains the stop notifier and writes it and started_at = now into the private data\2C then logs PLI. Cluster stand-in for the class terminals\2C retyped by lvai_add_class_method.">
+  <Control _name="PA-A-actor in" conIdx="11" connection="required" type="cluster{int32.ping_count,timestamp.started_at,bool.flag,ref{Notifier}{bool}.stop_notifier}" uid="4100" uid_parent="root" value="[0,,false,]" outputs="value:4100.value"/>
+  <Control _name="error in" conIdx="8" connection="recommended" type="cluster{bool.status,int32.code,string.source}" uid="4101" uid_parent="root" value="[false,0,]" outputs="value:4101.value"/>
+  <Constant _name="line" type="string" uid="4110" uid_parent="root" value="A\3APLI" outputs="value:4110.value"/>
+  <Constant _name="notification type" type="bool" uid="4111" uid_parent="root" value="false" outputs="value:4111.value"/>
+  <Node _name="Get Date/Time In Seconds" outputs="seconds since 1Jan1904:4120.now" uid="4120" uid_parent="root"/>
+  <Node _name="Obtain Notifier" inputs="name (unnamed):,notification data type:4111.value,create if not found? (T):,error in (no error):4101.value" outputs="notifier out:4121.ref,created new?:,error out:4121.err" uid="4121" uid_parent="root"/>
+  <Node _name="Bundle By Name" fields="started_at,stop_notifier" inputs="started_at:4120.now,stop_notifier:4121.ref,input cluster:4100.value" outputs="output cluster:4122.out" uid="4122" uid_parent="root"/>
+  <Call target="PA-log.vi" inputs="line:4110.value,error in:4121.err" outputs="error out:4130.err" uid="4130" uid_parent="root"/>
+  <Indicator _name="PA-A-actor out" conIdx="3" connection="recommended" type="cluster{int32.ping_count,timestamp.started_at,bool.flag,ref{Notifier}{bool}.stop_notifier}" uid="4140" uid_parent="root" value="[0,,false,]" inputs="value:4122.out"/>
+  <Indicator _name="error out" conIdx="0" connection="recommended" type="cluster{bool.status,int32.code,string.source}" uid="4141" uid_parent="root" value="[false,0,]" inputs="value:4130.err"/>
+</VI>

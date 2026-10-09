@@ -1,0 +1,10 @@
+<VI _name="icon_get_vi_icon.vi" description="Icon helper: opens a VI by path and writes its current (composited) 32x32 icon to a PNG with {LV.VI} Save VI Icon to File. Read-only on the VI; used to spot-check icons after ApplyIconToVIs.">
+  <Control _name="vi path" type="string" uid="10" uid_parent="root" value="" outputs="value:10.value"/>
+  <Control _name="png out path" type="string" uid="11" uid_parent="root" value="" outputs="value:11.value"/>
+  <Node _name="String To Path" inputs="string:10.value" outputs="path:13.path" uid="13" uid_parent="root"/>
+  <Node _name="String To Path" inputs="string:11.value" outputs="path:14.path" uid="14" uid_parent="root"/>
+  <Node _name="Open VI Reference" inputs="vi path:13.path" outputs="vi reference:20.vi,error out:20.err" uid="20" uid_parent="root"/>
+  <Node _name="Invoke Node" target="Save VI Icon to File" type="{LV.VI}" inputs="reference:20.vi,error in (no error):20.err,Image File:14.path" outputs="reference out:,error out:35.err" uid="35" uid_parent="root"/>
+  <Node _name="Close Reference" inputs="reference:20.vi,error in (no error):35.err" outputs="error out:56.err" uid="56" uid_parent="root"/>
+  <Indicator _name="error out" type="cluster{bool.status,int32.code,string.source}" uid="60" uid_parent="root" value="[false,0,]" inputs="value:56.err"/>
+</VI>

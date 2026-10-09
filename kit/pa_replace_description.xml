@@ -1,0 +1,17 @@
+<VI _name="pa_replace_description.vi" description="F-verify helper\3A opens a saved VI in the DEFAULT application instance (project CLOSED)\2C reads its VI Description\2C replaces every occurrence of search with replace\2C writes it back\2C reads it again and Save.Instrument.">
+  <Control _name="vi path" type="string" uid="4100" uid_parent="root" value="" outputs="value:4100.value"/>
+  <Control _name="search" type="string" uid="4101" uid_parent="root" value="" outputs="value:4101.value"/>
+  <Control _name="replace" type="string" uid="4102" uid_parent="root" value="" outputs="value:4102.value"/>
+  <Constant _name="all" type="bool" uid="4103" uid_parent="root" value="true" outputs="value:4103.value"/>
+  <Node _name="String To Path" inputs="string:4100.value" outputs="path:4202.path" uid="4202" uid_parent="root"/>
+  <Node _name="Open VI Reference" inputs="vi path:4202.path,error in (no error):" outputs="vi reference:4203.vi,error out:4203.err" uid="4203" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+VI Description" type="{LV.VI}" inputs="reference:4203.vi,error in (no error):4203.err" outputs="VI Description:4204.desc,reference out:4204.vi,error out:4204.err" uid="4204" uid_parent="root"/>
+  <Node _name="Search and Replace String" inputs="input string:4204.desc,search string:4101.value,replace string:4102.value,replace all?:4103.value" outputs="result string:4205.res,number of replacements:4205.n" uid="4205" uid_parent="root"/>
+  <Node _name="Property Node" fields="write+VI Description" type="{LV.VI}" inputs="reference:4204.vi,error in (no error):4204.err,VI Description:4205.res" outputs="reference out:4206.vi,error out:4206.err" uid="4206" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+VI Description" type="{LV.VI}" inputs="reference:4206.vi,error in (no error):4206.err" outputs="VI Description:4207.desc,reference out:4207.vi,error out:4207.err" uid="4207" uid_parent="root"/>
+  <Node _name="Invoke Node" target="Save.Instrument" type="{LV.VI}" inputs="reference:4207.vi,error in (no error):4207.err,Path to saved file:,Save a Copy:,Without Diagram:" outputs="reference out:,error out:4220.err" uid="4220" uid_parent="root"/>
+  <Node _name="Close Reference" inputs="reference:4203.vi,error in (no error):4220.err" outputs="error out:4221.err" uid="4221" uid_parent="root"/>
+  <Indicator _name="replacements" type="int32" uid="4500" uid_parent="root" value="0" inputs="value:4205.n"/>
+  <Indicator _name="description after" type="string" uid="4501" uid_parent="root" value="" inputs="value:4207.desc"/>
+  <Indicator _name="error out" type="cluster{bool.status,int32.code,string.source}" uid="4502" uid_parent="root" value="[false,0,]" inputs="value:4221.err"/>
+</VI>

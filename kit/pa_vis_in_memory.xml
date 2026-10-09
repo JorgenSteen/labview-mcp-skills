@@ -1,0 +1,4 @@
+<VI _name="pa_vis_in_memory.vi" description="E8 scratch probe\3A Application\3AAll VIs In Memory of the default instance\2C as an array of qualified names.">
+  <Node _name="Property Node" fields="read+Application\3AAll VIs In Memory" type="{LV.Application}" inputs="error in (no error):" outputs="Application\3AAll VIs In Memory:4120.vis,reference out:,error out:4120.err" uid="4120" uid_parent="root"/>
+  <Indicator _name="vis" type="array{string}" uid="4800" uid_parent="root" value="" inputs="value:4120.vis"/>
+</VI>

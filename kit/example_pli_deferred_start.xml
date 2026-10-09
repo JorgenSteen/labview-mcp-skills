@@ -1,0 +1,9 @@
+<VI _name="PA-R-pre_launch_init.vi" description="PA-R-root Pre Launch Init body (P0.5\2C deferred start)\2C sends PA-R-launch to the root's own enqueuer so the nested actor is launched by the first message the root handles\2C then logs. Cluster stand-in for the class terminal\2C the Send socket is swapped afterwards. Called as a branch (the actor is not returned).">
+  <Control _name="PA-R-root in" conIdx="11" connection="required" type="cluster{int32.handled_count}" uid="4100" uid_parent="root" value="[0]" outputs="value:4100.value"/>
+  <Control _name="error in" conIdx="8" connection="recommended" type="cluster{bool.status,int32.code,string.source}" uid="4101" uid_parent="root" value="[false,0,]" outputs="value:4101.value"/>
+  <Constant _name="line" type="string" uid="4110" uid_parent="root" value="R\3APLI sent launch to self" outputs="value:4110.value"/>
+  <Call target="Actor Framework.lvlib\3AActor.lvclass\3ARead Self Enqueuer.vi" inputs="Actor:4100.value" outputs="Self Enqueuer:4120.enq" uid="4120" uid_parent="root"/>
+  <Call target="LVMCP Stub 2974224676.vi" inputs="Message Enqueuer:4120.enq,error in (no error):4101.value,Message Priority (Normal):" outputs="error out:4121.err,Message Enqueuer out:" uid="4121" uid_parent="root"/>
+  <Call target="PA-log.vi" inputs="line:4110.value,error in:4121.err" outputs="error out:4122.err" uid="4122" uid_parent="root"/>
+  <Indicator _name="error out" conIdx="0" connection="recommended" type="cluster{bool.status,int32.code,string.source}" uid="4141" uid_parent="root" value="[false,0,]" inputs="value:4122.err"/>
+</VI>

@@ -1,0 +1,12 @@
+<VI _name="pa_run_vi_async.vi" description="E7 helper\3A starts a VI that never returns (a polled UI loop) WITHOUT waiting for it\2C so the gRPC service stays free. Open VI Reference (default instance) on vi path\2C optionally opens its front panel\2C then Invoke Run VI with Wait Until Done = F and Auto Dispose Ref = T\2C so the VI keeps running as a top-level VI after this helper returns. Stop it afterwards through its own panel (pa_press_control).">
+  <Control _name="vi path" type="string" uid="4100" uid_parent="root" value="" outputs="value:4100.value"/>
+  <Control _name="open panel" type="bool" uid="4101" uid_parent="root" value="true" outputs="value:4101.value"/>
+  <Constant _name="false" type="bool" uid="4102" uid_parent="root" value="false" outputs="value:4102.value"/>
+  <Constant _name="true" type="bool" uid="4103" uid_parent="root" value="true" outputs="value:4103.value"/>
+  <Node _name="String To Path" inputs="string:4100.value" outputs="path:4202.path" uid="4202" uid_parent="root"/>
+  <Node _name="Open VI Reference" inputs="vi path:4202.path,error in (no error):" outputs="vi reference:4203.vi,error out:4203.err" uid="4203" uid_parent="root"/>
+  <Node _name="Property Node" fields="write+Front Panel Window\3AOpen" type="{LV.VI}" inputs="reference:4203.vi,error in (no error):4203.err,Front Panel Window\3AOpen:4101.value" outputs="reference out:,error out:4204.err" uid="4204" uid_parent="root"/>
+  <Node _name="Invoke Node" target="Run VI" type="{LV.VI}" inputs="reference:4203.vi,error in (no error):4204.err,Wait Until Done:4102.value,Auto Dispose Ref:4103.value" outputs="reference out:,error out:4205.err" uid="4205" uid_parent="root"/>
+  <Indicator _name="open error" type="cluster{bool.status,int32.code,string.source}" uid="4500" uid_parent="root" value="[false,0,]" inputs="value:4203.err"/>
+  <Indicator _name="error out" type="cluster{bool.status,int32.code,string.source}" uid="4502" uid_parent="root" value="[false,0,]" inputs="value:4205.err"/>
+</VI>

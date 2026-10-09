@@ -1,0 +1,61 @@
+<VI _name="pa_ctl_delete_fields.vi" description="Deletes up to two elements\2C found by label\2C from the top-level cluster of an ORDINARY .ctl (e.g. a class private data cluster exported by lvpdc_export) with {LV.Control} Delete\2C then saves the .ctl in place and lists the labels left. The middle step of export - delete - import for removing class private data fields (no lvai tool removes a field). Default application instance\3B the .ctl must not be open elsewhere.">
+  <Control _name="ctl path" type="string" uid="4100" uid_parent="root" value="" outputs="value:4100.value"/>
+  <Control _name="field 1" type="string" uid="4101" uid_parent="root" value="" outputs="value:4101.value"/>
+  <Control _name="field 2" type="string" uid="4102" uid_parent="root" value="" outputs="value:4102.value"/>
+  <Constant _name="sep" type="string" uid="4103" uid_parent="root" value=";" outputs="value:4103.value"/>
+  <Constant _name="cluster type" type="ref{LV.Cluster}" uid="4104" uid_parent="root" value="" outputs="value:4104.value"/>
+  <Node _name="String To Path" inputs="string:4100.value" outputs="path:4110.path" uid="4110" uid_parent="root"/>
+  <Node _name="Open VI Reference" inputs="vi path:4110.path" outputs="vi reference:4120.vi,error out:4120.err" uid="4120" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Front Panel" type="{LV.VI}" inputs="reference:4120.vi,error in (no error):4120.err" outputs="Front Panel:4121.panel,reference out:,error out:4121.err" uid="4121" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Controls[]" type="{LV.Panel}" inputs="reference:4121.panel,error in (no error):4121.err" outputs="Controls[]:4122.ctls,reference out:,error out:4122.err" uid="4122" uid_parent="root"/>
+  <Node _name="Index Array" inputs="array:4122.ctls,index:" outputs="element:4123.top" uid="4123" uid_parent="root"/>
+  <Node _name="To More Specific Class" inputs="reference:4123.top,error in:4122.err,target class:4104.value" outputs="specific class reference:4124.cl,error out:4124.err" uid="4124" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Controls[]" type="{LV.Cluster}" inputs="reference:4124.cl,error in (no error):4124.err" outputs="Controls[]:4125.els,reference out:,error out:4125.err" uid="4125" uid_parent="root"/>
+  <Structure _name="For Loop" count="" maxin="" maxout="" uid="4300" uid_parent="root">
+    <Tunnel _id="In1" inputs="value:4125.els" mode="index" outputs="value:4301.el" uid="4301" uid_parent="4300"/>
+    <Tunnel _id="In2" inputs="value:4101.value" outputs="value:4302.f1" uid="4302" uid_parent="4300"/>
+    <Tunnel _id="In3" inputs="value:4102.value" outputs="value:4303.f2" uid="4303" uid_parent="4300"/>
+    <ShiftReg uid="4310" uid_parent="4300">
+      <Left inputs="value:4125.err" outputs="value:4311.err" uid="4311" uid_parent="4310"/>
+      <Right inputs="value:4370.err" outputs="value:4312.err" uid="4312" uid_parent="4310"/>
+    </ShiftReg>
+    <Node _name="Property Node" fields="read+Label.Text" type="{LV.Control}" inputs="reference:4301.el,error in (no error):4311.err" outputs="Label.Text:4320.label,reference out:,error out:4320.err" uid="4320" uid_parent="4300"/>
+    <Node _name="Equal?" inputs="x:4320.label,y:4302.f1" outputs="x = y?:4321.h1" uid="4321" uid_parent="4300"/>
+    <Node _name="Equal?" inputs="x:4320.label,y:4303.f2" outputs="x = y?:4322.h2" uid="4322" uid_parent="4300"/>
+    <Node _name="Or" inputs="x:4321.h1,y:4322.h2" outputs="x .or. y?:4323.hit" uid="4323" uid_parent="4300"/>
+    <Structure _name="Case Structure" selectin="4323.hit" uid="4350" uid_parent="4300">
+      <Tunnel _id="In1" inputs="value:4301.el" uid="4351" uid_parent="4350"/>
+      <Tunnel _id="In2" inputs="value:4320.err" uid="4352" uid_parent="4350"/>
+      <CaseFrame selector="True" selectout="" uid="4360" uid_parent="4350">
+        <Tunnel _id="In1" outputs="value:4361.el" uid="4361" uid_parent="4360"/>
+        <Tunnel _id="In2" outputs="value:4362.err" uid="4362" uid_parent="4360"/>
+        <Node _name="Invoke Node" target="Delete" type="{LV.Control}" inputs="reference:4361.el,error in (no error):4362.err" outputs="reference out:,error out:4363.err" uid="4363" uid_parent="4360"/>
+        <Tunnel _id="Out1" inputs="value:4363.err" uid="4364" uid_parent="4360"/>
+      </CaseFrame>
+      <CaseFrame selector="False" selectout="" uid="4365" uid_parent="4350">
+        <Tunnel _id="In1" outputs="value:" uid="4366" uid_parent="4365"/>
+        <Tunnel _id="In2" outputs="value:4367.err" uid="4367" uid_parent="4365"/>
+        <Tunnel _id="Out1" inputs="value:4367.err" uid="4368" uid_parent="4365"/>
+      </CaseFrame>
+      <Tunnel _id="Out1" outputs="value:4370.err" uid="4370" uid_parent="4350"/>
+    </Structure>
+    <Tunnel _id="Out1" inputs="value:4323.hit" mode="index" outputs="value:4380.hits" uid="4380" uid_parent="4300"/>
+  </Structure>
+  <Indicator _name="deleted flags" type="array{bool}" uid="4381" uid_parent="root" value="[]" inputs="value:4380.hits"/>
+  <Node _name="Property Node" fields="read+Controls[]" type="{LV.Cluster}" inputs="reference:4124.cl,error in (no error):4312.err" outputs="Controls[]:4400.els,reference out:,error out:4400.err" uid="4400" uid_parent="root"/>
+  <Constant _name="empty" type="string" uid="4405" uid_parent="root" value="" outputs="value:4405.value"/>
+  <Structure _name="For Loop" count="" maxin="" maxout="" uid="4410" uid_parent="root">
+    <Tunnel _id="In1" inputs="value:4400.els" mode="index" outputs="value:4411.el" uid="4411" uid_parent="4410"/>
+    <Tunnel _id="In2" inputs="value:4103.value" outputs="value:4414.sep" uid="4414" uid_parent="4410"/>
+    <ShiftReg uid="4415" uid_parent="4410">
+      <Left inputs="value:4405.value" outputs="value:4416.acc" uid="4416" uid_parent="4415"/>
+      <Right inputs="value:4418.cat" outputs="value:4417.acc" uid="4417" uid_parent="4415"/>
+    </ShiftReg>
+    <Node _name="Property Node" fields="read+Label.Text" type="{LV.Control}" inputs="reference:4411.el,error in (no error):" outputs="Label.Text:4412.label,reference out:,error out:" uid="4412" uid_parent="4410"/>
+    <Node _name="Concatenate Strings" inputs="string:4416.acc,string:4412.label,string:4414.sep" outputs="concatenated string:4418.cat" uid="4418" uid_parent="4410"/>
+  </Structure>
+  <Indicator _name="labels after" type="string" uid="4421" uid_parent="root" value="" inputs="value:4417.acc"/>
+  <Node _name="Invoke Node" target="Save.Instrument" type="{LV.VI}" inputs="reference:4120.vi,error in (no error):4400.err,Path to saved file:,Save a Copy:,Without Diagram:" outputs="reference out:,error out:4430.err" uid="4430" uid_parent="root"/>
+  <Node _name="Close Reference" inputs="reference:4120.vi,error in (no error):4430.err" outputs="error out:4440.err" uid="4440" uid_parent="root"/>
+  <Indicator _name="error out" type="cluster{bool.status,int32.code,string.source}" uid="4450" uid_parent="root" value="[false,0,]" inputs="value:4440.err"/>
+</VI>

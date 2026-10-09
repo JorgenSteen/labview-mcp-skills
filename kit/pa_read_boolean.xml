@@ -1,0 +1,34 @@
+<VI _name="pa_read_boolean.vi" description="F-verify READ-ONLY helper (read twin of pa_set_mechanical_action)\3A opens a saved VI in the DEFAULT application instance (project CLOSED)\2C finds the front-panel Boolean whose Label.Text is control name\2C reads its Mechanical Action (0 Switch When Pressed\2C 1 Switch When Released\2C 2 Switch Until Released\2C 3-5 latch) and Visible. No save.">
+  <Control _name="vi path" type="string" uid="4100" uid_parent="root" value="" outputs="value:4100.value"/>
+  <Control _name="control name" type="string" uid="4101" uid_parent="root" value="Stop" outputs="value:4101.value"/>
+  <Constant _name="bool class" type="ref{LV.Boolean}" uid="4103" uid_parent="root" value="" outputs="value:4103.value"/>
+  <Constant _name="one" type="int32" uid="4108" uid_parent="root" value="1" outputs="value:4108.value"/>
+  <Node _name="String To Path" inputs="string:4100.value" outputs="path:4202.path" uid="4202" uid_parent="root"/>
+  <Node _name="Open VI Reference" inputs="vi path:4202.path,error in (no error):" outputs="vi reference:4203.vi,error out:4203.err" uid="4203" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Front Panel" type="{LV.VI}" inputs="reference:4203.vi,error in (no error):4203.err" outputs="Front Panel:4204.fp,reference out:,error out:4204.err" uid="4204" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Controls[]" type="{LV.Panel}" inputs="reference:4204.fp,error in (no error):4204.err" outputs="Controls[]:4205.ctls,reference out:,error out:4205.err" uid="4205" uid_parent="root"/>
+  <Node _name="Array Size" inputs="array:4205.ctls" outputs="size(s):4206.n" uid="4206" uid_parent="root"/>
+  <Structure _name="While Loop" count="4300.value" uid="4300" uid_parent="root">
+    <Tunnel _id="In1" inputs="value:4205.ctls" outputs="value:4301.ctls" uid="4301" uid_parent="4300"/>
+    <Tunnel _id="In2" inputs="value:4101.value" outputs="value:4302.name" uid="4302" uid_parent="4300"/>
+    <Tunnel _id="In3" inputs="value:4206.n" outputs="value:4303.n" uid="4303" uid_parent="4300"/>
+    <Tunnel _id="In4" inputs="value:4108.value" outputs="value:4304.one" uid="4304" uid_parent="4300"/>
+    <Node _name="Index Array" inputs="array:4301.ctls,index:4300.value" outputs="element:4310.ctl" uid="4310" uid_parent="4300"/>
+    <Node _name="Property Node" fields="read+Label.Text" type="{LV.Control}" inputs="reference:4310.ctl,error in (no error):" outputs="Label.Text:4311.label,reference out:,error out:" uid="4311" uid_parent="4300"/>
+    <Node _name="Equal?" inputs="x:4311.label,y:4302.name" outputs="x = y?:4312.hit" uid="4312" uid_parent="4300"/>
+    <Node _name="Add" inputs="x:4300.value,y:4304.one" outputs="x+y:4313.next" uid="4313" uid_parent="4300"/>
+    <Node _name="Greater Or Equal?" inputs="x:4313.next,y:4303.n" outputs="x &gt;= y?:4314.end" uid="4314" uid_parent="4300"/>
+    <Node _name="Or" inputs="x:4312.hit,y:4314.end" outputs="x .or. y?:4315.stop" uid="4315" uid_parent="4300"/>
+    <Condition inputs="value:4315.stop" uid="4316" uid_parent="4300" value="stop"/>
+    <Tunnel _id="Out1" inputs="value:4310.ctl" outputs="value:4320.ctl" uid="4320" uid_parent="4300"/>
+    <Tunnel _id="Out2" inputs="value:4312.hit" outputs="value:4321.found" uid="4321" uid_parent="4300"/>
+  </Structure>
+  <Node _name="To More Specific Class" inputs="reference:4320.ctl,error in:4205.err,target class:4103.value" outputs="specific class reference:4400.bool,error out:4400.err" uid="4400" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Mechanical Action" type="{LV.Boolean}" inputs="reference:4400.bool,error in (no error):4400.err" outputs="Mechanical Action:4403.ma,reference out:4404.bool,error out:4403.err" uid="4403" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Visible" type="{LV.Control}" inputs="reference:4404.bool,error in (no error):4403.err" outputs="Visible:4405.vis,reference out:,error out:4405.err" uid="4405" uid_parent="root"/>
+  <Node _name="Close Reference" inputs="reference:4203.vi,error in (no error):4405.err" outputs="error out:4421.err" uid="4421" uid_parent="root"/>
+  <Indicator _name="found" type="bool" uid="4500" uid_parent="root" value="false" inputs="value:4321.found"/>
+  <Indicator _name="mechanical action read" type="uint16" uid="4501" uid_parent="root" value="0" inputs="value:4403.ma"/>
+  <Indicator _name="visible read" type="bool" uid="4503" uid_parent="root" value="false" inputs="value:4405.vis"/>
+  <Indicator _name="error out" type="cluster{bool.status,int32.code,string.source}" uid="4502" uid_parent="root" value="[false,0,]" inputs="value:4421.err"/>
+</VI>

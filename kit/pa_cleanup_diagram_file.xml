@@ -1,0 +1,74 @@
+<VI _name="pa_cleanup_diagram_file.vi" description="FILE VARIANT (paths read from the text file in vi list / png list\2C same \3B format). M4d helper\3A Clean Up Diagram on many VIs in ONE LabVIEW call. vi paths = absolute VI paths each followed by \3B (the runner cannot set array controls). project path empty = open each VI in the default application instance (project CLOSED)\3B non-empty = open it in the application instance of the ACTIVE project (open it first with lvai_open_file\3B the path itself is only a switch). Per path\3A Open VI Reference -&gt; {LV.VI} Invoke BD.CleanUp (spelling from NI's example Script Random Strip Chart with Diagram Cleanup.vi) -&gt; Save.Instrument -&gt; Close Reference\3B one line error code TAB path per VI into report\3B ok count = lines with code 0.">
+  <Constant _name="all" type="int32" uid="4091" uid_parent="root" value="-1" outputs="value:4091.value"/>
+  <Control _name="vi list" type="path" uid="4090" uid_parent="root" value="" outputs="value:4090.value"/>
+  <Node _name="Read from Text File" inputs="file (use dialog):4090.value,count:4091.value,error in:,prompt (Open existing file):" outputs="refnum out:,text:4092.text,cancelled:,error out:4092.err" uid="4092" uid_parent="root"/>
+  <Control _name="project path" type="string" uid="4101" uid_parent="root" value="" outputs="value:4101.value"/>
+  <Constant _name="sep" type="string" uid="4110" uid_parent="root" value="\3B" outputs="value:4110.value"/>
+  <Constant _name="tab" type="string" uid="4111" uid_parent="root" value="\09" outputs="value:4111.value"/>
+  <Constant _name="lf" type="string" uid="4112" uid_parent="root" value="\0A" outputs="value:4112.value"/>
+  <Constant _name="empty" type="string" uid="4113" uid_parent="root" value="" outputs="value:4113.value"/>
+  <Constant _name="zero" type="int32" uid="4114" uid_parent="root" value="0" outputs="value:4114.value"/>
+  <Constant _name="izero" type="int32" uid="4115" uid_parent="root" value="0" outputs="value:4115.value"/>
+  <Node _name="Property Node" fields="read+Project\3AActive Project" type="{LV.Application}" inputs="error in (no error):" outputs="Project\3AActive Project:4120.proj,reference out:,error out:4120.err" uid="4120" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Application" type="{LV.Project}" inputs="reference:4120.proj,error in (no error):4120.err" outputs="Application:4121.app,reference out:,error out:4121.err" uid="4121" uid_parent="root"/>
+  <Node _name="Empty String/Path?" inputs="string/path:4101.value" outputs="empty?:4122.noproj" uid="4122" uid_parent="root"/>
+  <Structure _name="While Loop" count="" uid="4300" uid_parent="root">
+    <ShiftReg uid="4310" uid_parent="4300">
+      <Left inputs="value:4092.text" outputs="value:4311.rest" uid="4311" uid_parent="4310"/>
+      <Right inputs="value:4320.after" outputs="value:" uid="4312" uid_parent="4310"/>
+    </ShiftReg>
+    <ShiftReg uid="4313" uid_parent="4300">
+      <Left inputs="value:4113.value" outputs="value:4314.rep" uid="4314" uid_parent="4313"/>
+      <Right inputs="value:4340.rep" outputs="value:4315.report" uid="4315" uid_parent="4313"/>
+    </ShiftReg>
+    <ShiftReg uid="4316" uid_parent="4300">
+      <Left inputs="value:4114.value" outputs="value:4317.ok" uid="4317" uid_parent="4316"/>
+      <Right inputs="value:4351.ok" outputs="value:4318.okcount" uid="4318" uid_parent="4316"/>
+    </ShiftReg>
+    <Tunnel _id="In1" inputs="value:4110.value" outputs="value:4301.sep" uid="4301" uid_parent="4300"/>
+    <Tunnel _id="In2" inputs="value:4111.value" outputs="value:4302.tab" uid="4302" uid_parent="4300"/>
+    <Tunnel _id="In3" inputs="value:4112.value" outputs="value:4303.lf" uid="4303" uid_parent="4300"/>
+    <Tunnel _id="In4" inputs="value:4115.value" outputs="value:4304.zero" uid="4304" uid_parent="4300"/>
+    <Tunnel _id="In5" inputs="value:4121.app" outputs="value:4305.app" uid="4305" uid_parent="4300"/>
+    <Tunnel _id="In6" inputs="value:4121.err" outputs="value:4306.apperr" uid="4306" uid_parent="4300"/>
+    <Tunnel _id="In7" inputs="value:4122.noproj" outputs="value:4307.noproj" uid="4307" uid_parent="4300"/>
+    <Node _name="Match Pattern" inputs="string:4311.rest,regular expression:4301.sep,offset (0):" outputs="before substring:4320.path,match substring:,after substring:4320.after,offset past match:" uid="4320" uid_parent="4300"/>
+    <Node _name="String To Path" inputs="string:4320.path" outputs="path:4321.p" uid="4321" uid_parent="4300"/>
+    <Structure _name="Case Structure" selectin="4307.noproj" uid="4400" uid_parent="4300">
+      <Tunnel _id="In1" inputs="value:4321.p" uid="4401" uid_parent="4400"/>
+      <Tunnel _id="In2" inputs="value:4305.app" uid="4402" uid_parent="4400"/>
+      <Tunnel _id="In3" inputs="value:4306.apperr" uid="4403" uid_parent="4400"/>
+      <CaseFrame selector="True" selectout="" uid="4410" uid_parent="4400">
+        <Tunnel _id="In1" outputs="value:4411.p" uid="4411" uid_parent="4410"/>
+        <Tunnel _id="In2" outputs="value:" uid="4412" uid_parent="4410"/>
+        <Tunnel _id="In3" outputs="value:" uid="4413" uid_parent="4410"/>
+        <Node _name="Open VI Reference" inputs="application reference (local):,vi path:4411.p,error in (no error):" outputs="vi reference:4414.vi,error out:4414.err" uid="4414" uid_parent="4410"/>
+        <Tunnel _id="Out1" inputs="value:4414.vi" uid="4415" uid_parent="4410"/>
+        <Tunnel _id="Out2" inputs="value:4414.err" uid="4416" uid_parent="4410"/>
+      </CaseFrame>
+      <CaseFrame selector="False" selectout="" uid="4420" uid_parent="4400">
+        <Tunnel _id="In1" outputs="value:4421.p" uid="4421" uid_parent="4420"/>
+        <Tunnel _id="In2" outputs="value:4422.app" uid="4422" uid_parent="4420"/>
+        <Tunnel _id="In3" outputs="value:4423.err" uid="4423" uid_parent="4420"/>
+        <Node _name="Open VI Reference" inputs="application reference (local):4422.app,vi path:4421.p,error in (no error):4423.err" outputs="vi reference:4424.vi,error out:4424.err" uid="4424" uid_parent="4420"/>
+        <Tunnel _id="Out1" inputs="value:4424.vi" uid="4425" uid_parent="4420"/>
+        <Tunnel _id="Out2" inputs="value:4424.err" uid="4426" uid_parent="4420"/>
+      </CaseFrame>
+      <Tunnel _id="Out1" outputs="value:4430.vi" uid="4430" uid_parent="4400"/>
+      <Tunnel _id="Out2" outputs="value:4431.err" uid="4431" uid_parent="4400"/>
+    </Structure>
+    <Node _name="Invoke Node" target="BD.CleanUp" type="{LV.VI}" inputs="reference:4430.vi,error in (no error):4431.err" outputs="reference out:4322.vi,error out:4322.err" uid="4322" uid_parent="4300"/>
+    <Node _name="Invoke Node" target="Save.Instrument" type="{LV.VI}" inputs="reference:4322.vi,error in (no error):4322.err,Path to saved file:,Save a Copy:,Without Diagram:" outputs="reference out:4323.vi,error out:4323.err" uid="4323" uid_parent="4300"/>
+    <Node _name="Close Reference" inputs="reference:4323.vi,error in (no error):4323.err" outputs="error out:4324.err" uid="4324" uid_parent="4300"/>
+    <Node _name="Unbundle By Name" fields="code" inputs="input cluster:4324.err" outputs="code:4325.code" uid="4325" uid_parent="4300"/>
+    <Node _name="Number To Decimal String" inputs="number:4325.code" outputs="decimal integer string:4331.c" uid="4331" uid_parent="4300"/>
+    <Node _name="Concatenate Strings" inputs="string:4314.rep,string:4331.c,string:4302.tab,string:4320.path,string:4303.lf" outputs="concatenated string:4340.rep" uid="4340" uid_parent="4300"/>
+    <Node _name="Equal?" inputs="x:4325.code,y:4304.zero" outputs="x = y?:4350.eq" uid="4350" uid_parent="4300"/>
+    <Node _name="Boolean To (0\2C1)" inputs="Boolean:4350.eq" outputs="0\2C 1:4352.n" uid="4352" uid_parent="4300"/>
+    <Node _name="Add" inputs="x:4317.ok,y:4352.n" outputs="x+y:4351.ok" uid="4351" uid_parent="4300"/>
+    <Node _name="Empty String/Path?" inputs="string/path:4320.after" outputs="empty?:4360.e" uid="4360" uid_parent="4300"/>
+    <Condition inputs="value:4360.e" uid="4361" uid_parent="4300" value="stop"/>
+  </Structure>
+  <Indicator _name="report" type="string" uid="4800" uid_parent="root" value="" inputs="value:4315.report"/>
+  <Indicator _name="ok count" type="int32" uid="4801" uid_parent="root" value="0" inputs="value:4318.okcount"/>
+</VI>

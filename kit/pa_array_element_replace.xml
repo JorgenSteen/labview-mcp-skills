@@ -1,0 +1,27 @@
+<VI _name="pa_array_element_replace.vi" description="Opens a typedef .ctl whose top control is an array (through Project\3AActive Project, so a project must be active), takes the array's Array Element and runs {LV.Control} Replace with the given path (a .ctl or a .lvclass), then Save.Instrument. Reports the element's label and type-def flag after the replace.">
+  <Control _name="ctl path" type="string" uid="4201" uid_parent="root" value="" outputs="value:4201.value"/>
+  <Control _name="element path" type="string" uid="4202" uid_parent="root" value="" outputs="value:4202.value"/>
+  <Node _name="String To Path" inputs="string:4201.value" outputs="path:4218.path" uid="4218" uid_parent="root"/>
+  <Node _name="String To Path" inputs="string:4202.value" outputs="path:4219.path" uid="4219" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Project\3AActive Project" type="{LV.Application}" outputs="Project\3AActive Project:4210.proj,reference out:,error out:4210.err" uid="4210" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Application" type="{LV.Project}" inputs="reference:4210.proj,error in (no error):4210.err" outputs="Application:4211.app,reference out:,error out:4211.err" uid="4211" uid_parent="root"/>
+  <Node _name="Open VI Reference" inputs="application reference (local):4211.app,vi path:4218.path,error in (no error):4211.err" outputs="vi reference:4212.vi,error out:4212.err" uid="4212" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Front Panel" inputs="reference:4212.vi,error in (no error):4212.err" outputs="Front Panel:4213.panel,reference out:,error out:4213.err" type="{LV.VI}" uid="4213" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Controls[]" inputs="reference:4213.panel,error in (no error):4213.err" outputs="Controls[]:4214.ctrls,reference out:,error out:4214.err" type="{LV.Panel}" uid="4214" uid_parent="root"/>
+  <Node _name="Index Array" inputs="array:4214.ctrls,index:" outputs="element:4215.el" uid="4215" uid_parent="root"/>
+  <Constant type="ref{LV.Array}" value="" outputs="value:4216.value" uid="4216" uid_parent="root"/>
+  <Node _name="To More Specific Class" inputs="reference:4215.el,error in:4214.err,target class:4216.value" outputs="specific class reference:4217.arr,error out:4217.err" uid="4217" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Array Element" inputs="reference:4217.arr,error in (no error):4217.err" outputs="Array Element:4220.el,reference out:,error out:4220.err" type="{LV.Array}" uid="4220" uid_parent="root"/>
+  <Node _name="Invoke Node" inputs="reference:4220.el,error in (no error):4220.err,Path:4219.path" outputs="reference out:,error out:4223.err,Replace:" target="Replace" type="{LV.Control}" uid="4223" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Array Element" inputs="reference:4217.arr,error in (no error):4223.err" outputs="Array Element:4224.el,reference out:,error out:4224.err" type="{LV.Array}" uid="4224" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Is Typedef?,read+Label" inputs="reference:4224.el,error in (no error):4224.err" outputs="Is Typedef?:4226.td,Label:4226.lbl,reference out:,error out:4226.err" type="{LV.Control}" uid="4226" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Text" type="{LV.Text}" inputs="reference:4226.lbl,error in (no error):4226.err" outputs="Text:4227.text,reference out:,error out:4227.err" uid="4227" uid_parent="root"/>
+  <Node _name="Invoke Node" inputs="reference:4212.vi,error in (no error):4227.err,Path to saved file:,Save a Copy:,Without Diagram:" outputs="reference out:,error out:4240.err" target="Save.Instrument" type="{LV.VI}" uid="4240" uid_parent="root"/>
+  <Node _name="Close Reference" inputs="reference:4212.vi,error in (no error):4240.err" outputs="error out:4245.err" uid="4245" uid_parent="root"/>
+  <Node _name="Unbundle By Name" fields="status,code,source" inputs="input cluster:4245.err" outputs="status:4246.status,code:4246.code,source:4246.source" uid="4246" uid_parent="root"/>
+  <Indicator _name="is typedef after" inputs="value:4226.td" type="uint32" uid="4250" uid_parent="root" value="0"/>
+  <Indicator _name="label after" inputs="value:4227.text" type="string" uid="4251" uid_parent="root" value=""/>
+  <Indicator _name="status" inputs="value:4246.status" type="bool" uid="4253" uid_parent="root" value="false"/>
+  <Indicator _name="code" inputs="value:4246.code" type="int32" uid="4254" uid_parent="root" value="0"/>
+  <Indicator _name="source" inputs="value:4246.source" type="string" uid="4255" uid_parent="root" value=""/>
+</VI>

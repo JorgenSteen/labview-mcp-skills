@@ -1,0 +1,66 @@
+{
+  "$schema_version": 1,
+  "_doc": "Example icon standard for make_icons.py. Copy to <repo>/.labview/conventions/icon-spec.json and edit. classes: owner key (the class folder name, a flat folder, the top-level owner or a library owner) -> banner (3x5 font: A-Z 0-9 - _ . > space, max 7), web-safe colour (multiples of 33 hex), lib_glyph. libs: .lvlib icons. no_template: classes entries without a .lvclass; library_owners: owners whose .lvlib is the template of their VIs; flat_folders: first-level src folders drawn flat. overrides: owner -> VI file -> lib_glyph + glyph. rules: ordered name rules (match contains|prefix|suffix|equals; first: true runs before the built-in Read/Write/Send/Do rules), checked before the built-in rules. lib_glyphs (10x10) and glyphs (16x16): row strings over palette keys, '.' transparent. planned: VIs not built yet (--include-planned).",
+  "paths": {"src": "src", "out": "docs/icons"},
+  "palette": {"T": "339999"},
+  "preview": {"label_remove": ["DEV-"]},
+  "classes": {
+    "DEV-instrument":        {"banner": "INS",  "colour": "003366", "lib_glyph": "meter"},
+    "DEV-INS-power_supply":  {"banner": "PSU",  "colour": "336699", "lib_glyph": "meter"},
+    "tests":                 {"banner": "TEST", "colour": "663399", "lib_glyph": null},
+    "launcher":              {"banner": "DEV",  "colour": "333366", "lib_glyph": null}
+  },
+  "libs": {
+    "DEV-instruments":       {"banner": "INS",  "colour": "003366", "lib_glyph": "meter"}
+  },
+  "no_template": ["tests", "launcher"],
+  "library_owners": [],
+  "flat_folders": ["tests"],
+  "top_level_owner": "launcher",
+  "overrides": {
+    "tests": {"DEV-test_instrument.vi": {"lib_glyph": "meter", "glyph": "check"}},
+    "launcher": {"DEV-launcher.vi": {"lib_glyph": null, "glyph": "launch"}}
+  },
+  "rules": [
+    {"match": "contains", "pattern": "set_voltage", "glyph": "volt"},
+    {"match": "suffix", "pattern": "_loop", "glyph": "loop"}
+  ],
+  "lib_glyphs": {
+    "meter": [
+      "KKKKKKKKKK",
+      "KWWWWWWWWK",
+      "KWWWWWWRWK",
+      "KWWWWWRWWK",
+      "KWWWWRWWWK",
+      "KWWWKWWWWK",
+      "KWWWWWWWWK",
+      "KKKKKKKKKK",
+      ".KTTTTTTK.",
+      ".KKKKKKKK."
+    ]
+  },
+  "glyphs": {
+    "volt": [
+      "................",
+      "................",
+      "..KK........KK..",
+      "..KK........KK..",
+      "...KK......KK...",
+      "...KK......KK...",
+      "....KK....KK....",
+      "....KK....KK....",
+      ".....KK..KK.....",
+      ".....KK..KK.....",
+      "......KKKK......",
+      "......KKKK......",
+      ".......KK.......",
+      "................",
+      "..TTTTTTTTTTTT..",
+      "................"
+    ]
+  },
+  "planned": [
+    "DEV-launcher.vi",
+    "instruments/DEV-INS-power_supply/DEV-INS-set_voltage.vi"
+  ]
+}

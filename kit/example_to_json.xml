@@ -1,0 +1,13 @@
+<VI _name="PA-P-to_json.vi" description="PA-P-C-child override of PA-P-to_json. Header from the parent's static PA-P-header and the data cluster from Read data (both placeholder sockets\2C swapped afterwards)\2C bundled as {timestamp\2C type\2C data} and flattened to JSON. Path stand-ins for the class terminals.">
+  <Control _name="PA-P-C-child in" conIdx="11" connection="required" type="path" uid="4100" uid_parent="root" value="" outputs="value:4100.value"/>
+  <Control _name="error in" conIdx="8" connection="recommended" type="cluster{bool.status,int32.code,string.source}" uid="4101" uid_parent="root" value="[false,0,]" outputs="value:4101.value"/>
+  <Constant _name="json seed" type="cluster{string.timestamp,string.type,cluster{double.temperature_c,int32.sample_index,uint8.duty_percent,bool.sensor_ok,string.status}.data}" uid="4113" uid_parent="root" value="[,,[0,0,0,false,]]" outputs="value:4113.value"/>
+  <Call target="LVMCP Stub 8fa9b7c2c4.vi" inputs="PA-P-parent in:4100.value,error in:4101.value" outputs="header:4121.header,error out:4121.err" uid="4121" uid_parent="root"/>
+  <Call target="LVMCP Stub 70c76fc9ec.vi" inputs="error in (no error):4121.err,PA-P-C-child in:4100.value" outputs="error out:4120.err,PA-P-C-child out:4120.obj,PA-P-C-data:4120.data" uid="4120" uid_parent="root"/>
+  <Node _name="Unbundle By Name" fields="timestamp,type" inputs="input cluster:4121.header" outputs="timestamp:4122.ts,type:4122.type" uid="4122" uid_parent="root"/>
+  <Node _name="Bundle By Name" fields="timestamp,type,data" inputs="timestamp:4122.ts,type:4122.type,data:4120.data,input cluster:4113.value" outputs="output cluster:4123.all" uid="4123" uid_parent="root"/>
+  <Node _name="Flatten To JSON" inputs="anything:4123.all,error in (no error):4120.err,enable LabVIEW extensions? (T):" outputs="JSON string:4124.json,error out:4124.err" uid="4124" uid_parent="root"/>
+  <Indicator _name="PA-P-C-child out" conIdx="3" connection="recommended" type="path" uid="4140" uid_parent="root" value="" inputs="value:4120.obj"/>
+  <Indicator _name="json" conIdx="2" connection="recommended" type="string" uid="4142" uid_parent="root" value="" inputs="value:4124.json"/>
+  <Indicator _name="error out" conIdx="0" connection="recommended" type="cluster{bool.status,int32.code,string.source}" uid="4141" uid_parent="root" value="[false,0,]" inputs="value:4124.err"/>
+</VI>

@@ -1,0 +1,34 @@
+<VI _name="PB_apply_icon_and_save.vi" description="Icon measurement helper: opens a .lvclass, runs {LV.Library} ApplyIconToVIs (NI spelling from LIBUIP_SetLibIconAndApplyToVIs.vi), then opens each named member VI by path (same app instance, class still referenced) and saves it with Save.Instrument, then saves the class.">
+  <Control _name="class path" type="string" uid="4100" uid_parent="root" value="" outputs="value:4100.value"/>
+  <Node _name="String To Path" inputs="string:4100.value" outputs="path:4101.path" uid="4101" uid_parent="root"/>
+  <Node _name="Invoke Node" target="LVClass.Open" type="{LV.Application}" inputs="Path:4101.path" outputs="reference out:,error out:4110.err,LVClass.Open:4110.cls" uid="4110" uid_parent="root"/>
+  <Node _name="Invoke Node" target="ApplyIconToVIs" type="{LV.LVClassLibrary}" inputs="reference:4110.cls,error in (no error):4110.err" outputs="reference out:,error out:4120.err" uid="4120" uid_parent="root"/>
+  <Indicator _name="apply error" type="cluster{bool.status,int32.code,string.source}" value="[false,0,]" uid="4121" uid_parent="root" inputs="value:4120.err"/>
+  <Control _name="vi 1" type="string" uid="4300" uid_parent="root" value="" outputs="value:4300.value"/>
+  <Node _name="String To Path" inputs="string:4300.value" outputs="path:4310.path" uid="4310" uid_parent="root"/>
+  <Node _name="Open VI Reference" inputs="vi path:4310.path,error in (no error):4120.err" outputs="vi reference:4320.vi,error out:4320.err" uid="4320" uid_parent="root"/>
+  <Node _name="Invoke Node" target="Save.Instrument" type="{LV.VI}" inputs="reference:4320.vi,error in (no error):4320.err,Path to saved file:,Save a Copy:,Without Diagram:" outputs="reference out:,error out:4330.err" uid="4330" uid_parent="root"/>
+  <Node _name="Close Reference" inputs="reference:4320.vi,error in (no error):4330.err" outputs="error out:4340.err" uid="4340" uid_parent="root"/>
+  <Indicator _name="save vi 1 error" type="cluster{bool.status,int32.code,string.source}" value="[false,0,]" uid="4350" uid_parent="root" inputs="value:4340.err"/>
+  <Control _name="vi 2" type="string" uid="4400" uid_parent="root" value="" outputs="value:4400.value"/>
+  <Node _name="String To Path" inputs="string:4400.value" outputs="path:4410.path" uid="4410" uid_parent="root"/>
+  <Node _name="Open VI Reference" inputs="vi path:4410.path,error in (no error):4340.err" outputs="vi reference:4420.vi,error out:4420.err" uid="4420" uid_parent="root"/>
+  <Node _name="Invoke Node" target="Save.Instrument" type="{LV.VI}" inputs="reference:4420.vi,error in (no error):4420.err,Path to saved file:,Save a Copy:,Without Diagram:" outputs="reference out:,error out:4430.err" uid="4430" uid_parent="root"/>
+  <Node _name="Close Reference" inputs="reference:4420.vi,error in (no error):4430.err" outputs="error out:4440.err" uid="4440" uid_parent="root"/>
+  <Indicator _name="save vi 2 error" type="cluster{bool.status,int32.code,string.source}" value="[false,0,]" uid="4450" uid_parent="root" inputs="value:4440.err"/>
+  <Control _name="vi 3" type="string" uid="4500" uid_parent="root" value="" outputs="value:4500.value"/>
+  <Node _name="String To Path" inputs="string:4500.value" outputs="path:4510.path" uid="4510" uid_parent="root"/>
+  <Node _name="Open VI Reference" inputs="vi path:4510.path,error in (no error):4440.err" outputs="vi reference:4520.vi,error out:4520.err" uid="4520" uid_parent="root"/>
+  <Node _name="Invoke Node" target="Save.Instrument" type="{LV.VI}" inputs="reference:4520.vi,error in (no error):4520.err,Path to saved file:,Save a Copy:,Without Diagram:" outputs="reference out:,error out:4530.err" uid="4530" uid_parent="root"/>
+  <Node _name="Close Reference" inputs="reference:4520.vi,error in (no error):4530.err" outputs="error out:4540.err" uid="4540" uid_parent="root"/>
+  <Indicator _name="save vi 3 error" type="cluster{bool.status,int32.code,string.source}" value="[false,0,]" uid="4550" uid_parent="root" inputs="value:4540.err"/>
+  <Control _name="vi 4" type="string" uid="4600" uid_parent="root" value="" outputs="value:4600.value"/>
+  <Node _name="String To Path" inputs="string:4600.value" outputs="path:4610.path" uid="4610" uid_parent="root"/>
+  <Node _name="Open VI Reference" inputs="vi path:4610.path,error in (no error):4540.err" outputs="vi reference:4620.vi,error out:4620.err" uid="4620" uid_parent="root"/>
+  <Node _name="Invoke Node" target="Save.Instrument" type="{LV.VI}" inputs="reference:4620.vi,error in (no error):4620.err,Path to saved file:,Save a Copy:,Without Diagram:" outputs="reference out:,error out:4630.err" uid="4630" uid_parent="root"/>
+  <Node _name="Close Reference" inputs="reference:4620.vi,error in (no error):4630.err" outputs="error out:4640.err" uid="4640" uid_parent="root"/>
+  <Indicator _name="save vi 4 error" type="cluster{bool.status,int32.code,string.source}" value="[false,0,]" uid="4650" uid_parent="root" inputs="value:4640.err"/>
+  <Node _name="Invoke Node" target="Save" type="{LV.LVClassLibrary}" inputs="reference:4110.cls,error in (no error):4640.err" outputs="reference out:,error out:4900.err" uid="4900" uid_parent="root"/>
+  <Node _name="Close Reference" inputs="reference:4110.cls,error in (no error):4900.err" outputs="error out:4910.err" uid="4910" uid_parent="root"/>
+  <Indicator _name="error out" type="cluster{bool.status,int32.code,string.source}" value="[false,0,]" uid="4920" uid_parent="root" inputs="value:4910.err"/>
+</VI>

@@ -1,0 +1,49 @@
+<VI _name="pa_press_control_signal.vi" description="M3 helper\3A like pa_press_control but through Value (Signaling)\2C so an EVENT STRUCTURE sees a Value Change (Ctrl Val.Set generates no event). Opens a RUNNING VI by qualified name\2C walks Front Panel.Controls[]\2C and on the control whose Label.Text equals control name writes Value (Signaling) = the boolean value. Reports how many controls matched and the merged error of the writes.">
+  <Control _name="vi name" type="string" uid="4100" uid_parent="root" value="PB-U-ui_root.lvlib\3APB-U-ui_root.lvclass\3APB-U-ui_loop.vi" outputs="value:4100.value"/>
+  <Control _name="control name" type="string" uid="4101" uid_parent="root" value="Stop" outputs="value:4101.value"/>
+  <Control _name="value" type="bool" uid="4102" uid_parent="root" value="true" outputs="value:4102.value"/>
+  <Node _name="Open VI Reference" inputs="application reference (local):,vi path:4100.value,error in (no error):" outputs="vi reference:4200.vi,error out:4200.err" uid="4200" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Execution\3AState,read+Front Panel" type="{LV.VI}" inputs="reference:4200.vi,error in (no error):4200.err" outputs="Execution\3AState:4210.state,Front Panel:4210.fp,reference out:4210.ref,error out:4210.err" uid="4210" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Controls[]" type="{LV.Panel}" inputs="reference:4210.fp,error in (no error):4210.err" outputs="Controls[]:4220.ctls,reference out:,error out:4220.err" uid="4220" uid_parent="root"/>
+  <Node _name="To Variant" inputs="anything:4102.value" outputs="Variant:4225.var" uid="4225" uid_parent="root"/>
+  <Structure _name="For Loop" count="" uid="4300" uid_parent="root">
+    <Tunnel _id="In1" inputs="value:4220.ctls" mode="index" outputs="value:4301.ctl" uid="4301" uid_parent="4300"/>
+    <Tunnel _id="In2" inputs="value:4101.value" outputs="value:4302.name" uid="4302" uid_parent="4300"/>
+    <Tunnel _id="In3" inputs="value:4225.var" outputs="value:4303.var" uid="4303" uid_parent="4300"/>
+    <Tunnel _id="In4" inputs="value:4220.err" outputs="value:4304.err" uid="4304" uid_parent="4300"/>
+    <Node _name="Property Node" fields="read+Label.Text" type="{LV.Control}" inputs="reference:4301.ctl,error in (no error):4304.err" outputs="Label.Text:4310.label,reference out:4310.ref,error out:4310.err" uid="4310" uid_parent="4300"/>
+    <Node _name="Equal?" inputs="x:4310.label,y:4302.name" outputs="x = y?:4311.hit" uid="4311" uid_parent="4300"/>
+    <Structure _name="Case Structure" selectin="4311.hit" uid="4400" uid_parent="4300">
+      <Tunnel _id="In1" inputs="value:4310.ref" uid="4401" uid_parent="4400"/>
+      <Tunnel _id="In2" inputs="value:4303.var" uid="4402" uid_parent="4400"/>
+      <Tunnel _id="In3" inputs="value:4310.err" uid="4403" uid_parent="4400"/>
+      <CaseFrame selector="True" selectout="" uid="4410" uid_parent="4400">
+        <Tunnel _id="In1" outputs="value:4411.ref" uid="4411" uid_parent="4410"/>
+        <Tunnel _id="In2" outputs="value:4412.var" uid="4412" uid_parent="4410"/>
+        <Tunnel _id="In3" outputs="value:4413.err" uid="4413" uid_parent="4410"/>
+        <Node _name="Property Node" fields="write+Value (Signaling)" type="{LV.Control}" inputs="reference:4411.ref,error in (no error):4413.err,Value (Signaling):4412.var" outputs="reference out:,error out:4414.err" uid="4414" uid_parent="4410"/>
+        <Constant _name="one" type="int32" uid="4415" uid_parent="4410" value="1" outputs="value:4415.value"/>
+        <Tunnel _id="Out1" inputs="value:4414.err" uid="4416" uid_parent="4410"/>
+        <Tunnel _id="Out2" inputs="value:4415.value" uid="4417" uid_parent="4410"/>
+      </CaseFrame>
+      <CaseFrame selector="False" selectout="" uid="4420" uid_parent="4400">
+        <Tunnel _id="In1" outputs="value:" uid="4421" uid_parent="4420"/>
+        <Tunnel _id="In2" outputs="value:" uid="4422" uid_parent="4420"/>
+        <Tunnel _id="In3" outputs="value:4423.err" uid="4423" uid_parent="4420"/>
+        <Constant _name="zero" type="int32" uid="4425" uid_parent="4420" value="0" outputs="value:4425.value"/>
+        <Tunnel _id="Out1" inputs="value:4423.err" uid="4426" uid_parent="4420"/>
+        <Tunnel _id="Out2" inputs="value:4425.value" uid="4427" uid_parent="4420"/>
+      </CaseFrame>
+      <Tunnel _id="Out1" outputs="value:4430.err" uid="4430" uid_parent="4400"/>
+      <Tunnel _id="Out2" outputs="value:4431.n" uid="4431" uid_parent="4400"/>
+    </Structure>
+    <Tunnel _id="Out1" inputs="value:4430.err" mode="index" outputs="value:4320.errs" uid="4320" uid_parent="4300"/>
+    <Tunnel _id="Out2" inputs="value:4431.n" mode="index" outputs="value:4321.ns" uid="4321" uid_parent="4300"/>
+  </Structure>
+  <Node _name="Merge Errors" inputs="error in:4320.errs" outputs="error out:4500.err" uid="4500" uid_parent="root"/>
+  <Node _name="Add Array Elements" inputs="numeric array:4321.ns" outputs="sum:4510.sum" uid="4510" uid_parent="root"/>
+  <Node _name="Close Reference" inputs="reference:4210.ref,error in (no error):4500.err" outputs="error out:4520.err" uid="4520" uid_parent="root"/>
+  <Indicator _name="state before" type="uint32" uid="4600" uid_parent="root" value="0" inputs="value:4210.state"/>
+  <Indicator _name="matched" type="int32" uid="4601" uid_parent="root" value="0" inputs="value:4510.sum"/>
+  <Indicator _name="error out" type="cluster{bool.status,int32.code,string.source}" uid="4602" uid_parent="root" value="[false,0,]" inputs="value:4520.err"/>
+</VI>

@@ -1,0 +1,242 @@
+<VI _name="pa_close_join.vi" description="M-CLOSE helper\3A rewires an Actor Core override that has a helper-loop branch (top level\2C found by VI name)\2C Call Parent and a one-frame Flat Sequence holding the stop hook (found by VI name) into the close shape\3A (1) a NEW close subVI on the top level (path)\2C its class input from the loop's class net\2C its error in from a NEW Merge Errors A (loop error out\2C stop hook error out\3B the latter leaves the frame through a new tunnel)\3B (2) the override's error out indicator from a NEW Merge Errors B (Call Parent error out\2C close error out)\3B Call Parent's whole error-out net is deleted (its old order tunnel then vanishes\2C LabVIEW drops a tunnel with no wire on either side) and rebuilt\3A Merge B first input\2C then a new order tunnel made by wiring Call Parent error out to the stop hook's error in and deleting that inner wire (05 rule 77\3B a tunnel with its outer wire stays). Optionally deletes one more subVI in the frame (remove vi regex) and runs Remove Bad Wires. Merge Errors is created by New VI Object (vi object class GrowableFunction\2C style 2147 = palette id BI2147\3B class Function answers 1057\3B the new node reads Class Name Bundler\2C Style Merge Errors). Inputs are found by Is Source? = F in pane order. Saves VI and class. Project OPEN and ACTIVE.">
+  <Control _name="vi path" type="string" uid="6001" uid_parent="root" value="" outputs="value:6001.value"/>
+  <Control _name="class path" type="string" uid="6002" uid_parent="root" value="" outputs="value:6002.value"/>
+  <Control _name="close vi path" type="string" uid="6003" uid_parent="root" value="" outputs="value:6003.value"/>
+  <Control _name="loop vi regex" type="string" uid="6004" uid_parent="root" value="" outputs="value:6004.value"/>
+  <Control _name="stop vi regex" type="string" uid="6005" uid_parent="root" value="" outputs="value:6005.value"/>
+  <Control _name="remove vi regex" type="string" uid="6006" uid_parent="root" value="no-node-to-remove-xyz" outputs="value:6006.value"/>
+  <Control _name="class terminal name" type="string" uid="6007" uid_parent="root" value="" outputs="value:6007.value"/>
+  <Control _name="merge style" type="int32" uid="6008" uid_parent="root" value="2147" outputs="value:6008.value"/>
+  <Control _name="indicator label" type="string" uid="6009" uid_parent="root" value="error out" outputs="value:6009.value"/>
+
+  <Constant _name="zero" type="int32" uid="6010" uid_parent="root" value="0" outputs="value:6010.value"/>
+  <Constant _name="one" type="int32" uid="6024" uid_parent="root" value="1" outputs="value:6024.value"/>
+  <Constant _name="actor out name" type="string" uid="6011" uid_parent="root" value="Actor out" outputs="value:6011.value"/>
+  <Constant _name="error out name" type="string" uid="6012" uid_parent="root" value="error out" outputs="value:6012.value"/>
+  <Constant _name="error in name" type="string" uid="6013" uid_parent="root" value="error in" outputs="value:6013.value"/>
+  <Constant _name="node class" type="ref{LV.Node}" uid="6014" uid_parent="root" value="" outputs="value:6014.value"/>
+  <Constant _name="subvi class" type="ref{LV.SubVI}" uid="6015" uid_parent="root" value="" outputs="value:6015.value"/>
+  <Constant _name="flat sequence class" type="ref{LV.FlatSequence}" uid="6016" uid_parent="root" value="" outputs="value:6016.value"/>
+  <Constant _name="flat sequence name" type="string" uid="6017" uid_parent="root" value="FlatSequence" outputs="value:6017.value"/>
+  <Constant _name="function class" type="ref{LV.GrowableFunction}" uid="6018" uid_parent="root" value="" outputs="value:6018.value"/>
+  <Constant _name="true" type="bool" uid="6019" uid_parent="root" value="true" outputs="value:6019.value"/>
+  <Constant _name="close location" type="cluster{int16.Horizontal,int16.Vertical}" uid="6020" uid_parent="root" value="[900,320]" outputs="value:6020.value"/>
+  <Constant _name="merge A location" type="cluster{int16.Horizontal,int16.Vertical}" uid="6021" uid_parent="root" value="[760,320]" outputs="value:6021.value"/>
+  <Constant _name="merge B location" type="cluster{int16.Horizontal,int16.Vertical}" uid="6022" uid_parent="root" value="[1060,160]" outputs="value:6022.value"/>
+
+  <Node _name="Property Node" fields="read+Project\3AActive Project" type="{LV.Application}" inputs="reference:,error in (no error):" outputs="Project\3AActive Project:6030.proj,reference out:,error out:6030.err" uid="6030" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Application" type="{LV.Project}" inputs="reference:6030.proj,error in (no error):6030.err" outputs="Application:6031.app,reference out:,error out:6031.err" uid="6031" uid_parent="root"/>
+  <Node _name="String To Path" inputs="string:6001.value" outputs="path:6032.path" uid="6032" uid_parent="root"/>
+  <Node _name="String To Path" inputs="string:6002.value" outputs="path:6033.path" uid="6033" uid_parent="root"/>
+  <Node _name="String To Path" inputs="string:6003.value" outputs="path:6034.path" uid="6034" uid_parent="root"/>
+  <Node _name="Open VI Reference" inputs="application reference (local):6031.app,vi path:6032.path,error in (no error):6031.err" outputs="vi reference:6035.vi,error out:6035.err" uid="6035" uid_parent="root"/>
+  <Indicator _name="open vi error" type="cluster{bool.status,int32.code,string.source}" uid="6036" uid_parent="root" value="[false,0,]" inputs="value:6035.err"/>
+  <Node _name="Property Node" fields="read+Block Diagram" type="{LV.VI}" inputs="reference:6035.vi,error in (no error):6035.err" outputs="Block Diagram:6040.bd,reference out:,error out:6040.err" uid="6040" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+All Objects[]" type="{LV.Diagram}" inputs="reference:6040.bd,error in (no error):6040.err" outputs="All Objects[]:6041.objs,reference out:,error out:6041.err" uid="6041" uid_parent="root"/>
+
+  <Structure _name="For Loop" count="" maxin="" maxout="" uid="6100" uid_parent="root">
+    <Tunnel _id="In1" inputs="value:6041.objs" mode="index" outputs="value:6101.obj" uid="6101" uid_parent="6100"/>
+    <Tunnel _id="In2" inputs="value:6007.value" outputs="value:6102.ctn" uid="6102" uid_parent="6100"/>
+    <Tunnel _id="In3" inputs="value:6004.value" outputs="value:6103.lrx" uid="6103" uid_parent="6100"/>
+    <Tunnel _id="In4" inputs="value:6011.value" outputs="value:6104.aon" uid="6104" uid_parent="6100"/>
+    <Tunnel _id="In5" inputs="value:6012.value" outputs="value:6105.eon" uid="6105" uid_parent="6100"/>
+    <Tunnel _id="In6" inputs="value:6014.value" outputs="value:6106.nc" uid="6106" uid_parent="6100"/>
+    <Tunnel _id="In7" inputs="value:6015.value" outputs="value:6107.sc" uid="6107" uid_parent="6100"/>
+    <Tunnel _id="In8" inputs="value:6010.value" outputs="value:6108.z" uid="6108" uid_parent="6100"/>
+    <Node _name="Property Node" fields="read+Class Name" type="{LV.GObject}" inputs="reference:6101.obj,error in (no error):" outputs="Class Name:6110.cls,reference out:,error out:" uid="6110" uid_parent="6100"/>
+    <Node _name="To More Specific Class" inputs="reference:6101.obj,error in:,target class:6106.nc" outputs="specific class reference:6111.node,error out:6111.err" uid="6111" uid_parent="6100"/>
+    <Node _name="Property Node" fields="read+Terminals[]" type="{LV.Node}" inputs="reference:6111.node,error in (no error):6111.err" outputs="Terminals[]:6112.terms,reference out:,error out:" uid="6112" uid_parent="6100"/>
+    <Structure _name="For Loop" count="" maxin="" maxout="" uid="6120" uid_parent="6100">
+      <Tunnel _id="In1" inputs="value:6112.terms" mode="index" outputs="value:6121.t" uid="6121" uid_parent="6120"/>
+      <Node _name="Property Node" fields="read+Name" type="{LV.Terminal}" inputs="reference:6121.t,error in (no error):" outputs="Name:6122.name,reference out:,error out:" uid="6122" uid_parent="6120"/>
+      <Tunnel _id="Out1" inputs="value:6122.name" mode="index" outputs="value:6123.names" uid="6123" uid_parent="6120"/>
+    </Structure>
+    <Node _name="Search 1D Array" inputs="1D array:6123.names,element:6104.aon,start index (0):" outputs="index of element:6125.ia" uid="6125" uid_parent="6100"/>
+    <Node _name="Greater Or Equal?" inputs="x:6125.ia,y:6108.z" outputs="x &gt;= y?:6126.iscp" uid="6126" uid_parent="6100"/>
+    <Node _name="Search 1D Array" inputs="1D array:6123.names,element:6105.eon,start index (0):" outputs="index of element:6127.ie" uid="6127" uid_parent="6100"/>
+    <Node _name="Index Array" inputs="array:6112.terms,index:6127.ie" outputs="element:6128.et" uid="6128" uid_parent="6100"/>
+    <Node _name="Search 1D Array" inputs="1D array:6123.names,element:6102.ctn,start index (0):" outputs="index of element:6129.ic" uid="6129" uid_parent="6100"/>
+    <Node _name="Index Array" inputs="array:6112.terms,index:6129.ic" outputs="element:6130.ct" uid="6130" uid_parent="6100"/>
+    <Node _name="To More Specific Class" inputs="reference:6101.obj,error in:,target class:6107.sc" outputs="specific class reference:6131.sv,error out:6131.err" uid="6131" uid_parent="6100"/>
+    <Node _name="Property Node" fields="read+VI Name" type="{LV.SubVI}" inputs="reference:6131.sv,error in (no error):6131.err" outputs="VI Name:6132.vn,reference out:,error out:" uid="6132" uid_parent="6100"/>
+    <Node _name="Match Pattern" inputs="string:6132.vn,regular expression:6103.lrx,offset (0):" outputs="before substring:,match substring:,after substring:,offset past match:6133.off" uid="6133" uid_parent="6100"/>
+    <Node _name="Greater Or Equal?" inputs="x:6133.off,y:6108.z" outputs="x &gt;= y?:6134.isloop" uid="6134" uid_parent="6100"/>
+    <Tunnel _id="Out1" inputs="value:6110.cls" mode="index" outputs="value:6140.classes" uid="6140" uid_parent="6100"/>
+    <Tunnel _id="Out2" cond="6126.iscp" inputs="value:6128.et" mode="index" outputs="value:6141.cperrs" uid="6141" uid_parent="6100"/>
+    <Tunnel _id="Out3" cond="6134.isloop" inputs="value:6128.et" mode="index" outputs="value:6142.lerrs" uid="6142" uid_parent="6100"/>
+    <Tunnel _id="Out4" cond="6134.isloop" inputs="value:6130.ct" mode="index" outputs="value:6143.lclss" uid="6143" uid_parent="6100"/>
+    <Tunnel _id="Out5" inputs="value:6132.vn" mode="index" outputs="value:6144.vns" uid="6144" uid_parent="6100"/>
+  </Structure>
+  <Node _name="Index Array" inputs="array:6141.cperrs,index:6010.value" outputs="element:6150.cperr" uid="6150" uid_parent="root"/>
+  <Node _name="Index Array" inputs="array:6142.lerrs,index:6010.value" outputs="element:6151.lerr" uid="6151" uid_parent="root"/>
+  <Node _name="Index Array" inputs="array:6143.lclss,index:6010.value" outputs="element:6152.lcls" uid="6152" uid_parent="root"/>
+  <Node _name="Array Size" inputs="array:6141.cperrs" outputs="size(s):6153.n" uid="6153" uid_parent="root"/>
+  <Indicator _name="call parent hits" type="int32" uid="6154" uid_parent="root" value="0" inputs="value:6153.n"/>
+  <Node _name="Array Size" inputs="array:6142.lerrs" outputs="size(s):6155.n" uid="6155" uid_parent="root"/>
+  <Indicator _name="loop hits" type="int32" uid="6156" uid_parent="root" value="0" inputs="value:6155.n"/>
+  <Node _name="Flatten To XML" inputs="anything:6140.classes" outputs="xml string:6157.x" uid="6157" uid_parent="root"/>
+  <Indicator _name="top classes" type="string" uid="6158" uid_parent="root" value="" inputs="value:6157.x"/>
+  <Node _name="Flatten To XML" inputs="anything:6144.vns" outputs="xml string:6159.x" uid="6159" uid_parent="root"/>
+  <Indicator _name="top vi names" type="string" uid="6160" uid_parent="root" value="" inputs="value:6159.x"/>
+
+  <Node _name="Search 1D Array" inputs="1D array:6140.classes,element:6017.value,start index (0):" outputs="index of element:6170.si" uid="6170" uid_parent="root"/>
+  <Node _name="Index Array" inputs="array:6041.objs,index:6170.si" outputs="element:6171.sobj" uid="6171" uid_parent="root"/>
+  <Node _name="To More Specific Class" inputs="reference:6171.sobj,error in:6041.err,target class:6016.value" outputs="specific class reference:6172.seq,error out:6172.err" uid="6172" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Frames[]" type="{LV.FlatSequence}" inputs="reference:6172.seq,error in (no error):6172.err" outputs="Frames[]:6173.frames,reference out:,error out:6173.err" uid="6173" uid_parent="root"/>
+  <Node _name="Index Array" inputs="array:6173.frames,index:6010.value" outputs="element:6174.frame" uid="6174" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Diagram,read+Outer Tunnels[]" type="{LV.FlatSequenceFrame}" inputs="reference:6174.frame,error in (no error):6173.err" outputs="Diagram:6175.fd,Outer Tunnels[]:6175.tuns,reference out:,error out:6175.err" uid="6175" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+All Objects[]" type="{LV.Diagram}" inputs="reference:6175.fd,error in (no error):6175.err" outputs="All Objects[]:6176.fobjs,reference out:,error out:6176.err" uid="6176" uid_parent="root"/>
+
+  <Structure _name="For Loop" count="" maxin="" maxout="" uid="6200" uid_parent="root">
+    <Tunnel _id="In1" inputs="value:6176.fobjs" mode="index" outputs="value:6201.obj" uid="6201" uid_parent="6200"/>
+    <Tunnel _id="In2" inputs="value:6005.value" outputs="value:6202.srx" uid="6202" uid_parent="6200"/>
+    <Tunnel _id="In3" inputs="value:6006.value" outputs="value:6203.rrx" uid="6203" uid_parent="6200"/>
+    <Tunnel _id="In4" inputs="value:6012.value" outputs="value:6204.eon" uid="6204" uid_parent="6200"/>
+    <Tunnel _id="In5" inputs="value:6015.value" outputs="value:6205.sc" uid="6205" uid_parent="6200"/>
+    <Tunnel _id="In6" inputs="value:6010.value" outputs="value:6206.z" uid="6206" uid_parent="6200"/>
+    <Tunnel _id="In7" inputs="value:6013.value" outputs="value:6207.ein" uid="6207" uid_parent="6200"/>
+    <Node _name="To More Specific Class" inputs="reference:6201.obj,error in:,target class:6205.sc" outputs="specific class reference:6210.sv,error out:6210.err" uid="6210" uid_parent="6200"/>
+    <Node _name="Property Node" fields="read+VI Name,read+Terminals[]" type="{LV.SubVI}" inputs="reference:6210.sv,error in (no error):6210.err" outputs="VI Name:6211.vn,Terminals[]:6211.terms,reference out:,error out:" uid="6211" uid_parent="6200"/>
+    <Structure _name="For Loop" count="" maxin="" maxout="" uid="6220" uid_parent="6200">
+      <Tunnel _id="In1" inputs="value:6211.terms" mode="index" outputs="value:6221.t" uid="6221" uid_parent="6220"/>
+      <Node _name="Property Node" fields="read+Name" type="{LV.Terminal}" inputs="reference:6221.t,error in (no error):" outputs="Name:6222.name,reference out:,error out:" uid="6222" uid_parent="6220"/>
+      <Tunnel _id="Out1" inputs="value:6222.name" mode="index" outputs="value:6223.names" uid="6223" uid_parent="6220"/>
+    </Structure>
+    <Node _name="Search 1D Array" inputs="1D array:6223.names,element:6204.eon,start index (0):" outputs="index of element:6225.ie" uid="6225" uid_parent="6200"/>
+    <Node _name="Index Array" inputs="array:6211.terms,index:6225.ie" outputs="element:6226.et" uid="6226" uid_parent="6200"/>
+    <Node _name="Search 1D Array" inputs="1D array:6223.names,element:6207.ein,start index (0):" outputs="index of element:6231.ii" uid="6231" uid_parent="6200"/>
+    <Node _name="Index Array" inputs="array:6211.terms,index:6231.ii" outputs="element:6232.eit" uid="6232" uid_parent="6200"/>
+    <Node _name="Match Pattern" inputs="string:6211.vn,regular expression:6202.srx,offset (0):" outputs="before substring:,match substring:,after substring:,offset past match:6227.off" uid="6227" uid_parent="6200"/>
+    <Node _name="Greater Or Equal?" inputs="x:6227.off,y:6206.z" outputs="x &gt;= y?:6228.isstop" uid="6228" uid_parent="6200"/>
+    <Node _name="Match Pattern" inputs="string:6211.vn,regular expression:6203.rrx,offset (0):" outputs="before substring:,match substring:,after substring:,offset past match:6229.off" uid="6229" uid_parent="6200"/>
+    <Node _name="Greater Or Equal?" inputs="x:6229.off,y:6206.z" outputs="x &gt;= y?:6230.isrem" uid="6230" uid_parent="6200"/>
+    <Tunnel _id="Out1" cond="6228.isstop" inputs="value:6226.et" mode="index" outputs="value:6240.serrs" uid="6240" uid_parent="6200"/>
+    <Tunnel _id="Out2" cond="6230.isrem" inputs="value:6201.obj" mode="index" outputs="value:6241.rems" uid="6241" uid_parent="6200"/>
+    <Tunnel _id="Out3" inputs="value:6211.vn" mode="index" outputs="value:6242.vns" uid="6242" uid_parent="6200"/>
+    <Tunnel _id="Out4" cond="6228.isstop" inputs="value:6232.eit" mode="index" outputs="value:6243.seins" uid="6243" uid_parent="6200"/>
+  </Structure>
+  <Node _name="Index Array" inputs="array:6240.serrs,index:6010.value" outputs="element:6250.serr" uid="6250" uid_parent="root"/>
+  <Node _name="Index Array" inputs="array:6243.seins,index:6010.value" outputs="element:6257.sein" uid="6257" uid_parent="root"/>
+  <Node _name="Array Size" inputs="array:6240.serrs" outputs="size(s):6251.n" uid="6251" uid_parent="root"/>
+  <Indicator _name="stop hits" type="int32" uid="6252" uid_parent="root" value="0" inputs="value:6251.n"/>
+  <Node _name="Array Size" inputs="array:6241.rems" outputs="size(s):6253.n" uid="6253" uid_parent="root"/>
+  <Indicator _name="remove hits" type="int32" uid="6254" uid_parent="root" value="0" inputs="value:6253.n"/>
+  <Node _name="Flatten To XML" inputs="anything:6242.vns" outputs="xml string:6255.x" uid="6255" uid_parent="root"/>
+  <Indicator _name="frame vi names" type="string" uid="6256" uid_parent="root" value="" inputs="value:6255.x"/>
+
+  <Structure _name="For Loop" count="" maxin="" maxout="" uid="6300" uid_parent="root">
+    <Tunnel _id="In1" inputs="value:6175.tuns" mode="index" outputs="value:6301.tun" uid="6301" uid_parent="6300"/>
+    <Node _name="Property Node" fields="read+Inner Terminal,read+Outer Terminal" type="{LV.FlatSequenceOuterTunnel}" inputs="reference:6301.tun,error in (no error):" outputs="Inner Terminal:6302.it,Outer Terminal:6302.ot,reference out:,error out:" uid="6302" uid_parent="6300"/>
+    <Node _name="Property Node" fields="read+Connected Wire" type="{LV.Terminal}" inputs="reference:6302.it,error in (no error):" outputs="Connected Wire:6303.w,reference out:,error out:" uid="6303" uid_parent="6300"/>
+    <Node _name="Not A Number/Path/Refnum?" inputs="number/path/refnum:6303.w" outputs="NaN/Path/Refnum?:6304.noinner" uid="6304" uid_parent="6300"/>
+    <Tunnel _id="Out1" cond="6304.noinner" inputs="value:6302.ot" mode="index" outputs="value:6310.ords" uid="6310" uid_parent="6300"/>
+    <Tunnel _id="Out2" inputs="value:6304.noinner" mode="index" outputs="value:6311.flags" uid="6311" uid_parent="6300"/>
+  </Structure>
+  <Node _name="Index Array" inputs="array:6310.ords,index:6010.value" outputs="element:6320.ord" uid="6320" uid_parent="root"/>
+  <Indicator _name="tunnel inner unwired" type="array{bool}" uid="6321" uid_parent="root" value="[]" inputs="value:6311.flags"/>
+
+  <Node _name="Property Node" fields="read+Front Panel" type="{LV.VI}" inputs="reference:6035.vi,error in (no error):6176.err" outputs="Front Panel:6330.fp,reference out:,error out:6330.err" uid="6330" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Controls[]" type="{LV.Panel}" inputs="reference:6330.fp,error in (no error):6330.err" outputs="Controls[]:6331.ctls,reference out:,error out:6331.err" uid="6331" uid_parent="root"/>
+  <Structure _name="For Loop" count="" maxin="" maxout="" uid="6340" uid_parent="root">
+    <Tunnel _id="In1" inputs="value:6331.ctls" mode="index" outputs="value:6341.ctl" uid="6341" uid_parent="6340"/>
+    <Tunnel _id="In2" inputs="value:6009.value" outputs="value:6342.lbl" uid="6342" uid_parent="6340"/>
+    <Node _name="Property Node" fields="read+Label.Text,read+Terminal" type="{LV.Control}" inputs="reference:6341.ctl,error in (no error):" outputs="Label.Text:6343.l,Terminal:6343.term,reference out:,error out:" uid="6343" uid_parent="6340"/>
+    <Node _name="Equal?" inputs="x:6343.l,y:6342.lbl" outputs="x = y?:6344.eq" uid="6344" uid_parent="6340"/>
+    <Tunnel _id="Out1" cond="6344.eq" inputs="value:6343.term" mode="index" outputs="value:6345.inds" uid="6345" uid_parent="6340"/>
+  </Structure>
+  <Node _name="Index Array" inputs="array:6345.inds,index:6010.value" outputs="element:6350.ind" uid="6350" uid_parent="root"/>
+  <Node _name="Array Size" inputs="array:6345.inds" outputs="size(s):6351.n" uid="6351" uid_parent="root"/>
+  <Indicator _name="indicator hits" type="int32" uid="6352" uid_parent="root" value="0" inputs="value:6351.n"/>
+  <Indicator _name="read error" type="cluster{bool.status,int32.code,string.source}" uid="6353" uid_parent="root" value="[false,0,]" inputs="value:6331.err"/>
+
+  <Node _name="New VI Object" inputs="owner refnum:6040.bd,style:,position/next to:6020.value,error in (no error):6331.err,vi object class:6014.value,auto wire? (F):,path:6034.path,bounds:" outputs="object refnum:6400.close,error out:6400.err" uid="6400" uid_parent="root"/>
+  <Indicator _name="new close error" type="cluster{bool.status,int32.code,string.source}" uid="6401" uid_parent="root" value="[false,0,]" inputs="value:6400.err"/>
+  <Node _name="New VI Object" inputs="owner refnum:6040.bd,style:6008.value,position/next to:6021.value,error in (no error):6400.err,vi object class:6018.value,auto wire? (F):,path:,bounds:" outputs="object refnum:6402.ma,error out:6402.err" uid="6402" uid_parent="root"/>
+  <Indicator _name="new merge A error" type="cluster{bool.status,int32.code,string.source}" uid="6403" uid_parent="root" value="[false,0,]" inputs="value:6402.err"/>
+  <Node _name="New VI Object" inputs="owner refnum:6040.bd,style:6008.value,position/next to:6022.value,error in (no error):6402.err,vi object class:6018.value,auto wire? (F):,path:,bounds:" outputs="object refnum:6404.mb,error out:6404.err" uid="6404" uid_parent="root"/>
+  <Indicator _name="new merge B error" type="cluster{bool.status,int32.code,string.source}" uid="6405" uid_parent="root" value="[false,0,]" inputs="value:6404.err"/>
+
+  <Node _name="Property Node" fields="read+Terminals[]" type="{LV.Node}" inputs="reference:6400.close,error in (no error):6404.err" outputs="Terminals[]:6410.cterms,reference out:,error out:6410.err" uid="6410" uid_parent="root"/>
+  <Structure _name="For Loop" count="" maxin="" maxout="" uid="6411" uid_parent="root">
+    <Tunnel _id="In1" inputs="value:6410.cterms" mode="index" outputs="value:6412.t" uid="6412" uid_parent="6411"/>
+    <Node _name="Property Node" fields="read+Name" type="{LV.Terminal}" inputs="reference:6412.t,error in (no error):" outputs="Name:6413.name,reference out:,error out:" uid="6413" uid_parent="6411"/>
+    <Tunnel _id="Out1" inputs="value:6413.name" mode="index" outputs="value:6414.names" uid="6414" uid_parent="6411"/>
+  </Structure>
+  <Node _name="Search 1D Array" inputs="1D array:6414.names,element:6007.value,start index (0):" outputs="index of element:6415.i" uid="6415" uid_parent="root"/>
+  <Node _name="Index Array" inputs="array:6410.cterms,index:6415.i" outputs="element:6416.cclass" uid="6416" uid_parent="root"/>
+  <Node _name="Search 1D Array" inputs="1D array:6414.names,element:6013.value,start index (0):" outputs="index of element:6417.i" uid="6417" uid_parent="root"/>
+  <Node _name="Index Array" inputs="array:6410.cterms,index:6417.i" outputs="element:6418.cein" uid="6418" uid_parent="root"/>
+  <Node _name="Search 1D Array" inputs="1D array:6414.names,element:6012.value,start index (0):" outputs="index of element:6419.i" uid="6419" uid_parent="root"/>
+  <Node _name="Index Array" inputs="array:6410.cterms,index:6419.i" outputs="element:6420.ceout" uid="6420" uid_parent="root"/>
+
+  <Node _name="Property Node" fields="read+Terminals[],read+Class Name" type="{LV.Node}" inputs="reference:6402.ma,error in (no error):6410.err" outputs="Terminals[]:6430.aterms,Class Name:6430.acls,reference out:,error out:6430.err" uid="6430" uid_parent="root"/>
+  <Indicator _name="merge class" type="string" uid="6431" uid_parent="root" value="" inputs="value:6430.acls"/>
+  <Structure _name="For Loop" count="" maxin="" maxout="" uid="6432" uid_parent="root">
+    <Tunnel _id="In1" inputs="value:6430.aterms" mode="index" outputs="value:6433.t" uid="6433" uid_parent="6432"/>
+    <Node _name="Property Node" fields="read+Name,read+Is Source?" type="{LV.Terminal}" inputs="reference:6433.t,error in (no error):" outputs="Name:6434.name,Is Source?:6434.src,reference out:,error out:" uid="6434" uid_parent="6432"/>
+    <Node _name="Not" inputs="x:6434.src" outputs=".not. x?:6435.sink" uid="6435" uid_parent="6432"/>
+    <Tunnel _id="Out1" inputs="value:6434.name" mode="index" outputs="value:6436.names" uid="6436" uid_parent="6432"/>
+    <Tunnel _id="Out2" cond="6435.sink" inputs="value:6433.t" mode="index" outputs="value:6437.sinks" uid="6437" uid_parent="6432"/>
+  </Structure>
+  <Node _name="Flatten To XML" inputs="anything:6436.names" outputs="xml string:6438.x" uid="6438" uid_parent="root"/>
+  <Indicator _name="merge terminal names" type="string" uid="6439" uid_parent="root" value="" inputs="value:6438.x"/>
+  <Node _name="Search 1D Array" inputs="1D array:6436.names,element:6012.value,start index (0):" outputs="index of element:6440.i" uid="6440" uid_parent="root"/>
+  <Node _name="Index Array" inputs="array:6430.aterms,index:6440.i" outputs="element:6441.aout" uid="6441" uid_parent="root"/>
+  <Node _name="Index Array" inputs="array:6437.sinks,index:6010.value" outputs="element:6442.ain0" uid="6442" uid_parent="root"/>
+  <Node _name="Index Array" inputs="array:6437.sinks,index:6024.value" outputs="element:6443.ain1" uid="6443" uid_parent="root"/>
+
+  <Node _name="Property Node" fields="read+Terminals[]" type="{LV.Node}" inputs="reference:6404.mb,error in (no error):6430.err" outputs="Terminals[]:6450.bterms,reference out:,error out:6450.err" uid="6450" uid_parent="root"/>
+  <Structure _name="For Loop" count="" maxin="" maxout="" uid="6451" uid_parent="root">
+    <Tunnel _id="In1" inputs="value:6450.bterms" mode="index" outputs="value:6452.t" uid="6452" uid_parent="6451"/>
+    <Node _name="Property Node" fields="read+Name,read+Is Source?" type="{LV.Terminal}" inputs="reference:6452.t,error in (no error):" outputs="Name:6453.name,Is Source?:6453.src,reference out:,error out:" uid="6453" uid_parent="6451"/>
+    <Node _name="Not" inputs="x:6453.src" outputs=".not. x?:6454.sink" uid="6454" uid_parent="6451"/>
+    <Tunnel _id="Out1" inputs="value:6453.name" mode="index" outputs="value:6455.names" uid="6455" uid_parent="6451"/>
+    <Tunnel _id="Out2" cond="6454.sink" inputs="value:6452.t" mode="index" outputs="value:6456.sinks" uid="6456" uid_parent="6451"/>
+  </Structure>
+  <Node _name="Search 1D Array" inputs="1D array:6455.names,element:6012.value,start index (0):" outputs="index of element:6457.i" uid="6457" uid_parent="root"/>
+  <Node _name="Index Array" inputs="array:6450.bterms,index:6457.i" outputs="element:6458.bout" uid="6458" uid_parent="root"/>
+  <Node _name="Index Array" inputs="array:6456.sinks,index:6010.value" outputs="element:6459.bin0" uid="6459" uid_parent="root"/>
+  <Node _name="Index Array" inputs="array:6456.sinks,index:6024.value" outputs="element:6460.bin1" uid="6460" uid_parent="root"/>
+
+  <Node _name="Invoke Node" target="Connect Wire" type="{LV.Terminal}" inputs="reference:6442.ain0,error in (no error):6450.err,Wire Source:6151.lerr,Auto Wire? (T):6019.value,Wiring Specs:,Auto Route? (F):6019.value" outputs="reference out:,error out:6500.err" uid="6500" uid_parent="root"/>
+  <Indicator _name="wire loop to A error" type="cluster{bool.status,int32.code,string.source}" uid="6501" uid_parent="root" value="[false,0,]" inputs="value:6500.err"/>
+  <Node _name="Invoke Node" target="Connect Wire" type="{LV.Terminal}" inputs="reference:6418.cein,error in (no error):6500.err,Wire Source:6441.aout,Auto Wire? (T):6019.value,Wiring Specs:,Auto Route? (F):6019.value" outputs="reference out:,error out:6502.err" uid="6502" uid_parent="root"/>
+  <Indicator _name="wire A to close error" type="cluster{bool.status,int32.code,string.source}" uid="6503" uid_parent="root" value="[false,0,]" inputs="value:6502.err"/>
+  <Node _name="Invoke Node" target="Connect Wire" type="{LV.Terminal}" inputs="reference:6416.cclass,error in (no error):6502.err,Wire Source:6152.lcls,Auto Wire? (T):6019.value,Wiring Specs:,Auto Route? (F):6019.value" outputs="reference out:,error out:6504.err" uid="6504" uid_parent="root"/>
+  <Indicator _name="wire class to close error" type="cluster{bool.status,int32.code,string.source}" uid="6505" uid_parent="root" value="[false,0,]" inputs="value:6504.err"/>
+
+  <Node _name="Index Array" inputs="array:6241.rems,index:6010.value" outputs="element:6510.rem" uid="6510" uid_parent="root"/>
+  <Node _name="Invoke Node" target="Delete" type="{LV.GObject}" inputs="reference:6510.rem,error in (no error):6504.err" outputs="reference out:,error out:6511.err" uid="6511" uid_parent="root"/>
+  <Indicator _name="delete node error" type="cluster{bool.status,int32.code,string.source}" uid="6512" uid_parent="root" value="[false,0,]" inputs="value:6511.err"/>
+  <Node _name="Invoke Node" target="BD.Remove Bad Wires" type="{LV.VI}" inputs="reference:6035.vi,error in (no error):6511.err" outputs="reference out:,error out:6513.err" uid="6513" uid_parent="root"/>
+  <Indicator _name="remove bad wires error" type="cluster{bool.status,int32.code,string.source}" uid="6514" uid_parent="root" value="[false,0,]" inputs="value:6513.err"/>
+  <Node _name="Invoke Node" target="Connect Wire" type="{LV.Terminal}" inputs="reference:6443.ain1,error in (no error):6513.err,Wire Source:6250.serr,Auto Wire? (T):6019.value,Wiring Specs:,Auto Route? (F):6019.value" outputs="reference out:,error out:6515.err" uid="6515" uid_parent="root"/>
+  <Indicator _name="wire stop to A error" type="cluster{bool.status,int32.code,string.source}" uid="6516" uid_parent="root" value="[false,0,]" inputs="value:6515.err"/>
+
+  <Node _name="Property Node" fields="read+Connected Wire" type="{LV.Terminal}" inputs="reference:6150.cperr,error in (no error):6515.err" outputs="Connected Wire:6520.w,reference out:,error out:6520.err" uid="6520" uid_parent="root"/>
+  <Node _name="Invoke Node" target="Delete" type="{LV.Wire}" inputs="reference:6520.w,error in (no error):6520.err" outputs="reference out:,error out:6521.err" uid="6521" uid_parent="root"/>
+  <Indicator _name="delete call parent net error" type="cluster{bool.status,int32.code,string.source}" uid="6522" uid_parent="root" value="[false,0,]" inputs="value:6521.err"/>
+  <Node _name="Invoke Node" target="Connect Wire" type="{LV.Terminal}" inputs="reference:6459.bin0,error in (no error):6521.err,Wire Source:6150.cperr,Auto Wire? (T):6019.value,Wiring Specs:,Auto Route? (F):6019.value" outputs="reference out:,error out:6523.err" uid="6523" uid_parent="root"/>
+  <Indicator _name="wire call parent to B error" type="cluster{bool.status,int32.code,string.source}" uid="6524" uid_parent="root" value="[false,0,]" inputs="value:6523.err"/>
+  <Node _name="Invoke Node" target="Connect Wire" type="{LV.Terminal}" inputs="reference:6257.sein,error in (no error):6523.err,Wire Source:6150.cperr,Auto Wire? (T):6019.value,Wiring Specs:,Auto Route? (F):6019.value" outputs="reference out:,error out:6525.err" uid="6525" uid_parent="root"/>
+  <Indicator _name="wire call parent to order tunnel error" type="cluster{bool.status,int32.code,string.source}" uid="6526" uid_parent="root" value="[false,0,]" inputs="value:6525.err"/>
+  <Node _name="Property Node" fields="read+Connected Wire" type="{LV.Terminal}" inputs="reference:6257.sein,error in (no error):6525.err" outputs="Connected Wire:6531.w,reference out:,error out:6531.err" uid="6531" uid_parent="root"/>
+  <Node _name="Invoke Node" target="Delete" type="{LV.Wire}" inputs="reference:6531.w,error in (no error):6531.err" outputs="reference out:,error out:6532.err" uid="6532" uid_parent="root"/>
+  <Indicator _name="delete inner order wire error" type="cluster{bool.status,int32.code,string.source}" uid="6533" uid_parent="root" value="[false,0,]" inputs="value:6532.err"/>
+  <Node _name="Invoke Node" target="Connect Wire" type="{LV.Terminal}" inputs="reference:6460.bin1,error in (no error):6532.err,Wire Source:6420.ceout,Auto Wire? (T):6019.value,Wiring Specs:,Auto Route? (F):6019.value" outputs="reference out:,error out:6527.err" uid="6527" uid_parent="root"/>
+  <Indicator _name="wire close to B error" type="cluster{bool.status,int32.code,string.source}" uid="6528" uid_parent="root" value="[false,0,]" inputs="value:6527.err"/>
+  <Node _name="Invoke Node" target="Connect Wire" type="{LV.Terminal}" inputs="reference:6350.ind,error in (no error):6527.err,Wire Source:6458.bout,Auto Wire? (T):6019.value,Wiring Specs:,Auto Route? (F):6019.value" outputs="reference out:,error out:6529.err" uid="6529" uid_parent="root"/>
+  <Indicator _name="wire B to indicator error" type="cluster{bool.status,int32.code,string.source}" uid="6530" uid_parent="root" value="[false,0,]" inputs="value:6529.err"/>
+
+  <Node _name="Invoke Node" target="LVClass.Open" type="{LV.Application}" inputs="reference:6031.app,Path:6033.path,error in (no error):6529.err" outputs="reference out:,error out:6540.err,LVClass.Open:6540.cls" uid="6540" uid_parent="root"/>
+  <Node _name="Invoke Node" target="Save.Instrument" type="{LV.VI}" inputs="reference:6035.vi,error in (no error):6540.err,Path to saved file:,Save a Copy:,Without Diagram:" outputs="reference out:,error out:6541.err" uid="6541" uid_parent="root"/>
+  <Indicator _name="save vi error" type="cluster{bool.status,int32.code,string.source}" uid="6542" uid_parent="root" value="[false,0,]" inputs="value:6541.err"/>
+  <Node _name="Invoke Node" target="Save" type="{LV.LVClassLibrary}" inputs="reference:6540.cls,error in (no error):6541.err" outputs="reference out:,error out:6543.err" uid="6543" uid_parent="root"/>
+  <Indicator _name="save class error" type="cluster{bool.status,int32.code,string.source}" uid="6544" uid_parent="root" value="[false,0,]" inputs="value:6543.err"/>
+  <Node _name="Close Reference" inputs="reference:6400.close,error in (no error):6543.err" outputs="error out:6550.err" uid="6550" uid_parent="root"/>
+  <Node _name="Close Reference" inputs="reference:6402.ma,error in (no error):6550.err" outputs="error out:6551.err" uid="6551" uid_parent="root"/>
+  <Node _name="Close Reference" inputs="reference:6404.mb,error in (no error):6551.err" outputs="error out:6552.err" uid="6552" uid_parent="root"/>
+  <Node _name="Close Reference" inputs="reference:6540.cls,error in (no error):6552.err" outputs="error out:6553.err" uid="6553" uid_parent="root"/>
+  <Node _name="Close Reference" inputs="reference:6035.vi,error in (no error):6553.err" outputs="error out:6554.err" uid="6554" uid_parent="root"/>
+  <Indicator _name="error out" type="cluster{bool.status,int32.code,string.source}" uid="6560" uid_parent="root" value="[false,0,]" inputs="value:6554.err"/>
+</VI>

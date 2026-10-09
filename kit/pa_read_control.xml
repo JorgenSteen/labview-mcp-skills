@@ -1,0 +1,14 @@
+<VI _name="pa_read_control.vi" description="M3 helper\2C the read twin of pa_press_control\3A reads a String control or indicator of a VI that is already RUNNING\2C addressed by its qualified name in memory (e.g. PB-U-ui_root.lvlib\3APB-U-ui_root.lvclass\3APB-U-ui_loop.vi)\2C through Open VI Reference (string name) + Ctrl Val.Get + Variant To Data (String). Reads the VI's Execution\3AState (3 = running) and Front Panel Window\3AOpen too.">
+  <Control _name="vi name" type="string" uid="4100" uid_parent="root" value="PB-U-ui_root.lvlib\3APB-U-ui_root.lvclass\3APB-U-ui_loop.vi" outputs="value:4100.value"/>
+  <Control _name="control name" type="string" uid="4101" uid_parent="root" value="errors" outputs="value:4101.value"/>
+  <Constant _name="string type" type="string" uid="4102" uid_parent="root" value="" outputs="value:4102.value"/>
+  <Node _name="Open VI Reference" inputs="application reference (local):,vi path:4100.value,error in (no error):" outputs="vi reference:4200.vi,error out:4200.err" uid="4200" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Execution\3AState,read+Front Panel Window\3AOpen" inputs="reference:4200.vi,error in (no error):4200.err" outputs="Execution\3AState:4210.state,Front Panel Window\3AOpen:4210.fp,reference out:4210.ref,error out:4210.err" type="{LV.VI}" uid="4210" uid_parent="root"/>
+  <Node _name="Invoke Node" target="Ctrl Val.Get" type="{LV.VI}" inputs="reference:4210.ref,error in (no error):4210.err,Control Name:4101.value" outputs="reference out:4220.ref,error out:4220.err,Ctrl Val.Get:4220.var" uid="4220" uid_parent="root"/>
+  <Node _name="Variant To Data" inputs="Variant:4220.var,error in:4220.err,type:4102.value" outputs="data:4230.text,error out:4230.err" uid="4230" uid_parent="root"/>
+  <Node _name="Close Reference" inputs="reference:4220.ref,error in (no error):4230.err" outputs="error out:4240.err" uid="4240" uid_parent="root"/>
+  <Indicator _name="state" type="uint32" uid="4250" uid_parent="root" value="0" inputs="value:4210.state"/>
+  <Indicator _name="panel open" type="bool" uid="4253" uid_parent="root" value="false" inputs="value:4210.fp"/>
+  <Indicator _name="value" type="string" uid="4251" uid_parent="root" value="" inputs="value:4230.text"/>
+  <Indicator _name="error out" type="cluster{bool.status,int32.code,string.source}" uid="4252" uid_parent="root" value="[false,0,]" inputs="value:4240.err"/>
+</VI>

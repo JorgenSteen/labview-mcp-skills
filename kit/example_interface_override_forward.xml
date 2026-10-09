@@ -1,0 +1,13 @@
+<VI _name="PA-I-handle.vi" description="PA-A-actor override of the interface method PA-I-handle (P0.3 and P0.10). Logs the payload's JSON (to_json dispatches on the package)\2C then forwards the package to the caller through Read Caller Enqueuer and Send PA-I-handle. Path stand-ins for the class terminals\2C placeholder sockets swapped afterwards.">
+  <Control _name="PA-A-actor in" conIdx="11" connection="required" type="path" uid="4100" uid_parent="root" value="" outputs="value:4100.value"/>
+  <Control _name="pkg" conIdx="10" connection="required" type="path" uid="4102" uid_parent="root" value="" outputs="value:4102.value"/>
+  <Control _name="error in" conIdx="8" connection="recommended" type="cluster{bool.status,int32.code,string.source}" uid="4101" uid_parent="root" value="[false,0,]" outputs="value:4101.value"/>
+  <Constant _name="prefix" type="string" uid="4110" uid_parent="root" value="A\3Ahandle " outputs="value:4110.value"/>
+  <Call target="LVMCP Stub 51c65442ae.vi" inputs="PA-P-parent in:4102.value,error in:4101.value" outputs="PA-P-parent out:4120.pkg,json:4120.json,error out:4120.err" uid="4120" uid_parent="root"/>
+  <Node _name="Concatenate Strings" inputs="string:4110.value,string:4120.json" outputs="concatenated string:4121.line" uid="4121" uid_parent="root"/>
+  <Call target="PA-log.vi" inputs="line:4121.line,error in:4120.err" outputs="error out:4122.err" uid="4122" uid_parent="root"/>
+  <Call target="Actor Framework.lvlib\3AActor.lvclass\3ARead Caller Enqueuer.vi" inputs="Actor:4100.value" outputs="Caller Enqueuer:4123.enq" uid="4123" uid_parent="root"/>
+  <Call target="LVMCP Stub 69a630d3c5.vi" inputs="Message Enqueuer:4123.enq,error in (no error):4122.err,Message Priority (Normal):,pkg:4120.pkg" outputs="error out:4124.err,Message Enqueuer out:" uid="4124" uid_parent="root"/>
+  <Indicator _name="PA-A-actor out" conIdx="3" connection="recommended" type="path" uid="4140" uid_parent="root" value="" inputs="value:4100.value"/>
+  <Indicator _name="error out" conIdx="0" connection="recommended" type="cluster{bool.status,int32.code,string.source}" uid="4141" uid_parent="root" value="[false,0,]" inputs="value:4124.err"/>
+</VI>

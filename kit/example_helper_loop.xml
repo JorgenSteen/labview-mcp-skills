@@ -1,0 +1,51 @@
+<VI _name="PA-A-loop.vi" description="PA-A-actor helper loop (P0.9 and P0.10)\2C called as a branch from Actor Core in parallel with Call Parent. Every 200 ms it sends PA-A-ping(1) and PA-I-handle(child object) to its own enqueuer. Exits when the stop notifier fires (Route A) or when a Send fails (Route B)\2C and logs which one after the loop. Cluster stand-in for the class terminal\2C placeholder sockets swapped afterwards.">
+  <Control _name="PA-A-actor in" conIdx="11" connection="required" type="cluster{int32.ping_count,timestamp.started_at,bool.flag,ref{Notifier}{bool}.stop_notifier}" uid="4100" uid_parent="root" value="[0,,false,]" outputs="value:4100.value"/>
+  <Control _name="error in" conIdx="8" connection="recommended" type="cluster{bool.status,int32.code,string.source}" uid="4101" uid_parent="root" value="[false,0,]" outputs="value:4101.value"/>
+  <Constant _name="line start" type="string" uid="4110" uid_parent="root" value="A\3AAC loop start" outputs="value:4110.value"/>
+  <Constant _name="line exit A" type="string" uid="4111" uid_parent="root" value="A\3AAC loop exit (notifier)" outputs="value:4111.value"/>
+  <Constant _name="line exit B" type="string" uid="4114" uid_parent="root" value="A\3AAC loop exit (send error)" outputs="value:4114.value"/>
+  <Constant _name="child seed" type="path" uid="4112" uid_parent="root" value="" outputs="value:4112.value"/>
+  <Constant _name="no error" type="cluster{bool.status,int32.code,string.source}" uid="4113" uid_parent="root" value="[false,0,]" outputs="value:4113.value"/>
+  <Node _name="Unbundle By Name" fields="stop_notifier" inputs="input cluster:4100.value" outputs="stop_notifier:4120.ref" uid="4120" uid_parent="root"/>
+  <Call target="Actor Framework.lvlib\3AActor.lvclass\3ARead Self Enqueuer.vi" inputs="Actor:4100.value" outputs="Self Enqueuer:4121.enq" uid="4121" uid_parent="root"/>
+  <Call target="LVMCP Stub db65d74eeb.vi" inputs="PA-P-parent in:4112.value,error in:4113.value" outputs="PA-P-parent out:4122.obj,error out:" uid="4122" uid_parent="root"/>
+  <Call target="PA-log.vi" inputs="line:4110.value,error in:4101.value" outputs="error out:4123.err" uid="4123" uid_parent="root"/>
+  <Structure _name="While Loop" count="" uid="4200" uid_parent="root">
+    <Tunnel _id="In1" inputs="value:4121.enq" outputs="value:4201.enq" uid="4201" uid_parent="4200"/>
+    <Tunnel _id="In2" inputs="value:4122.obj" outputs="value:4202.obj" uid="4202" uid_parent="4200"/>
+    <Tunnel _id="In3" inputs="value:4120.ref" outputs="value:4203.ref" uid="4203" uid_parent="4200"/>
+    <Tunnel _id="In4" inputs="value:4123.err" outputs="value:4204.err" uid="4204" uid_parent="4200"/>
+    <Constant _name="period" type="int32" uid="4210" uid_parent="4200" value="200" outputs="value:4210.value"/>
+    <Constant _name="one" type="int32" uid="4211" uid_parent="4200" value="1" outputs="value:4211.value"/>
+    <Constant _name="poll" type="int32" uid="4212" uid_parent="4200" value="0" outputs="value:4212.value"/>
+    <Node _name="Wait (ms)" inputs="milliseconds to wait:4210.value" outputs="millisecond timer value:" uid="4220" uid_parent="4200"/>
+    <Call target="LVMCP Stub 67236e7932.vi" inputs="Message Enqueuer:4201.enq,error in (no error):4204.err,Message Priority (Normal):,count:4211.value" outputs="error out:4221.err,Message Enqueuer out:" uid="4221" uid_parent="4200"/>
+    <Call target="LVMCP Stub 69a630d3c5.vi" inputs="Message Enqueuer:4201.enq,error in (no error):4221.err,Message Priority (Normal):,pkg:4202.obj" outputs="error out:4222.err,Message Enqueuer out:" uid="4222" uid_parent="4200"/>
+    <Node _name="Wait on Notification" inputs="notifier:4203.ref,ignore previous (F):,timeout in ms (-1):4212.value,error in (no error):" outputs="notifier out:,notification:,timed out?:4223.to,error out:" uid="4223" uid_parent="4200"/>
+    <Node _name="Not" inputs="x:4223.to" outputs=".not. x?:4224.fired" uid="4224" uid_parent="4200"/>
+    <Node _name="Unbundle By Name" fields="status" inputs="input cluster:4222.err" outputs="status:4225.status" uid="4225" uid_parent="4200"/>
+    <Node _name="Or" inputs="x:4224.fired,y:4225.status" outputs="x .or. y?:4226.stop" uid="4226" uid_parent="4200"/>
+    <Condition inputs="value:4226.stop" uid="4227" uid_parent="4200" value="stop"/>
+    <Tunnel _id="Out1" inputs="value:4222.err" outputs="value:4230.err" uid="4230" uid_parent="4200"/>
+    <Tunnel _id="Out2" inputs="value:4224.fired" outputs="value:4231.fired" uid="4231" uid_parent="4200"/>
+  </Structure>
+  <Structure _name="Case Structure" selectin="4231.fired" uid="4300" uid_parent="root">
+    <Tunnel _id="In1" inputs="value:4111.value" uid="4301" uid_parent="4300"/>
+    <Tunnel _id="In2" inputs="value:4114.value" uid="4302" uid_parent="4300"/>
+    <CaseFrame selector="True" selectout="" uid="4310" uid_parent="4300">
+      <Tunnel _id="In1" outputs="value:4311.line" uid="4311" uid_parent="4310"/>
+      <Tunnel _id="In2" outputs="value:" uid="4312" uid_parent="4310"/>
+      <Call target="PA-log.vi" inputs="line:4311.line,error in:" outputs="error out:4313.err" uid="4313" uid_parent="4310"/>
+      <Tunnel _id="Out1" inputs="value:4313.err" uid="4314" uid_parent="4310"/>
+    </CaseFrame>
+    <CaseFrame selector="False" selectout="" uid="4320" uid_parent="4300">
+      <Tunnel _id="In1" outputs="value:" uid="4321" uid_parent="4320"/>
+      <Tunnel _id="In2" outputs="value:4322.line" uid="4322" uid_parent="4320"/>
+      <Call target="PA-log.vi" inputs="line:4322.line,error in:" outputs="error out:4323.err" uid="4323" uid_parent="4320"/>
+      <Tunnel _id="Out1" inputs="value:4323.err" uid="4324" uid_parent="4320"/>
+    </CaseFrame>
+    <Tunnel _id="Out1" outputs="value:4240.err" uid="4330" uid_parent="4300"/>
+  </Structure>
+  <Node _name="Merge Errors" inputs="error in:4230.err,error in:4240.err" outputs="error out:4241.err" uid="4241" uid_parent="root"/>
+  <Indicator _name="error out" conIdx="0" connection="recommended" type="cluster{bool.status,int32.code,string.source}" uid="4250" uid_parent="root" value="[false,0,]" inputs="value:4241.err"/>
+</VI>

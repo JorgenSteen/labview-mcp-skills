@@ -1,0 +1,13 @@
+<VI _name="pa_stop_actor_from_panel.vi" description="M3 rescue helper\3A stops a running actor tree from outside without holding its enqueuer. Opens a RUNNING member VI by qualified name (e.g. a UI loop hook whose panel carries the actor object as its class input)\2C reads that control with Ctrl Val.Get\2C converts it to Actor.lvclass with Variant To Data\2C then calls PB-X-stop_actor (Read Self Enqueuer + Send Normal Stop inside a member of an Actor child\3A Read Self Enqueuer is protected\2C and a plain VI calling it directly is Error 1003). The actor type constant is a path stand-in swapped to vi.lib Actor.lvclass and the socket to proof\5CPB-X-rescue\5CPB-X-stop_actor.vi with lvai_swap_subvis. Needs no project.">
+  <Control _name="vi name" type="string" uid="4100" uid_parent="root" value="PB-U-ui_root.lvlib\3APB-U-ui_root.lvclass\3APB-U-ui_loop.vi" outputs="value:4100.value"/>
+  <Control _name="control name" type="string" uid="4101" uid_parent="root" value="PB-U-ui_root in" outputs="value:4101.value"/>
+  <Constant _name="actor type" type="path" uid="4102" uid_parent="root" value="" outputs="value:4102.value"/>
+  <Node _name="Open VI Reference" inputs="application reference (local):,vi path:4100.value,error in (no error):" outputs="vi reference:4200.vi,error out:4200.err" uid="4200" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Execution\3AState" inputs="reference:4200.vi,error in (no error):4200.err" outputs="Execution\3AState:4210.state,reference out:4210.ref,error out:4210.err" type="{LV.VI}" uid="4210" uid_parent="root"/>
+  <Node _name="Invoke Node" target="Ctrl Val.Get" type="{LV.VI}" inputs="reference:4210.ref,error in (no error):4210.err,Control Name:4101.value" outputs="reference out:4220.ref,error out:4220.err,Ctrl Val.Get:4220.var" uid="4220" uid_parent="root"/>
+  <Node _name="Variant To Data" inputs="Variant:4220.var,error in:4220.err,type:4102.value" outputs="data:4230.obj,error out:4230.err" uid="4230" uid_parent="root"/>
+  <Call target="LVMCP Stub 923232797c.vi" inputs="Actor in:4230.obj,error in:4230.err" outputs="error out:4250.err" uid="4250" uid_parent="root"/>
+  <Node _name="Close Reference" inputs="reference:4220.ref,error in (no error):4250.err" outputs="error out:4260.err" uid="4260" uid_parent="root"/>
+  <Indicator _name="state before" type="uint32" uid="4300" uid_parent="root" value="0" inputs="value:4210.state"/>
+  <Indicator _name="error out" type="cluster{bool.status,int32.code,string.source}" uid="4301" uid_parent="root" value="[false,0,]" inputs="value:4260.err"/>
+</VI>

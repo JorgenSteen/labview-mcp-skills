@@ -1,0 +1,10 @@
+<VI _name="PA-A-sc_body.vi" description="PA-A-actor Stop Core body (branch\2C P0.6 and P0.8)\2C fires the stop notifier so the helper loop exits\2C then logs SC. Cluster stand-in for the class terminal\2C retyped by lvai_add_class_method. The actor is not returned.">
+  <Control _name="PA-A-actor in" conIdx="11" connection="required" type="cluster{int32.ping_count,timestamp.started_at,bool.flag,ref{Notifier}{bool}.stop_notifier}" uid="4100" uid_parent="root" value="[0,,false,]" outputs="value:4100.value"/>
+  <Control _name="error in" conIdx="8" connection="recommended" type="cluster{bool.status,int32.code,string.source}" uid="4101" uid_parent="root" value="[false,0,]" outputs="value:4101.value"/>
+  <Constant _name="line" type="string" uid="4110" uid_parent="root" value="A\3ASC" outputs="value:4110.value"/>
+  <Constant _name="true" type="bool" uid="4111" uid_parent="root" value="true" outputs="value:4111.value"/>
+  <Node _name="Unbundle By Name" fields="stop_notifier" inputs="input cluster:4100.value" outputs="stop_notifier:4120.ref" uid="4120" uid_parent="root"/>
+  <Node _name="Send Notification" inputs="notifier:4120.ref,notification:4111.value,error in (no error):4101.value" outputs="notifier out:,error out:4121.err" uid="4121" uid_parent="root"/>
+  <Call target="PA-log.vi" inputs="line:4110.value,error in:4121.err" outputs="error out:4130.err" uid="4130" uid_parent="root"/>
+  <Indicator _name="error out" conIdx="0" connection="recommended" type="cluster{bool.status,int32.code,string.source}" uid="4141" uid_parent="root" value="[false,0,]" inputs="value:4130.err"/>
+</VI>

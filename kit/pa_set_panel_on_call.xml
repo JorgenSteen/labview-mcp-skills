@@ -1,0 +1,21 @@
+<VI _name="pa_set_panel_on_call.vi" description="M3 helper\3A sets the VI properties Execution\3AShow Front Panel On Call and Execution\3AClose After Call (the VI Properties dialog's Show front panel when called and Close afterwards if originally closed) on a VI\2C through the IDE application instance of the active project (Project\3AActive Project -&gt; Application)\2C reads both back and saves the VI with Save.Instrument. Project OPEN and ACTIVE. Spellings from vi-server-properties.tsv.">
+  <Control _name="vi path" type="string" uid="4100" uid_parent="root" value="" outputs="value:4100.value"/>
+  <Control _name="show on call" type="bool" uid="4101" uid_parent="root" value="true" outputs="value:4101.value"/>
+  <Control _name="close after call" type="bool" uid="4102" uid_parent="root" value="true" outputs="value:4102.value"/>
+  <Control _name="error in" conIdx="11" connection="recommended" type="cluster{bool.status,int32.code,string.source}" uid="4109" uid_parent="root" value="[false,0,]" outputs="value:4109.value"/>
+  <Node _name="Property Node" fields="read+Project\3AActive Project" type="{LV.Application}" inputs="error in (no error):4109.value" outputs="Project\3AActive Project:4210.proj,reference out:,error out:4210.err" uid="4210" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Application" type="{LV.Project}" inputs="reference:4210.proj,error in (no error):4210.err" outputs="Application:4215.app,reference out:,error out:4215.err" uid="4215" uid_parent="root"/>
+  <Node _name="String To Path" inputs="string:4100.value" outputs="path:4220.path" uid="4220" uid_parent="root"/>
+  <Node _name="Open VI Reference" inputs="application reference (local):4215.app,vi path:4220.path,error in (no error):4215.err" outputs="vi reference:4225.vi,error out:4225.err" uid="4225" uid_parent="root"/>
+  <Indicator _name="open vi error" type="cluster{bool.status,int32.code,string.source}" uid="4226" uid_parent="root" value="[false,0,]" inputs="value:4225.err"/>
+  <Node _name="Property Node" fields="write+Execution\3AShow Front Panel On Call,write+Execution\3AClose After Call" type="{LV.VI}" inputs="reference:4225.vi,error in (no error):4225.err,Execution\3AShow Front Panel On Call:4101.value,Execution\3AClose After Call:4102.value" outputs="reference out:4230.vi,error out:4230.err" uid="4230" uid_parent="root"/>
+  <Indicator _name="write error" type="cluster{bool.status,int32.code,string.source}" uid="4231" uid_parent="root" value="[false,0,]" inputs="value:4230.err"/>
+  <Node _name="Property Node" fields="read+Execution\3AShow Front Panel On Call,read+Execution\3AClose After Call" type="{LV.VI}" inputs="reference:4230.vi,error in (no error):4230.err" outputs="Execution\3AShow Front Panel On Call:4235.show,Execution\3AClose After Call:4235.close,reference out:4235.vi,error out:4235.err" uid="4235" uid_parent="root"/>
+  <Indicator _name="show on call read" type="bool" uid="4236" uid_parent="root" value="false" inputs="value:4235.show"/>
+  <Indicator _name="close after call read" type="bool" uid="4237" uid_parent="root" value="false" inputs="value:4235.close"/>
+  <Node _name="Invoke Node" target="Save.Instrument" type="{LV.VI}" inputs="reference:4235.vi,error in (no error):4235.err,Path to saved file:,Save a Copy:,Without Diagram:" outputs="reference out:,error out:4240.err" uid="4240" uid_parent="root"/>
+  <Indicator _name="save vi error" type="cluster{bool.status,int32.code,string.source}" uid="4241" uid_parent="root" value="[false,0,]" inputs="value:4240.err"/>
+  <Node _name="Close Reference" inputs="reference:4225.vi,error in (no error):4240.err" outputs="error out:4250.err" uid="4250" uid_parent="root"/>
+  <Node _name="Close Reference" inputs="reference:4215.app,error in (no error):4250.err" outputs="error out:4251.err" uid="4251" uid_parent="root"/>
+  <Indicator _name="error out" conIdx="15" connection="recommended" type="cluster{bool.status,int32.code,string.source}" uid="4260" uid_parent="root" value="[false,0,]" inputs="value:4251.err"/>
+</VI>
