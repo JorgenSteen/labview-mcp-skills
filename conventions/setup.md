@@ -27,16 +27,17 @@ its own, and never overrides what the project already does without asking.
 | No `.labview/`, and no or almost no LabVIEW code | Section 2, then section 4. |
 | The repo is not under git | Ask first (`dot-labview.md`, "No git"). |
 
-**Concerns in scope:** what the task touches, not all six:
+**Concerns in scope:** what the task touches, not all seven:
 
 | Task | Concerns |
 |---|---|
-| A new actor or actor tree | af-shapes, naming, layout, errors |
+| A new actor or actor tree | af-shapes, naming, layout, errors (+ configuration if it reads settings) |
 | A new plain class or library | naming, layout |
 | New VIs in an existing class | naming (and layout if new folders or typedefs) |
 | Icons made or changed | icons |
 | Tests added | hygiene |
-| The user asks for "the whole set" | all six |
+| Settings or configuration files added | configuration |
+| The user asks for "the whole set" | all seven |
 
 ## 2. Project facts
 
@@ -73,7 +74,7 @@ Write `project.json` and commit it.
 
 ## 4. New project: choose from the defaults
 
-Go through the concerns in scope in this order: naming, layout, af-shapes, errors, icons, hygiene. Per concern,
+Go through the concerns in scope in this order: naming, layout, af-shapes, errors, configuration, icons, hygiene. Per concern,
 show the default file's rules in short form. The user accepts them, changes single rules (`decided` +
 `decisions.md`), or switches the concern off. For icons, also settle the per-class banner abbreviations and
 colours, and the class glyphs, in `icon-spec.json` (`ops/icons.md`, "Icon standard").

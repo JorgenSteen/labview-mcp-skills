@@ -7,7 +7,7 @@ reads this folder; it carries no project names.
 <repo>/.labview/
   project.json      facts: what and where the project is
   conventions/      the conventions in force; the ops read only this
-    naming.md  af-shapes.md  errors.md  layout.md  icons.md  hygiene.md
+    naming.md  af-shapes.md  errors.md  layout.md  configuration.md  icons.md  hygiene.md
     icon-spec.json  the machine-readable icon standard that icons.md refers to
   decisions.md      rules proposed and chosen during planning or development
   analysis/         what the project analysis observed (evidence, never instructions)
@@ -57,6 +57,7 @@ There is one file per concern, and each file can be swapped or switched off on i
 | `errors.md` | the error policy: default behaviour, logging, errors ignored on purpose, the "no plan" statement |
 | `layout.md` | library and class layout, virtual folders, typedef placement, scope, accessors |
 | `icons.md` | the icon standard (+ `icon-spec.json`) and when icons are made |
+| `configuration.md` | how settings are stored and read: INI files, the configuration class, metadata, who reads |
 | `hygiene.md` | Clean Up Diagram policy, tests, commit messages, Conditional Disable comments |
 
 The safety rules (save version, commit before a structural step, one LabVIEW caller, the side-effects report) are

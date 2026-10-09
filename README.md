@@ -12,7 +12,7 @@ pilot project.
 | Step | Files | State |
 |---|---|---|
 | 1 Backbone | `SKILL.md`, `conventions/setup.md`, `conventions/dot-labview.md`, `conventions/templates/` | done |
-| 2 Default conventions | `conventions/defaults/{naming,af-shapes,errors,layout,icons,hygiene}.md` | done (the icon-spec template moves to step 5 with `make_icons.py`, whose format changes) |
+| 2 Default conventions | `conventions/defaults/{naming,af-shapes,errors,layout,configuration,icons,hygiene}.md` | done (the icon-spec template moves to step 5 with `make_icons.py`, whose format changes) |
 | 3 Knowledge + MCP index | `knowledge/actor-framework.md`, `knowledge/labview-mcp.md`, `MCP-CANDIDATES.md` | - |
 | 4 Ops | `ops/{analysis,override,helper-loop,class-field,rename,icons,cleanup,sweep,run-checks,review}.md` | - |
 | 5 Session + kit | `session/{brief,restart,close}.md`, `kit/` | - |
@@ -40,5 +40,8 @@ Step 2, settled by the user on 2026-10-09:
   optional, settings input required). The caller launches each child in a launch method (`launchHwm`), and the
   global events travel inside these settings.
 - Actor Core returns the merged error including Call Parent's, so an error ends the actor by default.
-- Still open: INI configuration, disabled instrumentation, and an actor template in the project. Not yet a
-  convention; to be put to the user again.
+- **A seventh concern, `configuration.md`:** the user chose the INI config class. It follows production code RT: one parent
+  config class, one child per INI file, a `[metadata]` section with the version. The user's principle: each topic
+  gets its own default, and the default is how the user works now. `who-reads` is inferred from production code and still to
+  be confirmed.
+- Disabled instrumentation and an actor template kept in the project are not defaults.
