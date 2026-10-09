@@ -148,8 +148,8 @@ Every re-saved file and version change also goes into the end-of-session side ef
   the class name (KT-3).
 - **1562 on `icon_set_class_icon` with nothing visibly locked:** the class is probably held by an earlier
   `LVClass.Open` in this LabVIEW. The cure is a restart with that call first, only with the user's go-ahead
-  (`session/restart.md`). Fallback: `lvai_set_vi_icon` with each member's composite (same look, no `NI_Library`
-  layer, the class icon stays old). Details: `knowledge/labview-mcp.md`, "lvai_set_vi_icon and icon work".
+  (`session/restart.md`). Fallback, only with the user's ok (`convention: icons.labview-template`): `lvai_set_vi_icon`
+  with each member's composite (same look, no `NI_Library` layer, the class icon stays old). Details: `knowledge/labview-mcp.md`, "lvai_set_vi_icon and icon work".
 - `ApplyIconToVIs` alone saves no member, and on a plain `.lvlib` it silently does nothing unless the members are
   opened first: the `_n` helper does both. A cached `icon_apply_icon_and_save_n.vi` without `open codes` is stale.
 - Any regeneration of a VI drops its icon: steps 4–7 again for it.

@@ -27,6 +27,14 @@ Every class and actor has ONE glyph of its own, on the right of the icon body. T
 the class template, the starting point of every VI of the class.
 source: default
 
+## labview-template
+Icons use LabVIEW's own icon system. The banner and the class glyph are drawn ONCE, as the class's (or library's) icon,
+and LabVIEW applies that icon to every member as its template layer (`NI_Library`). Each VI holds only its own glyph
+layer on top. A class template change is then one set of the class icon plus LabVIEW's apply to its members, not a
+redraw of every VI. Drawing a full composite into each VI (which loses the template link) is a fallback only, with the
+user's ok.
+source: default
+
 ## vi-glyph
 Every VI adds at least one glyph, or text where that makes sense, telling what it does. For example, "write to file"
 is a paper and a pencil. The VI glyph may overlap the class glyph.
