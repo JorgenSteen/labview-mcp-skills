@@ -59,7 +59,8 @@ These protect the files and the toolchain. They are not conventions and cannot b
   before the save. A one-VI fix saved from a newer LabVIEW makes that VI unloadable in the project's version. Route:
   `knowledge/labview-mcp.md`, "Save version".
 - **The user's LabVIEW is the user's.** A LabVIEW this session did not start is closed, restarted or killed only with
-  the user's go-ahead in this context (`session/restart.md`). A LabVIEW this session started itself
+  the user's go-ahead in this context (`session/restart.md`), or, for a restart only, the project's standing
+  go-ahead (`project.json` `restart_go_ahead: always`, set by the user; default `ask`). A LabVIEW this session started itself
   (`session/start.md` records it) may be closed by this session.
 - **Save what you made; ask about the rest.** Files this session created or changed, it saves. Open, unsaved files it
   did not make (`*` in a window title, or `LVAutoSave` files while a project is open) mean the user is probably

@@ -17,9 +17,14 @@ How a timed-out call blocks the service: `knowledge/labview-mcp.md`, "A failed, 
 | LabVIEW | Close or restart |
 |---|---|
 | started by this session: its PID is the one `session/start.md` recorded | this session may close it, no go-ahead |
-| any other: the user opened it, an earlier session started it, or the PID differs | only with the user's go-ahead in this context |
+| any other: the user opened it, an earlier session started it, or the PID differs | only with the user's go-ahead in this context, or the project's standing go-ahead (below) |
 | kill (`Stop-Process`), any LabVIEW, this session's own included | only with an explicit go-ahead for that kill |
 
+- **A standing go-ahead per project** (the user's rule, 2026-10-09): `project.json` `restart_go_ahead` is `ask` by
+  default. Only the user sets it to `always` (with `restart_go_ahead_note`: who, when, their words). With `always`,
+  a restart this project needs is done without asking each time, but every guard below still runs; unsaved files
+  this session did not make still mean ask (`SKILL.md`), and a kill still needs its own explicit go-ahead. Never set
+  `always` on your own, and never infer it from an earlier session's go-ahead.
 - **Ask up front, never by surprise.** While planning a session or a step, decide whether a restart may be needed (a
   class call after `LVClass.Open` work, a measurement that may hang an actor, a known 1562), and ask then. The user
   gives a **single** go-ahead (one named restart) or a **blanket** one for this session; it ends with the session.

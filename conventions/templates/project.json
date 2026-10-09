@@ -10,6 +10,7 @@
   "git": true,
   "conventions_mode": "full",
   "analysis_depth": "standard",
+  "restart_go_ahead": "ask",
   "proof_folder": "proof",
   "proof_prefix": "PB-",
   "briefs_folder": "docs/briefs/session-<X>/",
