@@ -33,16 +33,12 @@ Confirmed by the user 2026-10-09: the five choices above. Added on the user's re
 - **The name** "code of conduct" became **conventions** (`.labview/conventions/`), because CODE_OF_CONDUCT.md means
   contributor behaviour.
 
-Step 2, open points for the user (each is marked in the default file or listed here):
-- `naming.class-library-names` (`<P>-<ABBR>-<name>`, snake_case) and `naming.field-names` (camelCase) were never
-  settled. They are marked "setup asks".
-- `af-shapes.global-events`: the events are passed down inside the child's pre-launch settings (the audit left the
-  route open).
-- `af-shapes.close-vi`: Actor Core returns the merged error *including Call Parent's*. The answers say "the merged
-  error".
-- From af-patterns, not carried over as conventions:
-  - INI configuration via a config class
-  - instrumentation left in but disabled
-  - an actor template kept in the project
-  - the messaging patterns (payload hierarchy, message router, time-delayed messages), which become design
-    knowledge in step 3
+Step 2, settled by the user on 2026-10-09:
+- `naming.class-library-names` is `<P>-<ABBR>-<name>` in snake_case. `naming.field-names` is camelCase without the
+  prefix.
+- Pre-launch settings: the child class owns the typedef and a public custom `writePrelaunchSettings` (class input
+  optional, settings input required). The caller launches each child in a launch method (`launchHwm`), and the
+  global events travel inside these settings.
+- Actor Core returns the merged error including Call Parent's, so an error ends the actor by default.
+- Still open: INI configuration, disabled instrumentation, and an actor template in the project. Not yet a
+  convention; to be put to the user again.

@@ -31,8 +31,8 @@ source: default
 
 ## launch-owner
 An actor launches what it owns: a panel its graphs, a hardware manager its hardware actors, a communication manager
-its communication actors, the root the main parts. It launches from Actor Core or from a message, never in Pre
-Launch Init, so a child starts with a running caller that can already receive its messages. Launch on request
+its communication actors, the root the main parts. Each launch is a method of the caller
+(`prelaunch-settings`), called from Actor Core or from a message, never from Pre Launch Init, so a child starts with a running caller that can already receive its messages. Launch on request
 (e.g. a panel when it is asked for) where it fits.
 source: default
 
@@ -49,9 +49,15 @@ source: default
 
 ## prelaunch-settings
 Every actor has ONE pre-launch settings typedef holding everything it needs at launch: configuration, references,
-the global events, and so on. The caller writes it through one `Write` accessor before Launch. Pre Launch Init reads
-it and creates the actor's resources from it.
-Why: the typedef documents what the actor requires.
+the global events, and so on. Pre Launch Init reads it and creates the actor's resources from it.
+- **The actor's own class owns the typedef and its write accessor.** Both are members of the class, not of the
+  caller.
+- **The accessor is a custom one, `writePrelaunchSettings`,** made public because the caller calls it. Its settings
+  input is required. Its class input is optional: unwired, it writes into a default object of the class.
+- **The caller launches the child in a launch method of its own** (`naming.role-names`, e.g. `launchHwm` in the
+  root): fill the settings → `writePrelaunchSettings` → Launch Nested Actor.
+Why: the typedef documents what the actor requires, and the launch method shows in one place how the child is
+started.
 source: default
 
 ## resources
@@ -72,9 +78,8 @@ source: default
 ## global-events
 Events every actor may need (global stop, emergency stop, ...) live in their own typedef, never mixed into an
 actor's own events typedef. The root creates them in its Pre Launch Init and passes them down before each launch,
-inside the child's pre-launch settings (`prelaunch-settings`). The root destroys them in its own `close`, after its
-children have stopped.
-The pass-down route via the pre-launch settings is this skill's choice; setup confirms it with the user.
+inside the child's pre-launch settings (`prelaunch-settings`). A manager that launches its own children passes them on
+the same way. The root destroys them in its own `close`, after its children have stopped.
 source: default
 
 ## helper-loop-vi
@@ -117,7 +122,8 @@ source: default
 ## close-vi
 The loop VI's `error out` and the stop hook's `error out` join in Merge Errors and feed `close`. `close` destroys the
 user events and releases the loop's queue. Errors ignored on purpose inside it end in Clear Errors
-(`errors.ignored-errors`). Actor Core returns the merged error, including Call Parent's.
+(`errors.ignored-errors`). Actor Core returns the merged error, including Call Parent's. An error then ends the
+actor (`errors.default-policy`) unless an error-handling plan says otherwise.
 Why: `close` can run only after the loop has exited and the stop has been sent. Destroying earlier hangs the actor:
 a Destroy in Stop Core runs inside Call Parent, before the stop, so the stop goes into a dead refnum
 (`knowledge/actor-framework.md`).

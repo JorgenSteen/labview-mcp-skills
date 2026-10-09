@@ -40,12 +40,10 @@ source: default
 ## class-library-names
 Classes and libraries are named `<P>-<ABBR>-<name>`, with `<name>` in snake_case. Example:
 `<P>-HWM-hardware_manager.lvclass`.
-Not settled by the user; setup asks.
 source: default
 
 ## field-names
 Private data fields are named in camelCase without the prefix. Examples: `events`, `prelaunchSettings`.
-Not settled by the user; setup asks.
 source: default
 
 ## role-names
@@ -60,6 +58,8 @@ Members and typedefs with a fixed role in an actor (`af-shapes`) have these defa
 | the actor's own user events | `<P>-<ABBR>-EVENTS.ctl`, field `events` |
 | global events (root) | `<P>-<ABBR>-GLOBAL_EVENTS.ctl`, `<ABBR>` = the root's |
 | pre-launch settings | `<P>-<ABBR>-PRELAUNCH_SETTINGS.ctl`, field `prelaunchSettings` |
+| writes the pre-launch settings (custom accessor) | `<P>-<ABBR>-writePrelaunchSettings.vi` |
+| launches a child (a method of the caller) | `<P>-<ABBR>-launch<Child>.vi`, e.g. `<P>-ROOT-launchHwm.vi` |
 
 An existing project's own role names (found by the analysis) replace these.
 source: default

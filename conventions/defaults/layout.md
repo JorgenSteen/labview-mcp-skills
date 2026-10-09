@@ -32,7 +32,7 @@ source: default
 
 ## scope
 New class members are private. Use public only when something outside the class calls the member (e.g. what a
-message's `Do.vi` calls, an API method), and protected for what children override or call. Existing scopes are not
+message's `Do.vi` calls, an API method, `writePrelaunchSettings`), and protected for what children override or call. Existing scopes are not
 changed.
 source: default
 
