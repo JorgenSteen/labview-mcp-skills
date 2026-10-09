@@ -7,8 +7,8 @@ labview-mcp is open source (Zuehlke/labview-mcp); each entry is written so it ca
 <skill>`). When labview-mcp ships one: replace each marked passage with a call to the new tool, delete what **Removes**
 lists, set the status to `shipped in <version>`, and keep the entry.
 
-**Status:** `proposed` (asked for by this skill's sources), `open in audit` (the audit proposal behind it is not yet
-decided by the user), `possibly fixed upstream` (labview-mcp's source or docs suggest it is covered; no run here
+**Status:** `proposed` (asked for by this skill's sources), `open in audit` (no longer used: every audit proposal was
+settled on 2026-10-09; kept for the history of older entries) decided by the user), `possibly fixed upstream` (labview-mcp's source or docs suggest it is covered; no run here
 confirms it), `submitted` (issue or PR open upstream), `shipped`.
 
 **Contributing upstream** (the user's decision, 2026-10-09). The candidates stay in this skill until labview-mcp
@@ -32,7 +32,7 @@ connect). **Proposed** a server-side queue: one LabVIEW call at a time across cl
 brief. **Removes** that rule in `knowledge/labview-mcp.md` and `session/brief.md`.
 
 ## deadline-abort
-**Status** open in audit (MC-1). **Gap** a call past its deadline keeps running in LabVIEW; every later call, even
+**Status** proposed (MC-1). **Gap** a call past its deadline keeps running in LabVIEW; every later call, even
 `lvai_status`, answers `DeadlineExceeded` (~2.5 h once). **Proposed** on deadline abort the helper or answer
 `stillRunning: true` with its name; `lvai_status` answers from the service thread with `busy: <tool> since <s>`.
 **Evidence** rule candidates 104, 105; S11; CS-2, BR-1, RS-1 (open). **Workaround** no further call; window list and CPU
@@ -55,17 +55,17 @@ Conditional Disable symbols set on a target. **Proposed** `lvai_exec_state(viPat
 which variant it checked. **Removes** the coverage note in `ops/sweep.md`.
 
 ## dialog-detection
-**Status** proposed (S9); its dependency-check half (MC-2) is open in audit. **Gap** a modal dialog (`Find the VI
+**Status** proposed (S9); its dependency-check half (MC-2) is covered by `offline-loadability`. **Gap** a modal dialog (`Find the VI
 Named …`, a library search, a save prompt, autosave recovery) blocks the service; the agent sees only a timeout.
 **Proposed** detect a modal window of LabVIEW and answer `blocked by dialog "<title>"` with its buttons; answer it only
 on an explicit confirm. **Evidence** pilot rule 12; rule candidate 103 (720 s); S12. **Workaround** `lv_windows.ps1`;
 the user answers. **Removes** the dialog workaround in `knowledge/labview-mcp.md`; dialog guards in `session/restart.md`.
 
 ## offline-loadability
-**Status** open in audit (X-1, KT-1, MC-2). **Gap** nothing says whether code will load before a call loads it; every
+**Status** proposed (X-1 settled 2026-10-09; KT-1, MC-2). **Gap** nothing says whether code will load before a call loads it; every
 audit hang came from missing packages. **Proposed** `lvai_check_dependencies(paths)`, offline: per VI/class/library
 "loadable" or the missing packages and load chain; or `checkDependencies: true` on class-editing tools. **Evidence**
-audit G closure (~5 s for 5800 files, predicted every hang). **Workaround** kit `lv_loadability.py` (port open).
+audit G closure (~5 s for 5800 files, predicted every hang). **Workaround** `<skill>/kit/lv_loadability.py` (ported 2026-10-09; whole production code tree in ~8 s, same verdict as the audit).
 **Removes** the offline-check rule; the loadability steps in `ops/analysis.md`, `ops/sweep.md`.
 
 ## close-project-guard
@@ -92,7 +92,7 @@ project first` / `open and activate <project> first`; `lvai_exec_state` says whe
 and the per-step state lines in the ops files.
 
 ## restart-with-guards
-**Status** proposed (S2, S9); refinements RS-1..RS-5, KT-5, KT-6 open in audit. **Gap** nothing stops or restarts
+**Status** proposed (S2, S9); refinements RS-1, RS-3..RS-5 settled (RS-2 replaced by the user's Q30); KT-5, KT-6 are kit TODOs. **Gap** nothing stops or restarts
 LabVIEW; a hung helper loop is freed only by a restart. **Proposed** `lvai_restart_labview(confirm: true)`: refuse and
 list unsaved VIs (every instance), dialogs, running VIs; close, tell "busy" from "dialog", start, wait for gRPC, report
 port, uptime, steps; optionally reopen the Nigel chat (`--lv-version`, `--lv-bitness`); `ensure_labview` says "still
@@ -106,7 +106,7 @@ running VIs per instance. **Evidence** pilot rules 59, 96. **Workaround** `pa_vi
 after the close. **Removes** guards (b)/(c) in `session/restart.md`.
 
 ## exec-state-batch
-**Status** proposed; KT-8, CS-1, KT-2 open in audit. **Gap** `lvai_exec_state` takes one VI. **Proposed**
+**Status** proposed; CS-1 settled; KT-8, KT-2 are kit TODOs. **Gap** `lvai_exec_state` takes one VI. **Proposed**
 `lvai_exec_state(viPaths | folder)`: state and code per VI, owning libraries held for the batch, a negative control,
 file-side membership (owner found walking up), optional `.vim`/`.ctl`, time per VI. **Evidence** pilot rule 1; kit
 sweep (116 VIs in 22 s); rule candidate 108 (~30 s per VI when the library reloads); S11. **Workaround**
@@ -124,7 +124,7 @@ placed, parent's scope kept, verified from the files, pane returned. **Evidence*
 `lvai_create_override.xml`. **Removes** "create the override" in `ops/override.md`.
 
 ## add-hook
-**Status** proposed (S6); the `close` join shape (OV-7) settled but unmeasured; PLI failure shape (OV-5) open in audit.
+**Status** proposed (S6); the `close` join shape (OV-7) measured 2026-10-09 (`kit/pa_close_join.xml`); PLI failure cleanup (OV-5) settled as the `createResources` member VI.
 **Gap** hooks go in through six kit helpers with traps (panel vs node source, swapped roles after Call Parent, delete by
 terminal removes every hook). **Proposed** `lvai_af_add_hook(override, class, hookVi, shape, errorWiring)` with shapes
 branch, series, series-then-branch, after-call-parent, close-join; it knows each AF pane, returns the wires made, saves
@@ -169,7 +169,7 @@ whole library. **Proposed** `lvai_add_to_class(lvclassPath, itemPath, virtualFol
 **Removes** that bullet.
 
 ## rename-member
-**Status** proposed (S5); RN-1, RN-3, RN-4 open in audit. **Gap** no rename tool; an unloaded caller keeps the old link
+**Status** proposed (S5); RN-1, RN-3, RN-4 settled (and the user's Q33: renames only through LabVIEW). **Gap** no rename tool; an unloaded caller keeps the old link
 silently. **Proposed** `lvai_rename_member(vi, newName, lvclassPath, projectPath)`: loads every caller, renames, saves
 callers and class, deletes the old file, reports per caller the new link and the string references left. **Evidence**
 pilot rules 64, 85–87. **Workaround** `pa_rename_member.xml`, `pa_resave_vis.xml`, grep. **Removes** most of `ops/rename.md`.
@@ -187,13 +187,13 @@ generator reading `.labview/conventions/icon-spec.json`: own-layer, class and li
 Q19, Q20. **Workaround** `make_icons.py`. **Removes** "generate" in `ops/icons.md`.
 
 ## icon-readback
-**Status** proposed (S1); a "before" read-back (IC-4) open in audit. **Gap** `Save VI Icon to File` writes nothing into a
+**Status** proposed (S1); a "before" read-back (IC-4) settled. **Gap** `Save VI Icon to File` writes nothing into a
 missing folder or past MAX_PATH, with no error. **Proposed** a batch read-back against expected PNGs returning pixel
 differences. **Evidence** pilot rules 58, 80. **Workaround** `icon_get_vi_icons_n(_file).xml`, `icon_readback_inputs.py`,
 `pixcmp.py`. **Removes** `ops/icons.md` step 5.
 
 ## set-vi-icon-keep-layers
-**Status** open in audit (MC-5). **Gap** `lvai_set_vi_icon` flattens the icon. **Proposed** `keepOwnLayer: true`
+**Status** proposed (MC-5). **Gap** `lvai_set_vi_icon` flattens the icon. **Proposed** `keepOwnLayer: true`
 (re-apply the template only). **Evidence** rule candidate 110; S16. **Workaround** skip VIs with an own layer.
 **Removes** that warning.
 
@@ -228,7 +228,7 @@ control, value)` with `Value (Signaling)`, naming a latch as such instead of a b
 **Workaround** `pa_press_control_signal.xml`. **Removes** the press step in `ops/run-checks.md`.
 
 ## run-vi-async
-**Status** proposed (S10); partly covered: 1.8.5 `runForMs` runs N ms then aborts (no cleanup). RC-2 open in audit.
+**Status** proposed (S10); partly covered: 1.8.5 `runForMs` runs N ms then aborts (no cleanup). RC-2 settled.
 **Gap** no tool starts a never-returning VI and returns, stops it cleanly, or closes its panel. **Proposed**
 `lvai_start_vi`, `lvai_stop_vi(closePanel)`, `lvai_run_for(viPath, ms, stopControl, readFiles)` pressing stop (not
 abort) and reporting whether every started VI left memory. **Evidence** pilot rules 57, 63. **Workaround**
@@ -240,7 +240,7 @@ controls)` with state and panel-open, 1004 as `notInMemory`. **Workaround** `pa_
 those helpers.
 
 ## read-named-indicators
-**Status** open in audit (MC-4); RC-3 (settled) relies on it. **Gap** the runner returns the whole panel (111–519 KB, one
+**Status** proposed (MC-4); RC-3 (settled) relies on it. **Gap** the runner returns the whole panel (111–519 KB, one
 answer over the gRPC limit); large answers of other tools go to a file. **Proposed** `readOnly: [names]`, arrays
 truncated with their length, a filter for `describe_*`. **Evidence** S15; pilot rule 33. **Workaround** a wrapper VI;
 `read_saved_answer.py`. **Removes** those notes.
@@ -259,14 +259,14 @@ helper loop the registration route, Register's error source, frames, events crea
 "where to look".
 
 ## save-version-check
-**Status** proposed (MC-8, X-2 settled; Q2); the scan script's port (KT-7) open in audit. **Gap** no tool reads or sets
+**Status** proposed (MC-8, X-2 settled; Q2); the scan script is ported (`<skill>/kit/lv_save_version.py`). **Gap** no tool reads or sets
 a project/library Save version; saves with no project open upgrade older files. **Proposed** `lvai_set_save_version(
 projectPath | libraryPath, version)`, the save version in `lvai_describe_project`, and saving tools refusing a write
 newer than it. **Evidence** rule candidate 100; agent V (`work/V/save-version.md`); BA-15. **Workaround** XML line in the
 closed `.lvproj`, `.lvversion`, `lv_save_version.py`. **Removes** "Save version" steps 1, 2 and 4.
 
 ## bind-fields-step-errors
-**Status** open in audit (MC-7). **Gap** `lvai_bind_class_fields` runs on after a failed step and names the wrong cause.
+**Status** proposed (MC-7). **Gap** `lvai_bind_class_fields` runs on after a failed step and names the wrong cause.
 **Proposed** stop after a failed step; pick the note by its error. **Evidence** S12. **Removes** that bullet.
 
 ## plugin-agent-traps
@@ -341,4 +341,4 @@ limit. **Proposed** array, empty and file inputs. **Evidence** pilot rules 47, 5
 - KT-1 offline-loadability; KT-2, KT-8 exec-state-batch; KT-3, KT-4 icon-generator; KT-5, KT-6 restart-with-guards;
   KT-7 save-version-check, deadline-abort, dialog-detection. These are kit ports first; they shrink once a candidate ships.
 - TR-1..TR-3 are AF facts (`knowledge/actor-framework.md`). TR-4 is applied as scope notes in `knowledge/labview-mcp.md`.
-  TR-5 (rule candidates 100–111) is used here as evidence; adopting them into the pilot's rules file is open in audit.
+  TR-5 (rule candidates 100–111) is used here as evidence; they live in `knowledge/labview-mcp.md`; the pilot's own rules file stays as it is (maintenance).
