@@ -134,7 +134,8 @@ source: default
 "Do X every N ms" is a second loop in the loop VI, timed by its own wait and stopped by the local `stop`
 (`stop-mechanism`). An event structure's Timeout frame is used only when its meaning is the purpose: a check that
 runs when no event has come for a while (an idle or watchdog check). Otherwise there is no Timeout frame, or an empty
-one where LabVIEW needs it. Never use a 0 ms Timeout with non-blocking work (a busy loop).
+one where the build tool needs it (`knowledge/labview-mcp.md`; LabVIEW itself needs one only when the Timeout
+terminal is wired). Never use a 0 ms Timeout with non-blocking work (a busy loop).
 source: default
 
 ## hook-vis
