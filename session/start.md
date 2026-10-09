@@ -58,6 +58,6 @@ LabVIEW with another PID later is not the one this session started.
 Starting LabVIEW, opening the Nigel chat and clearing `LVAutoSave` are side effects. They go into the end-of-session
 report (`session/close.md`).
 
-> MCP-candidate: `lvai_status` should say plainly whether LabVIEW is not running, running without the service, or
-> blocked by a dialog. `lvai_ensure_labview` should open Nigel itself and warn before it deletes `LVAutoSave` files.
-> See `MCP-CANDIDATES.md#ensure-labview-complete`.
+> MCP-candidate: ensure-labview-complete. `lvai_status` should say plainly whether LabVIEW is not running, running
+> without the service, or blocked by a dialog. `lvai_ensure_labview` should open Nigel itself and warn before it
+> deletes `LVAutoSave` files.
