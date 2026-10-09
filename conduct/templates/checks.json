@@ -1,0 +1,17 @@
+{
+  "$schema_version": 1,
+  "_doc": "Test VIs and behaviour runs for <skill>/ops/run-checks.md (entry format there). A test VI reports a named Pass Boolean and error out (conduct: hygiene.test-convention).",
+  "tests": [
+    {
+      "name": "data-roundtrip",
+      "path": "src/tests/EX-DATA-test_roundtrip.vi",
+      "class_under_test": "src/data/EX-DATA-data.lvclass",
+      "project": "closed",
+      "inputs": {},
+      "expected": { "pass": "Pass", "error out code": 0 },
+      "side_effects": "none",
+      "evidence": "proof/runs/<X>-checks.txt"
+    }
+  ],
+  "runs": []
+}
