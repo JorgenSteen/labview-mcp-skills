@@ -418,7 +418,7 @@ They hold for any VI Server or AIXML route, the kit's included.
   wires to "the old tunnel" fails with 1055: rebuild the tunnel by wiring through it again. [LabVIEW 2026 Q3]
   (skillsaudit M-CLOSE, 2026-10-09)
 - **The `close` join is scripted by `<skill>/kit/pa_close_join.xml`** (measured 2026-10-09, one run with the project
-  active, then `pa_save_member`; ~25 s generate + < 1 s run). `ops/helper-loop.md` has the route. > MCP-candidate: add-hook
+  active, then `pa_save_member`; ~25 s generate + < 1 s run). `ops/override.md` (shape D-close) has the route. > MCP-candidate: add-hook
 
 ## Harness quirks
 - Parallel Bash calls share one shell and one working directory: absolute paths everywhere. (pilot rule 18)
