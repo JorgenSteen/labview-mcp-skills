@@ -122,7 +122,7 @@ docs, or NI/AF designers on the NI forum), **observed in production code** (the 
 - **Register For Events skips on an upstream error.** It has standard error-in behaviour: with an error in, it does not
   run and nothing is registered. The event structure then waits for events that never come, and a loop whose only
   exit is the stop event hangs the actor at stop. *Evidence: documented (LabVIEW help for Register For Events);
-  the hang is reasoned (the pilot project pilot's rule 73).* (`convention: af-shapes.helper-loop-error-case`.)
+  the hang is reasoned (the pilot project pilot's rule 73).* (`convention: af-shapes.registration`.)
 - **Generating an event nobody registered for does nothing,** with no error. So a stop sent to a loop that never
   registered (for example one that returned at once on an error) is harmless, and it cannot rescue such a loop.
   *Evidence: documented (LabVIEW help for Generate User Event).*
