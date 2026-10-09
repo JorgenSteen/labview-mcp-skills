@@ -31,7 +31,7 @@ its own, and never overrides what the project already does without asking.
 
 | Task | Concerns |
 |---|---|
-| A new actor or actor tree | af-shapes, naming, layout, errors (+ configuration if it reads settings) |
+| A new actor or actor tree | af-shapes, naming, layout, errors, configuration (always asked, see below) |
 | A new plain class or library | naming, layout |
 | New VIs in an existing class | naming (and layout if new folders or typedefs) |
 | Icons made or changed | icons |
@@ -74,10 +74,16 @@ Write `project.json` and commit it.
 
 ## 4. New project: choose from the defaults
 
-Go through the concerns in scope in this order: naming, layout, af-shapes, errors, configuration, icons, hygiene. Per concern,
-show the default file's rules in short form. The user accepts them, changes single rules (`decided` +
+Go through the concerns in scope in this order: naming, layout, af-shapes, errors, configuration, icons, hygiene. Per
+concern, show the default file's rules in short form. The user accepts them, changes single rules (`decided` +
 `decisions.md`), or switches the concern off. For icons, also settle the per-class banner abbreviations and
 colours, and the class glyphs, in `icon-spec.json` (`ops/icons.md`, "Icon standard").
+
+**Configuration is always a question in planning** (the user's rule, 2026-10-09), for a new project and for a new
+actor or subsystem that has settings: "How will configuration be handled?" Offer `defaults/configuration.md` as the
+suggestion (INI files per topic, a parent config class with one child per file, metadata, who reads what), but do not
+apply it without the user's answer. In an existing project, show what the analysis found and ask whether the new part
+follows it.
 
 ## 5. Write and commit
 
