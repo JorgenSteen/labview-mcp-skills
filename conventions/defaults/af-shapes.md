@@ -78,10 +78,13 @@ source: default
 
 ## pli-failure-cleanup
 A Pre Launch Init that fails cleans up after itself, because Stop Core does not run after a failed Pre Launch Init
-(`knowledge/actor-framework.md`). Pre Launch Init merges the errors of what it creates. A case structure on that merged
-error runs, in its Error case, the same release VIs that Stop Core and `close` use (`resources`), on whatever was
-created, and Pre Launch Init returns the error so the launch fails. The No Error case does nothing.
-Why: one release VI per resource group, reused, so a cleanup is written once and cannot drift between the paths.
+(`knowledge/actor-framework.md`). The creating and the cleanup live in ONE member VI, `createResources`
+(`naming.role-names`): it creates every resource Pre Launch Init owns (calling `createEvents` and the like), merges
+their errors, and a case structure on that merged error runs, in its Error case, the same release VIs that Stop Core
+and `close` use (`resources`) on whatever was created. The No Error case does nothing. It returns the error. Pre Launch
+Init calls only `createResources` (class and error), so a failure fails the launch.
+Why: one release VI per resource group, reused, so a cleanup is written once and cannot drift between the paths; and
+the whole member VI can be written and generated in one piece, with Pre Launch Init's diagram one call.
 source: default
 
 ## events-typedef

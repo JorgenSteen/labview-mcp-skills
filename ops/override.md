@@ -54,7 +54,7 @@ M3/M4 (2026-10-09) and in the pilot. (pilot rule 6)
 | Override | Hook work | Shape |
 |---|---|---|
 | Pre Launch Init | create the resources (`af-shapes.resources`); the hook reads the pre-launch settings itself (`af-shapes.prelaunch-settings`) | B-after on class and error |
-| Pre Launch Init | clean up after its own failure (`af-shapes.pli-failure-cleanup`) | F, **unmeasured** |
+| Pre Launch Init | create everything and clean up after its own failure, via `createResources` (`af-shapes.pli-failure-cleanup`) | F (hook measured; the member's case structure unmeasured) |
 | Pre Launch Init | start the children (`af-shapes.launch-owner`): send the launch message to self | A (`kit/example_pli_deferred_start.xml`) |
 | Actor Core | the helper loop beside Call Parent | A, or C after a series hook |
 | Actor Core | a body that returns a changed object to Call Parent | B |
@@ -126,11 +126,14 @@ overrule `stop actor?` (only per a plan, `convention: errors.plan-required`) nee
 makes: **unmeasured**, ask before building. The old shape (handler before Call Parent, `panel name B` =
 `error in (no error)`) was measured (M-CLOSE M4) and stays only in existing code. > MCP-candidate: add-hook
 
-**F. PLI failure cleanup:** **unmeasured.** The case structure on the merged error around the release VIs cannot be
-scripted on an override's diagram: the kit cannot wrap existing nodes in a structure, and an override is never
-regenerated from AIXML (Call Parent cannot be authored). Before building, ask the user how to place it (for example
-a member VI that holds the case structure and calls the release VIs, hooked B-after behind the creating hooks: an
-AIXML case structure on an error cluster is supported). > MCP-candidate: add-hook
+**F. PLI failure cleanup** (`af-shapes.pli-failure-cleanup`, the user's choice 2026-10-09): the case structure lives
+in the member VI `createResources`, never on the override's diagram (the kit cannot wrap existing nodes, and an
+override is never regenerated from AIXML). Write `createResources` as AIXML (creates → Merge Errors → a case structure
+on the merged error: Error case calls the release VIs, No Error case empty → `error out`; AIXML supports error-cluster
+selectors) and generate it as a class member; then hook it into Pre Launch Init as shape B-after (class and error), the
+one hook there. Hook placement is measured (B-after, M-CLOSE M3); the generated case structure in `createResources` is
+**unmeasured**: sweep it cold and run a forced-failure launch (as M-CLOSE M3) before calling it done.
+> MCP-candidate: add-hook
 
 **H. Handle Last Ack Core:** pane read offline from production code: `error in (no error)` 4, `Last Ack` 6, `<C> in` 7, `<C> out`
 3, `error out` 0; confirm it with `lvai_connector_pane` first. A hook that takes `Last Ack` needs a wire the kit

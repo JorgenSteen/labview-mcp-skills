@@ -52,7 +52,8 @@ Members and typedefs with a fixed role in an actor (`af-shapes`) have these defa
 | Role | Default name |
 |---|---|
 | helper-loop VI | `<P>-<ABBR>-helper<Purpose>.vi`, e.g. `helperCommunicationReceiver` |
-| creates the actor's user events (Pre Launch Init) | `<P>-<ABBR>-createEvents.vi` |
+| creates everything Pre Launch Init owns, cleans up on its own error | `<P>-<ABBR>-createResources.vi` |
+| creates the actor's user events (called by `createResources`) | `<P>-<ABBR>-createEvents.vi` |
 | sends the helper loop's stop (Actor Core) | `<P>-<ABBR>-stop.vi` |
 | releases what the helper loop used (Actor Core) | `<P>-<ABBR>-close.vi` |
 | the actor's own user events | `<P>-<ABBR>-EVENTS.ctl`, field `events` |

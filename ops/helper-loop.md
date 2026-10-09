@@ -103,8 +103,9 @@ or when a concern is off, follow the surrounding code instead.
       action and visibility with `kit/pa_read_boolean.xml` cold (the export shows neither).
     > MCP-candidate: control-property-setters
 11. **Wire it into the overrides**, each hook by `ops/override.md`, commit and `pa_save_member` as that file says:
-    - Pre Launch Init: `createEvents` as shape B-after (class and error), so a failed create fails the launch. A PLI
-      failure cleanup (shape F) is unmeasured: ask first.
+    - Pre Launch Init: `createEvents` is called by `createResources`, the one Pre Launch Init hook (shape F in
+      `ops/override.md`), so a failed create fails the launch and is cleaned up. An actor whose only resources are its
+      events may hook `createEvents` itself as shape B-after (measured), but then nothing cleans up a partial create.
     - Actor Core, in this order: the loop as shape A from `<C> in` (or C after a series hook); the `stop` hook as
       shape D (`source terminal name` = `<C> in` finds the loop's node on that wire); then shape D-close with
       `close vi path` = `close`, `loop vi regex` = the loop VI's name, `stop vi regex` = the stop hook's name.
