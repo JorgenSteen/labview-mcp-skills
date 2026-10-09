@@ -1,6 +1,6 @@
 # Decisions
 
-Rules proposed and chosen during planning or development. Each `decided` tag in `conduct/*.md` points here.
+Rules proposed and chosen during planning or development. Each `decided` tag in `conventions/*.md` points here.
 Newest last. Never rewrite an entry; a later decision supersedes it and says so.
 
 ## D1 (YYYY-MM-DD): <one-line summary>

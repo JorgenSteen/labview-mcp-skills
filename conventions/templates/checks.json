@@ -1,6 +1,6 @@
 {
   "$schema_version": 1,
-  "_doc": "Test VIs and behaviour runs for <skill>/ops/run-checks.md (entry format there). A test VI reports a named Pass Boolean and error out (conduct: hygiene.test-convention).",
+  "_doc": "Test VIs and behaviour runs for <skill>/ops/run-checks.md (entry format there). A test VI reports a named Pass Boolean and error out (convention: hygiene.test-convention).",
   "tests": [
     {
       "name": "data-roundtrip",

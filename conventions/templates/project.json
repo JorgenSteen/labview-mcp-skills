@@ -1,6 +1,6 @@
 {
   "$schema_version": 2,
-  "_doc": "Project facts for the labview skill. Keys and meaning: <skill>/conduct/dot-labview.md. Paths relative to the repo root, forward slashes.",
+  "_doc": "Project facts for the labview skill. Keys and meaning: <skill>/conventions/dot-labview.md. Paths relative to the repo root, forward slashes.",
   "project_name": "Example LabVIEW project",
   "prefix": "EX",
   "source_root": "src",
@@ -8,6 +8,7 @@
   "labview_version": "2020",
   "save_version": "20.0",
   "git": true,
+  "conventions_mode": "full",
   "proof_folder": "proof",
   "proof_prefix": "PB-",
   "briefs_folder": "docs/briefs/session-<X>/",

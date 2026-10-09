@@ -6,7 +6,7 @@ reads this folder; it carries no project names.
 ```
 <repo>/.labview/
   project.json      facts: what and where the project is
-  conduct/          the code of conduct in force; the ops read only this
+  conventions/      the conventions in force; the ops read only this
     naming.md  af-shapes.md  errors.md  layout.md  icons.md  hygiene.md
     icon-spec.json  the machine-readable icon standard that icons.md refers to
   decisions.md      rules proposed and chosen during planning or development
@@ -15,7 +15,7 @@ reads this folder; it carries no project names.
   skills/  rules/   repo-specific skills and rules, if any
 ```
 
-Templates are in `<skill>/conduct/templates/`. Setup (`conduct/setup.md`) creates the folder.
+Templates are in `<skill>/conventions/templates/`. Setup (`conventions/setup.md`) creates the folder.
 
 ## project.json (facts)
 
@@ -25,12 +25,13 @@ Schema version 2. All paths are relative to the repo root and use forward slashe
 |---|---|---|
 | `$schema_version` | `2` | yes |
 | `project_name` | human name | yes |
-| `prefix` | file-name prefix of hand-written files, e.g. `ZM` (the naming conduct says how it is used) | yes |
+| `prefix` | file-name prefix of hand-written files, e.g. `ZM` (the naming conventions say how it is used) | yes |
 | `source_root` | the LabVIEW source tree | yes |
 | `project_file` | the main `.lvproj`; `project_files` (list) if there are several | yes |
 | `labview_version` | the LabVIEW version the project is developed in, e.g. `"2020"` | yes |
-| `save_version` | the version files must be saved as, e.g. `"20.0"` (hygiene conduct says how it is enforced) | yes |
-| `git` | `true`, or `false` with `labview_folder_outside_repo` (see "No git" below) | yes |
+| `save_version` | the version files must be saved as, e.g. `"20.0"` (the safety rules in SKILL.md say how it is enforced) | yes |
+| `git` | `true`, or `false` with `product_root` (see "No git" below) | yes |
+| `conventions_mode` | `full` (the conventions in `conventions/` apply) or `local` (no conventions; every change follows the pattern of the code around it; see `SKILL.md`, "How much setup a task needs") | yes |
 | `proof_folder`, `proof_prefix` | where throwaway measurements and skill tests go, and their name prefix | no |
 | `briefs_folder` | where briefs are saved; `<X>` = the session id | no |
 | `status_file` | the session hand-over file | no |
@@ -45,7 +46,7 @@ here. They are read from `lvai_status` at the start of a session.
 `tests`/`runs` into `checks.json`, drops `helpers_folder` (the kit is in the skill), turns `rules_file`, `guide_file`
 and `mcp_suggestions_file` into `knowledge_files`, and adds the new keys.
 
-## conduct/*.md (the code of conduct)
+## conventions/*.md (the conventions)
 
 There is one file per concern, and each file can be swapped or switched off on its own:
 
@@ -56,14 +57,17 @@ There is one file per concern, and each file can be swapped or switched off on i
 | `errors.md` | the error policy: default behaviour, logging, errors ignored on purpose, the "no plan" statement |
 | `layout.md` | library and class layout, virtual folders, typedef placement, scope, accessors |
 | `icons.md` | the icon standard (+ `icon-spec.json`) and when icons are made |
-| `hygiene.md` | save version, Clean Up Diagram policy, tests, commits, Conditional Disable, the end report |
+| `hygiene.md` | Clean Up Diagram policy, tests, commit messages, Conditional Disable comments |
+
+The safety rules (save version, commit before a structural step, one LabVIEW caller, the side-effects report) are
+not conventions. They live in `SKILL.md` and cannot be switched off.
 
 Format of each file:
 
 ```markdown
-# Conduct: <concern>
+# Convention: <concern>
 status: in force            # or: off (the ops apply no rule of this concern)
-written: 2026-10-09 by conduct/setup.md
+written: 2026-10-09 by conventions/setup.md
 
 ## <rule-id>
 <the rule, stated in full, so it can be read without any other file>
@@ -72,7 +76,7 @@ area: src/rt/**             # optional; without it the rule applies to the whole
 ```
 
 - **Rule ids** (`stop-site`, `method-case`, ...) are stable. The ops and the review cite them as
-  `conduct: <concern>.<rule-id>`. The defaults define the ids, and a project may add its own.
+  `convention: <concern>.<rule-id>`. The defaults define the ids, and a project may add its own.
 - **`source`** records the precedence decision. `observed` beats `decided`, which beats `default`. Setup writes only
   the winning rule. If observed code contradicts a decided or default rule, the user is asked (see setup).
 - **`area`** handles projects whose parts follow different conventions (e.g. RT core vs GUI). The same rule-id may
@@ -94,7 +98,7 @@ Why: <the user's reason, quoted when possible>
 
 These files are written by `ops/analysis.md`, one per item (naming, versions, loadability, shapes, errors, icons,
 layout, tests). They hold evidence: counts, file paths, examples. They are not rules. Setup derives the `observed`
-conduct from them.
+conventions from them.
 
 ## checks.json
 
@@ -102,7 +106,7 @@ conduct from them.
 { "$schema_version": 1, "tests": [ ... ], "runs": [ ... ] }
 ```
 
-Entry format: `ops/run-checks.md`. A test VI reports a named Pass Boolean plus `error out` (`conduct:
+Entry format: `ops/run-checks.md`. A test VI reports a named Pass Boolean plus `error out` (`convention:
 hygiene.test-convention`).
 
 ## No git

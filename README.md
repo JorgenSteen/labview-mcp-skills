@@ -11,16 +11,24 @@ pilot project.
 
 | Step | Files | State |
 |---|---|---|
-| 1 Backbone | `SKILL.md`, `conduct/setup.md`, `conduct/dot-labview.md`, `conduct/templates/` | done |
-| 2 Default conduct | `conduct/defaults/{naming,af-shapes,errors,layout,icons,hygiene}.md`, icon-spec template | - |
+| 1 Backbone | `SKILL.md`, `conventions/setup.md`, `conventions/dot-labview.md`, `conventions/templates/` | done |
+| 2 Default conventions | `conventions/defaults/{naming,af-shapes,errors,layout,icons,hygiene}.md`, icon-spec template | - |
 | 3 Knowledge + MCP index | `knowledge/actor-framework.md`, `knowledge/labview-mcp.md`, `MCP-CANDIDATES.md` | - |
 | 4 Ops | `ops/{analysis,override,helper-loop,class-field,rename,icons,cleanup,sweep,run-checks,review}.md` | - |
 | 5 Session + kit | `session/{brief,restart,close}.md`, `kit/` | - |
 
-Choices made while building that the user has not yet confirmed:
-- **Rule ids** use the form `conduct: <concern>.<rule-id>`, with a `source:` tag and an optional `area:` per rule
-  (`conduct/dot-labview.md`).
+Choices made while building:
+- **Rule ids** use the form `convention: <concern>.<rule-id>`, with a `source:` tag and an optional `area:` per rule
+  (`conventions/dot-labview.md`).
 - **`project.json` schema 2:** the tests and runs move to `checks.json`, `helpers_folder` is dropped, and
   `labview_version`, `save_version` and `git` are added.
 - **No git** (PA-2 / X-4, open in the audit): setup asks to put the repo under git first. Otherwise `.labview/` lives
   outside the product tree.
+
+Confirmed by the user 2026-10-09: the five choices above. Added on the user's request the same day:
+- **Four setup levels:** small read, large read (offer to keep the result), minor edit (local mode, no setup),
+  new code or a major change (setup for the touched concerns only).
+- **Safety rules** (save version, git, one LabVIEW caller, the side-effects report) are separate from the
+  conventions and cannot be switched off.
+- **The name** "code of conduct" became **conventions** (`.labview/conventions/`), because CODE_OF_CONDUCT.md means
+  contributor behaviour.
