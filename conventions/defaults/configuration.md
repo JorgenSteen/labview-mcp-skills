@@ -4,7 +4,7 @@ written: (setup fills in the date)
 
 > Default template, and a SUGGESTION: planning always asks the user how configuration will be handled
 > (`conventions/setup.md`, section 4) and offers this file as the proposal. The default is the user's current
-> practice (production code RT, `production-code`). In an existing project, the mechanism the analysis found wins.
+> practice in production RT code. In an existing project, the mechanism the analysis found wins.
 
 ## ini-files
 Settings live in INI files, one file per topic (general, communication, control loop, calibration, ...), named

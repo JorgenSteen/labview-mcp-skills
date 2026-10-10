@@ -45,7 +45,7 @@ Schema version 2. All paths are relative to the repo root and use forward slashe
 Machine facts (the installed LabVIEW and its bitness, the labview-mcp version, `LVAutoSave` paths) are not stored
 here. They are read from `lvai_status` at the start of a session.
 
-**Schema 1** (the pilot project pilot) is read as it is. Setup migrates it only when the user agrees. The migration moves
+**Schema 1** (the pilot project) is read as it is. Setup migrates it only when the user agrees. The migration moves
 `tests`/`runs` into `checks.json`, drops `helpers_folder` (the kit is in the skill), turns `rules_file`, `guide_file`
 and `mcp_suggestions_file` into `knowledge_files`, and adds the new keys.
 

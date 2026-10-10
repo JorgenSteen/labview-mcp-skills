@@ -9,7 +9,7 @@ Why this exists
     AIXML exports do not show everything a diagram holds (the event structure's
     dynamic terminal has no element, `05` rule 60), and a render is a picture. This
     netlist says which terminal feeds which, typed, from the saved file. Used in
-    Session F (production code reading) to see how a reference project wires its event
+    Session F to see how a production project wires its event
     registration refnum and its stop hook.
 
 Usage
@@ -36,7 +36,7 @@ Output: one line per wire
     end = <class>#<uid>(<label>)[prim<id>|FP].t<terminal index> p<pane idx>:<type[:label]>
           in <structure>#<uid>/...   (innermost first)
 Exit 0 ok, 2 bad input / pylabview not found / extraction failed.
-Ported in the Session F audit from the production code scratch nets.py (which took a
+Ported in the Session F audit from a scratch nets.py (which took a
 hard-coded bundle); the parsing is unchanged.
 """
 import argparse

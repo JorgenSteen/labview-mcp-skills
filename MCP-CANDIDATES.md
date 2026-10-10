@@ -22,7 +22,7 @@ gap descriptions and measured facts in `knowledge/labview-mcp.md`, in the form o
 `f3091d4`, which is the **v1.8.0** tag, older than 1.8.5; upstream has v1.8.6 (`7702e6d`), not inspected. Check each
 entry against the newest release before submitting it.
 
-**Evidence ids:** "pilot rule N" = pilot project `docs/05-toolchain-rules.md`; S1–S10 = its `docs/mcp-suggestions.md`;
+**Evidence ids:** "pilot rule N" = the pilot project's toolchain rules; S1–S10 = its MCP suggestions;
 S11–S16, "rule candidate 100–111" and letter-number ids (MC-1, KT-1, ...) = the skills audit (`skillsaudit/`).
 
 ## call-lock
@@ -65,7 +65,7 @@ the user answers. **Removes** the dialog workaround in `knowledge/labview-mcp.md
 **Status** proposed (X-1 settled 2026-10-09; KT-1, MC-2). **Gap** nothing says whether code will load before a call loads it; every
 audit hang came from missing packages. **Proposed** `lvai_check_dependencies(paths)`, offline: per VI/class/library
 "loadable" or the missing packages and load chain; or `checkDependencies: true` on class-editing tools. **Evidence**
-audit G closure (~5 s for 5800 files, predicted every hang). **Workaround** `<skill>/kit/lv_loadability.py` (ported 2026-10-09; whole production code tree in ~8 s, same verdict as the audit).
+audit G closure (~5 s for 5800 files, predicted every hang). **Workaround** `<skill>/kit/lv_loadability.py` (ported 2026-10-09; a large production tree in ~8 s, same verdict as the audit).
 **Removes** the offline-check rule; the loadability steps in `ops/analysis.md`, `ops/sweep.md`.
 
 ## close-project-guard

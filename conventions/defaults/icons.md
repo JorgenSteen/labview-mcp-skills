@@ -45,6 +45,6 @@ A library icon has at least a banner, with the library's abbreviation and colour
 source: default
 
 ## reference
-The look of new icons follows the user's RT core actor icons (production code, `production-code`), not the GUI or
+The look of new icons follows the user's RT core actor icons in production code, not the GUI or
 middleware icons. For an existing area, the reference is that area's own icons.
 source: default

@@ -102,7 +102,7 @@ kit's `project.example.json` is superseded by `conventions/templates/project.jso
 | `pa_press_control_signal.xml` | helper XML | Writes `Value (Signaling)` to a control of a running VI (an event structure sees it); a latched Boolean refuses (1193). | ops/run-checks.md; knowledge/labview-mcp.md | press-control |
 | `pa_press_control.xml` | helper XML | `Ctrl Val.Set` on a Boolean of a running VI (no Value Change event): the older form of the above. | - | press-control |
 | `pa_read_control.xml`, `pa_read_control_u32.xml` | helper XML | Reads a String / U32 control of a running VI, plus its state and panel-open; 1004 = not in memory. | ops/run-checks.md; knowledge/labview-mcp.md | read-running-vi |
-| `PA-log.xml` | helper XML | A user.lib logging VI (one time-stamped line per call). Edit its `log path` constant first (it holds the pilot's path), generate it into `<LabVIEW>\user.lib\LV_MCP\`, then Call it by bare name; writing into the LabVIEW install needs the user's go-ahead. | - | - |
+| `PA-log.xml` | helper XML | A user.lib logging VI (one time-stamped line per call). Edit its `log path` constant first (it holds a placeholder path), generate it into `<LabVIEW>\user.lib\LV_MCP\`, then Call it by bare name; writing into the LabVIEW install needs the user's go-ahead. | - | - |
 
 ### Icons
 
@@ -154,4 +154,4 @@ The examples use the pilot's `PA-` names and `LVMCP Stub …` names: replace the
 - **wait_lv_idle.ps1 and lv_dialog.ps1 (KT-7):** ported and run read-only against an idle LabVIEW; `lv_dialog.ps1
   -Escape` has not been run since the port (it needs a live dialog and the user's go-ahead).
 - **Pilot text in copied files:** `lv_windows.ps1`, `lv_start_nigel_chat.ps1` and the Python headers still cite the
-  pilot's skill names and rule numbers as provenance; `PA-log.xml` holds a pilot log path in its constant.
+  pilot's skill names and rule numbers as provenance; `PA-log.xml` holds a placeholder log path in its constant.

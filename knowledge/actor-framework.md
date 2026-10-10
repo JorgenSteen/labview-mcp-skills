@@ -7,7 +7,7 @@ design patterns a project may choose from. It holds no conventions. The project'
 (`labview-actor-framework.md`), and the tool gaps are in `knowledge/labview-mcp.md`.
 
 Evidence classes: **measured** (a timed run, with where), **documented** (NI help, NI's AF whitepaper or template
-docs, or NI/AF designers on the NI forum), **observed in production code** (the user's production AF code), **reasoned**
+docs, or NI/AF designers on the NI forum), **observed in production** (the user's production AF code), **reasoned**
 (follows from documented behaviour, not run), **unmeasured** (stated by a source, not checked).
 
 ## Call order and lifecycle
@@ -22,15 +22,15 @@ docs, or NI/AF designers on the NI forum), **observed in production code** (the 
   Actor Core or from a message instead (`convention: af-shapes.launch-owner`). *Evidence: documented (AF help).*
 - **User events created in PLI outlive the launcher.** A launcher that exits right after Launch does not take them
   with it: the stop generated about 12 s later answered 0, the loop exited, and Destroy answered 0 (2 of 2 runs).
-  *Evidence: measured in the pilot project pilot (2026-09, its rule 98).*
+  *Evidence: measured in the pilot project (2026-09, its rule 98).*
 - **Actor Core** is the message loop. An override runs its own code in parallel with Call Parent. Call Parent
   returns only when the message loop has ended and Stop Core has run.
 - **Run order, measured.** PLI → Actor Core (series hooks, then branch hooks) → (a Normal Stop arrives) →
   Handle Error → Stop Core → Call Parent returns → code placed after Call Parent → the override's branches finish.
-  *Evidence: measured in the pilot project pilot (2026-09, its rule 88).*
+  *Evidence: measured in the pilot project (2026-09, its rule 88).*
 - **Stop Core runs inside Actor Core's Call Parent,** so it runs before anything placed after Call Parent. A log line
   from Stop Core came first, in the same millisecond tick as a line from the after-Call-Parent hook. *Evidence:
-  measured in the pilot project pilot (its rule 93); documented (AristosQueue, NI forum 2016).*
+  measured in the pilot project (its rule 93); documented (AristosQueue, NI forum 2016).*
 - **Stop Core runs only if Actor Core started.** It does not run after a failed PLI. So a PLI that fails must release
   what it already created itself. *Evidence: documented (AristosQueue, NI forum, "Cleanup after Pre Launch Init");
   measured 2026-10-09 (skillsaudit M-CLOSE M3): a PLI returning error 5000 after its Call Parent made Launch return
@@ -42,7 +42,7 @@ docs, or NI/AF designers on the NI forum), **observed in production code** (the 
   Release errors there are logged or cleared on purpose (`convention: errors.release-errors`).
 - **Handle Error runs on every normal stop.** `Send Normal Stop` delivers a message whose `Do.vi` returns error 43,
   so Handle Error is called once at each stop, before Stop Core. Emergency Stop returns 1608. Outside a stop, Handle
-  Error runs only when a message's `Do.vi` returned an error. *Evidence: measured in the pilot project pilot (its rules
+  Error runs only when a message's `Do.vi` returned an error. *Evidence: measured in the pilot project (its rules
   27 and 88).*
 - **An error wired into Actor Core's Call Parent** skips Handle Error, but Stop Core still runs and the actor stops by
   itself. The launcher sees nothing at Launch (error 0); its next `Send` to the actor fails with 1556. *Evidence:
@@ -66,18 +66,18 @@ docs, or NI/AF designers on the NI forum), **observed in production code** (the 
   | Stop Core | `<C> in` 11, `<C> out` 3, `final error code` 10 |
   | Handle Error | `error in (no error)` 8, `<C> in` 11, `<C> out` 3, `error out` 0, `stop actor?` 2 |
 
-  *Evidence: measured in the pilot project pilot (2026-09).* The pane of `Message.lvclass:Do.vi` is in the labview-mcp
+  *Evidence: measured in the pilot project (2026-09).* The pane of `Message.lvclass:Do.vi` is in the labview-mcp
   docs, `labview-actor-framework.md` §2.
 - **Actor Core's `Actor out` is typed `Actor`,** also on the Call Parent node, not the child class. A child-typed VI
   fed from it needs `To More Specific Class`. Code after Call Parent that needs the child type takes the class wire
-  from before Call Parent. *Evidence: measured in the pilot project pilot (its rule 74).* (`convention:
+  from before Call Parent. *Evidence: measured in the pilot project (its rule 74).* (`convention:
   af-shapes.stop-site`.)
 - **PLI's Call Parent has no error input,** and the base PLI does nothing. So "in series before Call Parent" in PLI can
   only mean the class wire, and the order of work inside PLI does not change what the parent does. *Evidence:
   documented (AF help); reasoned.*
 - **Error 43 on Handle Error's `error in`.** Because every normal stop arrives as 43, a VI chained on Handle Error's
   incoming error is skipped at every stop. Side work there (logging, file I/O) needs a fresh error chain. *Evidence:
-  measured in the pilot project pilot (its rule 88).*
+  measured in the pilot project (its rule 88).*
 - **The parent Handle Error** always returns `stop actor?` = T, and it treats 43 as a normal shutdown: it does not pass
   43 on. Other errors are passed on, and the actor stops. An override that does not call the parent must handle 43
   itself. *Evidence: documented (AF help for Handle Error.vi; NI forum).* Whether the parent also clears 1608 is not
@@ -87,10 +87,10 @@ docs, or NI/AF designers on the NI forum), **observed in production code** (the 
   documented "always T"; unmeasured.* (`convention: af-shapes.handle-error-order`, `errors.plan-required`.)
 - **Scope.** `Read Self Enqueuer.vi` is protected: a VI that is not a member of an actor class cannot call it (the
   caller is broken, error 1003). A private dynamic-dispatch member VI is broken ("error of type 2000000"), so private
-  accessors are static. *Evidence: measured in the pilot project pilot (its rules 41 and 30).*
+  accessors are static. *Evidence: measured in the pilot project (its rules 41 and 30).*
 - **A static VI inside a dynamic-dispatch recursion cycle is broken** (a static hook calls a dynamic method that can
   dispatch back to the caller). A dynamic VI that recurses directly is fine. Making the static VI shared-clone
-  reentrant fixes it. *Evidence: measured in the pilot project pilot (its rule 52).*
+  reentrant fixes it. *Evidence: measured in the pilot project (its rule 52).*
 - **Receive Message.vi** is a protected override that sees every message before it is executed; it is the place for
   message tracing. *Evidence: documented (AF).*
 
@@ -98,12 +98,12 @@ docs, or NI/AF designers on the NI forum), **observed in production code** (the 
 
 - **Destroy before Generate hangs the actor.** If Stop Core destroys a user event and code after Call Parent then
   generates the stop on it, `Generate User Event` answers error 1 (destroyed refnum). The loop never gets its stop,
-  so the Actor Core override cannot return, and the actor hangs at stop. *Evidence: measured in the pilot project pilot
+  so the Actor Core override cannot return, and the actor hangs at stop. *Evidence: measured in the pilot project
   (2026-09, its rule 93); documented (error 1 on a destroyed refnum, NI forum).* (`convention: af-shapes.close-vi`.)
 - **Generate, then Destroy, does not lose the event.** A destroy placed right after the generate (0–1 ms later, both
   error 0) still let the loop exit, and the actor stopped in 4 of 4 runs. NI R&D states the same: destroying a user
   event stops new generates, but events already queued still fire. The LabVIEW 2020 help for Destroy User Event says
-  the opposite; the newer R&D statements and the measurement agree. *Evidence: measured in the pilot project pilot (its
+  the opposite; the newer R&D statements and the measurement agree. *Evidence: measured in the pilot project (its
   rule 97); documented (justACS 2016, Darren 2023, NI forum).* The same holds when both the generate and the destroy
   sit in Stop Core. *Evidence: documented (NI forum); observed in production code, where several actors do exactly that.*
 - **`close` after the joined error wires works.** Actor Core: the helper loop beside Call Parent; after Call Parent the
@@ -114,15 +114,15 @@ docs, or NI/AF designers on the NI forum), **observed in production code** (the 
   2026-10-09 (skillsaudit `measure/PB-CLOSE`, run/close_M1.txt).* (`convention: af-shapes.close-vi`.)
 - **A hung helper loop cannot be freed by VI Server.** Abort VI on it answers error 1000, and Callers' Names returns
   the original `Actor Core.vi`, not the running clone. Only a LabVIEW restart frees it. *Evidence: measured in the
-  pilot project pilot (its rule 94).*
+  pilot project (its rule 94).*
 - **A failed `Send` does not stop a helper loop.** The actor's queue lives until the Actor Core override returns, so a
   loop branched beside Call Parent never sees its actor stop through a failed send to itself. It needs its own stop
   signal: a user event, a notifier, a local variable or a stop element. Never abort it. *Evidence: measured in the
-  pilot project pilot (its rule 21).* (`convention: af-shapes.stop-mechanism`.)
+  pilot project (its rule 21).* (`convention: af-shapes.stop-mechanism`.)
 - **Register For Events skips on an upstream error.** It has standard error-in behaviour: with an error in, it does not
   run and nothing is registered. The event structure then waits for events that never come, and a loop whose only
   exit is the stop event hangs the actor at stop. *Evidence: documented (LabVIEW help for Register For Events);
-  the hang is reasoned (the pilot project pilot's rule 73).* (`convention: af-shapes.registration`.)
+  the hang is reasoned (the pilot project's rule 73).* (`convention: af-shapes.registration`.)
 - **Generating an event nobody registered for does nothing,** with no error. So a stop sent to a loop that never
   registered (for example one that returned at once on an error) is harmless, and it cannot rescue such a loop.
   *Evidence: documented (LabVIEW help for Generate User Event).*
@@ -138,7 +138,7 @@ docs, or NI/AF designers on the NI forum), **observed in production code** (the 
 - **Unregister.** Registrations end when the VI that registered finishes or is aborted. NI still recommends
   Unregister: until then, events keep queuing for the registration. *Evidence: documented (LabVIEW help).*
 - **Register For Events takes a cluster.** Wired to one event source, a cluster (or array) of user-event refnums
-  registers every element. *Evidence: documented (LabVIEW help); measured to compile in the pilot project pilot (its rule
+  registers every element. *Evidence: documented (LabVIEW help); measured to compile in the pilot project (its rule
   66). Only the form with one event source per element (Unbundle By Name) was run there.* Event-case selectors then
   use the element's label.
 - **A local variable works only inside the VI that owns the control.** Loops that share a local `stop` must sit in one
@@ -146,10 +146,10 @@ docs, or NI/AF designers on the NI forum), **observed in production code** (the 
 - **An off-pane control keeps its last value** between calls, as long as the VI stays in memory. A `stop` Boolean read
   through a local must be written F before the loops start, or a second run stops at once. A test of that reset calls
   the VI twice from one caller: two separate top-level runs unload the VI in between and test nothing. *Evidence:
-  measured in the pilot project pilot (its rule 63).*
+  measured in the pilot project (its rule 63).*
 - **A local-variable read with no data dependency runs at the start of the iteration,** in parallel with `Wait (ms)`.
   A stop through that local then costs up to two intervals (121 and 123 ms at 100 ms). Read after the Wait, it cost
-  17–22 ms. *Evidence: measured in the pilot project pilot (its rule 61).*
+  17–22 ms. *Evidence: measured in the pilot project (its rule 61).*
 - **Timeout frame.** LabVIEW requires a Timeout case only when the Timeout terminal is wired; -1 means never. The
   Timeout case fires only when no event has come for the whole timeout, so a steady stream of events starves it. A
   0 ms timeout makes the loop spin whenever the queue is empty. *Evidence: documented (LabVIEW help, NI forum); the
@@ -158,7 +158,7 @@ docs, or NI/AF designers on the NI forum), **observed in production code** (the 
 - **Front-panel Booleans and VI Server.** A value written by VI Server (`Value`, `Ctrl Val.Set`) fires no Value Change
   event; only `Value (Signaling)` does. A latched Boolean cannot be written by VI Server at all (error 1193), so a
   latched Stop in an event structure can only be pressed by a person. A button a test must press is "Switch When
-  Released", reset to F by a local in its own frame. *Evidence: measured in the pilot project pilot (its rule 35).*
+  Released", reset to F by a local in its own frame. *Evidence: measured in the pilot project (its rule 35).*
 - **A refnum lives as long as the VI hierarchy that created it,** so events created in Actor Core are released when the
   actor ends. *Evidence: documented (NI AF whitepaper).*
 
@@ -175,11 +175,11 @@ docs, or NI/AF designers on the NI forum), **observed in production code** (the 
   sees them. *Evidence: documented (AF help; AristosQueue, LAVA).*
 - **`Clear Errors.vi` in LabVIEW 2026 has `specific error code to clear (0: all)`.** With a code it clears only that
   code. Clearing a list of codes (say 56 and 66) needs a Case on the code with a no-error constant in those frames.
-  *Evidence: measured in the pilot project pilot (its rule 55). Older LabVIEW versions: unmeasured.* (`convention:
+  *Evidence: measured in the pilot project (its rule 55). Older LabVIEW versions: unmeasured.* (`convention:
   errors.ignored-errors`.)
 - **UDP on Windows** (met in an AF communication actor). `UDP Write` to a port nobody listens on, or to an unreachable
   IP, returns no error. The next `UDP Read` on that socket returns 66 at once (the ICMP reset). A read with no
-  datagram returns 56 (timeout). *Evidence: measured in the pilot project pilot (its rule 43).*
+  datagram returns 56 (timeout). *Evidence: measured in the pilot project (its rule 43).*
 
 ## Messages
 
@@ -195,11 +195,11 @@ docs, or NI/AF designers on the NI forum), **observed in production code** (the 
 - **Drop Message Core.vi** runs on a message that is discarded because its actor is stopping. Its use is a message
   that hands over ownership of a reference, so the reference is not leaked at shutdown. A message that only carries a
   reference its owner closes needs no override. *Evidence: documented (AristosQueue 2013, NI forum); observed in
-  production code (no override in 165 messages, by design).*
+  production code (no override in its messages, by design).*
 - **Time-Delayed Send Message.vi** sends a message later, once or repeatedly. NI's AF template does periodic work with
   it and stops it in Stop Core. *Evidence: documented (NI AF template docs).*
 - **JSON in payloads.** `Flatten To JSON` refuses an enum ("type is invalid"), even inside a cluster. `Unflatten From
-  JSON` matches by field name and ignores extra members when strict is F. *Evidence: measured in the pilot project pilot
+  JSON` matches by field name and ignores extra members when strict is F. *Evidence: measured in the pilot project
   (its rule 45).*
 
 ## Libraries as load units
@@ -270,10 +270,10 @@ af-shapes.one-pattern-per-area`). NI recommends one data-transfer mechanism per 
   whitepaper).*
 - **`Execution:State` read from inside a launcher is not a stop detector:** a reserved VI reads 3 (running). Prove a
   stop by timestamped log lines, `error out`, a Normal Stop to the caller that succeeds, and a state read after the run
-  with nothing loaded. *Evidence: measured in the pilot project pilot (its rule 31).*
+  with nothing loaded. *Evidence: measured in the pilot project (its rule 31).*
 - **Two VIs appending to one log file at the same moment** overwrite each other's line (same offset). In runs that
   prove an order, give each writer its own log file, and take the timestamp at the write. *Evidence: measured in the
-  pilot project pilot (its rule 98).*
+  pilot project (its rule 98).*
 
 ## Not yet measured
 

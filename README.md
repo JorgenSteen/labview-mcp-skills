@@ -16,7 +16,7 @@ mklink /J "%USERPROFILE%\.claude\skills\labview" "<path to this repository>"
 ```
 
 Claude Code then lists one skill, `labview`, in every session, and loads its files only for LabVIEW work. A
-repository with its own repo-local `lv-*` skills (the pilot project pilot) keeps them until it is moved to this skill;
+repository with its own repo-local `lv-*` skills (the pilot project) keeps them until it is moved to this skill;
 while both exist, the repo-local ones win inside that repository.
 
 ## Layout
@@ -42,11 +42,9 @@ while both exist, the repo-local ones win inside that repository.
 
 ## Where it came from
 
-Built on 2026-10-09 from the skills audit in `skills-audit`: its design
-(`ARCHITECTURE-PROPOSAL.md`), the user's decisions Q1–Q47 (`answers.md`, which override everything else), the settled
-proposals (`proposals/`), and the 12 pilot skills, `af-patterns.md` and `05-toolchain-rules.md` of pilot project. The
-`close` shape, the Stop Core lifecycle facts and the kit's `pa_close_join.xml` were measured that day
-(`skillsaudit/measure/PB-CLOSE`).
+Built on 2026-10-09 from a skills audit: its design proposal, the user's decisions Q1–Q47 (which override everything
+else), the settled proposals, and the 12 skills, AF patterns and toolchain rules of a pilot project. The `close` shape,
+the Stop Core lifecycle facts and the kit's `pa_close_join.xml` were measured that day.
 
 ## Open work
 
