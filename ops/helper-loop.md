@@ -84,6 +84,8 @@ or when a concern is off, follow the surrounding code instead.
 4. **Generate**, project closed: `lvai_generate_vi_with_events(aiXmlFilePath, viPath = <member path>)`. `ok:false` and
    state 0 are expected until step 9. It refuses two event structures in one document. Whether it keeps an event
    structure nested in a case frame inside the loop is unmeasured. > MCP-candidate: generate-with-events-fixes
+   A panel control with a static event (e.g. a `Stop` button) gets its Value Change frame from the generator itself;
+   that row survives step 7 (`--check` lists it as a static row) (a harness run, 2026-10).
 5. **Both sides of the registration**, project open and active (the VI is not a member yet; the `.lvproj` lists it
    loose until step 9): `kit/pa_wire_dyn_deep.xml` (`VI Path`, capitals as written). It finds the event structure up
    to three levels down (loop → case frame → event structure, the error-case shape), wires Register's refnum output to

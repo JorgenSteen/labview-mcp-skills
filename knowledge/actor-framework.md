@@ -280,13 +280,22 @@ af-shapes.one-pattern-per-area`). NI recommends one data-transfer mechanism per 
 - **Two VIs appending to one log file at the same moment** overwrite each other's line (same offset). In runs that
   prove an order, give each writer its own log file, and take the timestamp at the write. *Evidence: measured in the
   pilot project (its rule 98).*
+- **A tree can be proved without a throwaway caller class.** The proof VI launches the top actor with AF's public
+  `Launch Actor.vi`, with a proof-owned message queue as its caller, and each child with `Launch Actor.vi` and its
+  real parent's enqueuer as the caller. The proof queue receives the top actor's Last Ack (its error is the cascade
+  code); a later Normal Stop answering 1556 shows the actor had already stopped by itself. *Evidence: measured in
+  a harness run, 2026-10.*
+- **A child's error cascades up through the Last Ack:** a child stopping with error 5000 sent its Last Ack, and the
+  caller and the whole tree stopped by themselves 0.56–0.64 s after launch (AF's default Handle Last Ack Core). A
+  root whose nested launch failed in its `init` returned its Last Ack in 70 ms carrying that nested error.
+  *Evidence: measured in a harness run, 2026-10.*
 
 ## Not yet measured
 
 Open questions. They are not decided, and nothing in the skill may assume an answer.
 
-- **What Actor Core returns after an error into its Call Parent** (the rest is measured, see "Call order and
-  lifecycle"). Needs a nested actor and a caller that reads its Last Ack.
+- **What Actor Core returns after an error into its Call Parent,** beyond the Last Ack: the Last Ack carried the
+  error in the measured cases ("Observing and testing actors"); Actor Core's own `error out` was not read.
 - **PLI failure cleanup and the Stop Core release order** were open proposals (AP-2, AP-4, OV-3, OV-5, DR-6). The user
   settled them on 2026-10-09 as conventions (`convention: af-shapes.pli-failure-cleanup`, `af-shapes.stop-core-order`).
   The PLI shape (a case structure on the merged error that reuses the release VIs) has not been run yet.

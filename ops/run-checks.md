@@ -119,6 +119,12 @@ evidence <file>   commit <hash>   git <clean | leftovers>   side effects <files 
 
 ## Traps
 
+- **A test chains `error in` through every node with a side effect.** An unwired `error in` beside a parallel call
+  races: a second `Create Folder` that ran before the first one's `init` made a test fail once and pass on the
+  rerun (a harness run, 2026-10).
+- **A private VI cannot be run top-level** (error 1390): a forced-error run of a private member needs a public
+  wrapper, or a test inside the class (a harness run, 2026-10).
+
 - `lvai_run_vi_as_top_level` blocks on a VI that never returns; on a launcher it may answer an error code although
   the tree started. Confirm by reading the running loop VI, not the code.
 - A test VI may write into an output file a run also reads (a shared log): run error runs after the test VIs, or let
