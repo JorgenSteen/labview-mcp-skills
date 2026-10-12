@@ -22,7 +22,7 @@ icons (`ops/icons.md`); the sweep itself (`ops/sweep.md`).
   a diagram in a given style; how close it can get is an open measurement. Say so to the user, and run this op only
   where Clean Up Diagram is the chosen fallback.
 - **Order:** generation done → this op → icons (`ops/icons.md`; the two do not affect each other) → sweep. Any later
-  regeneration of a VI discards its cleanup: run this op again for it.
+  regeneration of a VI discards its cleanup: run this op again for it. A later swap or scripted edit on a cleaned VI needs this op again too.
 - **LabVIEW is running** (`session/start.md`); no other LabVIEW agent; project **closed** (the cleanup helper runs in
   the default instance; close as `knowledge/labview-mcp.md`, "Opening and closing a project" says).
 - **Commit before you start** (or record `HEAD` when the target is already committed). Git is the only undo.

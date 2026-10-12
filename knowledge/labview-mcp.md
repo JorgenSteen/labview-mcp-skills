@@ -184,6 +184,8 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
   the service. [1.8.5] (pilot rule 96) > MCP-candidate: restart-with-guards, ensure-labview-complete
 
 ### lvai_exec_state
+- "VI has an error of type 8" on a class member can mean the class implements an interface without overriding one of
+  its methods: check the overrides before a sweep of the callers. [1.9.5, a harness run 2026-10]
 - One VI per call. A tree needs the kit sweep (`pa_exec_state_sweep_file.xml`, `sweep_paths.py`) and a file-side
   membership check (`check_membership.py`): `ops/sweep.md`. The helper reloads each VI's library per VI, so where the
   hierarchy does not resolve a VI costs > 1 s, up to ~30 s, against 51–97 ms where it does. Size batches from a timed
@@ -250,6 +252,15 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
 - Cannot repair a missing-subVI node: its name reads empty, the call fails with 1055 reported as `noActiveProject`.
   Repair: `lvai_close_vi`, re-run `lvai_add_class_method` from the AIXML, swap. [1.8.5] (pilot rule 86)
   > MCP-candidate: swap-subvis-fixes
+- `constantsJson` finds TOP-LEVEL constants only: a class constant inside a case frame needs a deep replace (a
+  derived VI Server helper). With `class` = a `.ctl` path it turns a bare cluster constant into that typedef's
+  constant, which `lvai_bind_typedef_constants` cannot (it needs a subVI terminal). [1.9.5, a harness run 2026-10]
+  > MCP-candidate: swap-subvis-fixes
+- The placeholder for a typedef cluster that holds a class flattens it to a scalar `path`, and members with the same
+  pane get ONE shared stub, so a swap cannot tell them apart: make one stub per target by hand. [1.9.5, a harness run 2026-10]
+  > MCP-candidate: placeholder-array-of-class
+- `lvai_bind_typedef_constants` with a bare `subViName` answers 1055 "no active project" when it means "name not
+  qualified": pass the library-qualified name. [1.9.5, a harness run 2026-10]
 
 ### lvai_create_class, lvai_create_interface
 - With a parent class, the PARENT is added as a top-level `.lvproj` item: drop it right after (`lvproj_drop.py`,
@@ -261,6 +272,11 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
 - `parentInterfaces` links interfaces at creation (no tool adds one later: NI's provider is a modal). A class must
   override every interface method, or the class is error 1003; interface overrides are ordinary
   `lvai_add_class_method` members with the same name and pane. (pilot rules 9, 10)
+- It writes the `.lvproj` with LF line endings and no BOM; a later project close may restore the BOM. Accept what
+  LabVIEW writes and check only the item lines: do not restore the `.lvproj` from git after each step (a harness did
+  it about 30 times in one session). Check once whether the repo's `.gitattributes` forces `eol=lf` on
+  `.lvproj`/`.lvlib`/`.lvclass` while LabVIEW writes CRLF: that would cause the same churn (suspected, not measured).
+  [1.9.5, a harness run 2026-10] > MCP-candidate: close-project-guard
 
 ### lvai_add_class_field
 - Plain AIXML types only (`string, timestamp, path, bool, double, single, int8..uint64`): no cluster, array, enum or
@@ -316,6 +332,8 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
   closed); the tool's cached helper `lvai_add_one_to_library.vi` with `library path` = the `.lvclass`, item type VI,
   folder index -1 (project open and active); then `set_scope.py`. [1.9.5, a harness run 2026-10]
   > MCP-candidate: add-to-class
+- `ok: false` with `pathStandInsLeft` for a path stand-in INSIDE a cluster terminal is a false alarm when a later
+  pane bind resolves it: read the state after the bind. [1.9.5, a harness run 2026-10]
 
 ### lvai_add_to_library
 - Refuses a virtual folder that does not exist, and a new library has none (`Controls` included); no tool creates one.
@@ -324,8 +342,13 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
   change its version. No tool adds a `.ctl` to a class (kit route: "Class description, typedef membership, virtual folders" below). [1.8.5] (audit rule candidate 106) > MCP-candidate: add-to-class
 - Messages go one folder each into `Messages for this Actor` (folder name; check `placedIn`). A
   `projectEntriesToRemove` for a `.ctl` the `.lvproj` never listed needs nothing. (pilot rule 20)
+- After any library add or Save All (`pa_save_libraries`): `git status --short` over the tree. A re-save outside
+  the task's scope (a test VI re-saved by 1 byte, a harness run 2026-10) is a side effect: restore it with the project closed or
+  report it; never commit it blindly.
 
 ### lvai_create_message_class, lvai_describe_class
+- The kit's Message Maker helper (`lvai_create_message_class.xml`) writes the message class FLAT into its
+  `destination directory`: create the empty `<Msg class name>\` folder first and pass it as the destination.
 - Message payload = every method input other than the class and the error cluster, in pane order (descending
   `conIdx`); String and class payloads work. For an **interface** method the tool refuses: run the kit's
   `lvai_create_message_class.xml` directly, then `repair_r1.py`. [1.8.0] (pilot rule 19)
@@ -419,8 +442,18 @@ They hold for any VI Server or AIXML route, the kit's included.
   cold. **Mechanical action** is not settable from AIXML and the export shows neither it nor visibility: set by VI
   Server, prove by a cold read. A latch is not writable by VI Server (1193) and a value write fires no Value Change
   (`knowledge/actor-framework.md`). (pilot rules 35, 40, 57, 65, 82)
+- **AIXML traps:** `Equal?` on two clusters is generated in Compare Elements mode (a cluster of Booleans): follow it
+  with `Cluster To Array` → `And Array Elements` before a Boolean array or indicator (`vi_nets.py` shows it offline).
+  `Match Regular Expression` is an XNode and cannot be authored: use `Match Pattern` with an anchored
+  character-class pattern. (a harness run 2026-10)
+- **Plot names** (no AIXML element): a chart's `Active Plot` → `Plot` → `{LV.Plot}` `Plot Name`, project
+  closed, `Save.Instrument`; spellings from `lvserver.rsc`. **A panel text label:** `New VI Object` style 2321 (Free
+  Label) answered 1060 in every owner/class tried; style 21960 (Label (modern)) works but draws a framed label.
+  (a harness run 2026-10) > MCP-candidate: control-property-setters
+- **A class save may double the line breaks in `NI.LVClass.Geneology`** (`\r\n` → `\r\n\r\n`): harmless diff noise; do
+  not hand-fix it. (a harness run 2026-10)
 - **Reentrancy:** the VI Server write `Execution:Reentrancy Type` + `Save.Instrument` answered no error and changed
-  nothing. Set `IsReentrant` + `PooledReentrancy` in a pylv bundle (`set_reentrant_flags.py`, project closed).
+  nothing. Set `IsReentrant` + `PooledReentrancy` in a pylv bundle (`set_reentrant_flags.py`, project closed). To read it: `Execution:Reentrancy Type` = 0 also for a shared-clone VI; read `Execution:Is Reentrant` with it.
   (pilot rule 52)
 - **VI description:** read `VI Description`, replace, write, `Save.Instrument` (project closed) keeps the icon, layout
   and state 1 (`pa_replace_description.xml`); edit the `.xml` source as text. (pilot rule 81)
@@ -440,6 +473,8 @@ They hold for any VI Server or AIXML route, the kit's included.
   LabVIEW makes the added typedef public. A harness permission check may stop the typedef add as a shared-resource
   change while it allows the moves. > MCP-candidate: class-description; > MCP-candidate: add-to-class; >
   MCP-candidate: move-to-folder
+- **Clean Up Diagram and Remove Bad Wires keep a helper-loop VI's dynamic event wiring, user-event specs and
+  use-default tunnels** (measured, a harness run 2026-10): no probe needed before cleaning one.
 - **Clean Up Diagram** (`{LV.VI}` `BD.CleanUp` + `Save.Instrument`, project closed) keeps classes, state, icon and the
   AIXML export; 0.25–0.8 s per generated VI, 4–5 s on older trees. A regeneration discards it. On a hand-laid diagram
   it can grow it (1160x495 to 1290x925): `convention: hygiene` says where it runs. (pilot rule 46; audit rule candidate 109)

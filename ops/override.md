@@ -47,6 +47,8 @@ All seven error outputs 0. The new diagram is class in (and error in) → Call P
 override is protected and dynamic; a plain-class override keeps its parent's scope. Put it in the class's override
 folder (`convention: layout.class-folders`; `kit/pa_class_folder_create_and_move.xml`, or `pa_class_folder_move.xml` when the folder exists; project open and
 active; no question needed).
+The new override carries NI's help text of the parent method as its VI description: replace it per `convention:
+hygiene.descriptions` with `kit/pa_replace_description.xml` (project closed). (a harness run 2026-10) > MCP-candidate: create-override
 Close the project, read the override cold (state 1), commit. Measured on four AF overrides in skillsaudit M-CLOSE
 M3/M4 (2026-10-09) and in the pilot. (pilot rule 6)
 

@@ -122,7 +122,9 @@ the spec holds the values `<skill>/kit/make_icons.py` draws from. Start from `<s
      class icon with `<rb>_before_owner\`: 0 px.
    > MCP-candidate: icon-readback
 8. **Verify:** re-scan the versions; sweep the touched folder (`ops/sweep.md`) and compare with the sweep before;
-   `git status` shows at most the listed VIs, the `.lvclass`/`.lvlib` and `out`. Commit.
+   `git status` shows at most the listed VIs, the `.lvclass`/`.lvlib` and `out`. Commit. An apply can also re-save ANOTHER class's
+   `.lvclass` (BOM and `FlattenedPrivateDataCTL` only, a harness run 2026-10): restore it from git with the project closed and report
+   it.
 
 **Changing one class's icons later** is existing code: only on the user's request (`icons.existing-icons`). Edit the
 row, regenerate, show the preview, then steps 3–8 for that class.
