@@ -232,6 +232,10 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
 - The export carries no mechanical action, no visibility and no element for the event structure's dynamic terminal:
   read those cold (`pa_read_boolean`) or offline from the nets (`<skill>/kit/vi_nets.py`). An AIXML source beside a
   VI can be older than the VI (scripted hooks are not in it). [1.8.5] (pilot rules 60, 82) > MCP-candidate: nets-dump
+- A VI that is a member of a LOADED library cannot be regenerated over its path: `lvai_generate_vi` answers 1357.
+  Project closed, `remove_members.py <.lvlib> "<vi>"` (no `--delete-files`); then open, generate, swap, and
+  `lvai_add_to_library` again. Prefer an in-place edit for a small fix ("Small fixes: edit in place"). [1.9.5, a
+  harness run 2026-10]
 
 ### lvai_placeholder_subvi, lvai_swap_subvis
 - The placeholder for an array-of-class terminal is a scalar `path`, so Array Size or Index Array cannot be wired.
@@ -307,6 +311,11 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
 - With `aixml` AND `vi` it re-converts the VI from the AIXML: dynamic event wiring, user-event specs and event data
   fields are lost. To make a built VI a member pass `vi` only (with `classTerminals`). [1.8.5] (pilot rule 91)
   > MCP-candidate: add-class-method-rerun
+- A member with NO class terminal on its pane (a pure function) is refused here (no `classTerminals`) and by
+  `lvai_add_to_library` (refuses a `.lvclass`). Route: `lvai_generate_vi`; `lvproj_add_toplevel.py` (project
+  closed); the tool's cached helper `lvai_add_one_to_library.vi` with `library path` = the `.lvclass`, item type VI,
+  folder index -1 (project open and active); then `set_scope.py`. [1.9.5, a harness run 2026-10]
+  > MCP-candidate: add-to-class
 
 ### lvai_add_to_library
 - Refuses a virtual folder that does not exist, and a new library has none (`Controls` included); no tool creates one.
@@ -385,6 +394,16 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
 - Class description, a `.ctl` into a class, a member into a virtual folder: "LabVIEW scripting quirks", "Class
   description, typedef membership, virtual folders" > MCP-candidate: class-description; > MCP-candidate:
   add-to-class; > MCP-candidate: move-to-folder
+- **A new project or a plain library** (no tool; `lvai_lvproj_reference` calls `.lvproj` generation unsupported).
+  Measured VI Server spellings (a harness run, 2026-10), in a helper VI:
+  - `.lvproj`: `{LV.Application}` `Project.New` → `{LV.Project}` `My Computer` → `AddItem` with Type `Folder` per
+    virtual folder (an empty `Path` is required) → `Save` with Path → `Close`. `lvai_describe_project` does not list
+    virtual folders: check them in the `.lvproj` XML.
+  - Plain `.lvlib`, project open and active: `Library.Create` → `AddItem` (Type `LVClass` or `VI`) per item → `Edit
+    LVLibs.lvlib:Save All This Library.vi` (the kit's `lvai_create_actor_library.xml` is the model). A loose VI must
+    be a project item first (`lvproj_add_toplevel.py`, project closed), or the close writes no library and drops the
+    entry. Afterwards the close lists the library at top level plus a stray class item: `lvproj_drop.py` and
+    `lvproj_move.py` into the folder, project closed. > MCP-candidate: project-item-tools
 
 ## LabVIEW scripting quirks
 
