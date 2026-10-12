@@ -8,7 +8,8 @@ written: (setup fills in the date)
 ## prefix
 Every hand-written file starts with `<P>-<ABBR>-`. `<P>` is the project prefix (`project.json` `prefix`). `<ABBR>`
 is the abbreviation of the owning actor, class or library, unique within the project. Example:
-`PRJ-COM-helperCommunicationReceiver.vi`.
+`PRJ-COM-helperCommunicationReceiver.vi`. A top-level VI with no owner (a launcher, a test runner) is
+`<P>-<name>.vi`, e.g. `PRJ-launcher.vi`.
 Why: a file name says who owns it, also outside LabVIEW (git, search, file lists).
 source: default
 
@@ -46,6 +47,11 @@ source: default
 Private data fields are named in camelCase without the prefix. Examples: `events`, `prelaunchSettings`.
 source: default
 
+## element-labels
+Typedef element labels are camelCase. Where the labels are the keys of an external format (JSON, a file header), they
+follow that format (e.g. snake_case keys).
+source: default
+
 ## role-names
 Members and typedefs with a fixed role in an actor (`af-shapes`) have these default names:
 
@@ -54,6 +60,7 @@ Members and typedefs with a fixed role in an actor (`af-shapes`) have these defa
 | helper-loop VI | `<P>-<ABBR>-helper<Purpose>.vi`, e.g. `helperCommunicationReceiver` |
 | creates everything Pre Launch Init owns, cleans up on its own error | `<P>-<ABBR>-createResources.vi` |
 | creates the actor's user events (called by `createResources`) | `<P>-<ABBR>-createEvents.vi` |
+| registers the helper loop's events before Call Parent, and launches a root's nested actors (Actor Core, `af-shapes.registration`) | `<P>-<ABBR>-init.vi` |
 | sends the helper loop's stop (Actor Core) | `<P>-<ABBR>-stop.vi` |
 | releases what the helper loop used (Actor Core) | `<P>-<ABBR>-close.vi` |
 | the actor's own user events | `<P>-<ABBR>-EVENTS.ctl`, field `events` |

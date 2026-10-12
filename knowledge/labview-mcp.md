@@ -337,6 +337,8 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
 
 ### lvai_add_to_library
 - Refuses a virtual folder that does not exist, and a new library has none (`Controls` included); no tool creates one.
+  `{LV.Library}` `AddItem` (Type `Folder`) creates one in a class (`kit/pa_class_folder_create_and_move.xml`); on a
+  `.lvlib` it is the same class but unmeasured: try it on a throwaway before asking the user.
   [1.8.5] (pilot rule 92) > MCP-candidate: library-virtual-folder
 - One add re-saves every member of the library (11 files: all 7 VIs, the class, the other `.ctl`), each a save that can
   change its version. No tool adds a `.ctl` to a class (kit route: "Class description, typedef membership, virtual folders" below). [1.8.5] (audit rule candidate 106) > MCP-candidate: add-to-class

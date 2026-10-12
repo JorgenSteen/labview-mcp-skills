@@ -90,6 +90,11 @@ These protect the files and the toolchain. They are not conventions and cannot b
   log it in `.labview/decisions.md` and add it with a `decided` tag. Do not invent conventions silently.
 - **Architecture is the user's call.** That covers the class hierarchy, base actors and the error-handling plan. Propose,
   then ask.
+- **Before a step goes to the user "in the IDE", check VI Server.** When no tool does a step, look for the route in
+  LabVIEW's `resource\lvserver.rsc` and NI's examples, build a helper with names from there, and try it on one
+  throwaway item. Hand the step to the user only when that fails. Never probe an invented name
+  (`knowledge/labview-mcp.md`, "lvai_vi_server_reference"). (a harness run, 2026-10: class descriptions, virtual folders and adding a
+  `.ctl` to a class went to the user for a whole run although VI Server did all three.)
 - **labview-mcp's own agents** (class-generator, vi-editor, the test agents, doc-generator, DQMH) do the work they
   are made for. They do not know the project's conventions, so give them the rules that apply in the prompt
   (in local mode: the local pattern to follow), and check their result afterwards.

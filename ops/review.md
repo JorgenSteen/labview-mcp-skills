@@ -69,7 +69,7 @@ A finding without evidence is not a finding.
 | `af-shapes.timed-work` | event structure frames and Timeout values |
 | `af-shapes.launch-owner`, `.dependency-direction`, `.tree-shape`, `.shutdown-cascade` | launch sites, link info, the launch tree |
 | `af-shapes.base-actor`, `.messages` | class hierarchy (template copies in a family are a note), Messages folders, Drop Message Core |
-| `errors.default-policy`, `.plan-required`, `.no-plan-statement`, `.loop-errors`, `.ignored-errors`, `.release-errors` | Handle Error, loop VI error outs, `NI.Lib.Description` in the `.lvclass` XML, Stop Core hooks (unwired `error out` vs Clear Errors) |
+| `errors.default-policy`, `.plan-required`, `.no-plan-statement`, `.loop-errors`, `.ignored-errors`, `.release-errors`, `.launcher-error-out`, `.custom-error-codes`, `.placeholder-error` | Handle Error, loop VI error outs, `NI.Lib.Description` in the `.lvclass` XML, Stop Core hooks (unwired `error out` vs Clear Errors) |
 | `naming.*` | file names per class folder, private data labels |
 | `layout.*` | `.lvlib` per actor, virtual folders, typedef owners, scopes, accessors present vs used |
 | `hygiene.descriptions`, `.conditional-disable`, `.test-convention` | `NI.Lib.Description`; Conditional Disable structures and their bookmark comment; the test library |

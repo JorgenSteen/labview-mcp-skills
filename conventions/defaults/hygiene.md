@@ -30,7 +30,10 @@ source: default
 
 ## descriptions
 Every new class and VI gets a description saying what it does (and, for an actor, its error-handling plan or the
-`errors.no-plan-statement`).
+`errors.no-plan-statement`). Short: 2-4 sentences, about 400 characters at most. ASCII only ("->", not an arrow
+character: a class description is stored ANSI and an arrow became "?" with no error). No decision or finding
+numbers, no rule IDs, no spec section references, no walk through the diagram: what it does and why, for a reader
+of the code.
 source: default
 
 ## conditional-disable

@@ -16,7 +16,8 @@ source: default
 ## class-folders
 An actor's virtual folders: `Accessors`, `AF Overrides`, `Helpers` (helper-loop VIs), `Messages`, `Methods`,
 `TypeDefs`, plus `SubVIs` when needed. A plain class uses only the subset it needs (e.g. `Accessors`, `Methods`,
-`TypeDefs`). A folder is created only when it holds something. If the folder a new member belongs in is missing in
+`TypeDefs`). A folder is created only when it holds something. Overrides of a parent class's or an interface's method go in `Methods` (an actor's AF method overrides in `AF
+Overrides`). If the folder a new member belongs in is missing in
 an existing class, create it (`kit/pa_class_folder_create_and_move.xml`); never fall back to the class root.
 source: default
 

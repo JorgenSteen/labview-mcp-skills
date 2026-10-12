@@ -44,6 +44,35 @@ An error output that is deliberately not handled is never left unwired. It ends 
 registered. An unwired `error out` in new code is a defect.
 source: default
 
+## launcher-error-out
+A top-level or launcher VI (no caller, no owner actor) has an `error out` indicator on its pane, fed by the last
+error of its chain and never cleared, so a failed launch (Launch Root Actor, a settings write) is visible on the
+panel.
+Why: a launcher has no caller to report to; without the indicator a failed launch looks like a launch that did
+nothing (a harness run, 2026-10; the user: "launchers should have error out indicator").
+source: default
+
+## custom-error-codes
+The project's own error codes come from one range (e.g. 5000-5999). Each code is registered in one file in the repo
+(code, meaning, where raised), and where it is raised the diagram carries a free label `#customerror <code>`. Ignored
+system codes are listed in the same file.
+Why: one known place; Explain Error can show the text; a search finds every use.
+source: default
+
+## placeholder-error
+A parent method that is only a placeholder for its children returns a custom error (`custom-error-codes`), not
+empty output.
+Why: a missing override then shows up as an error, not as silently empty data.
+source: default
+
+## not-handled-yet
+Optional, only when the user chooses it for an early build (record it in `decisions.md`): every actor keeps its
+`evaluateError` hook, but as a pass-through; errors cascade through AF's default Last Ack; no Handle Last Ack Core
+override. The error plan (`plan-required`) is added later by filling the hook, without reshaping the actors. The
+statement in `no-plan-statement` names it: `errors not handled yet: pass-through`.
+Why: lets the structure be built and run before the error plan exists (a harness run, 2026-10).
+source: default
+
 ## release-errors
 Errors from release work in Stop Core (which has no error out to its caller) go to the local log, or end in Clear
 Errors when they are ignored on purpose.
