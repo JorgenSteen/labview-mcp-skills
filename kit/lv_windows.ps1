@@ -40,13 +40,13 @@ function Get-WindowKind([string]$title, [bool]$visible) {
 
 if ($Check) {
     $samples = @(
-        @('ZM-receiver.vi', $true, 'vi'),
-        @('ZM-launcher.vi Front Panel on Zuehlke MCP.lvproj/My Computer', $true, 'vi'),
-        @('ZM-launcher.vi Block Diagram on Zuehlke MCP.lvproj/My Computer', $true, 'vi'),
-        @('Zuehlke MCP.lvproj - Project Explorer', $true, 'project'),
+        @('PRJ-receiver.vi', $true, 'vi'),
+        @('PRJ-launcher.vi Front Panel on Demo.lvproj/My Computer', $true, 'vi'),
+        @('PRJ-launcher.vi Block Diagram on Demo.lvproj/My Computer', $true, 'vi'),
+        @('Demo.lvproj - Project Explorer', $true, 'project'),
         @('LabVIEW', $true, 'labview-frame'),
         @('Getting Started', $true, 'getting-started'),
-        @('*ZM-ROOT-helper_loop.vi Block Diagram', $true, 'UNSAVED'),
+        @('*PRJ-ROOT-helper_loop.vi Block Diagram', $true, 'UNSAVED'),
         @('Save Changes', $true, 'POSSIBLE-DIALOG'),
         @('Receiver', $true, 'POSSIBLE-DIALOG'),
         @('Context Help', $false, 'hidden-system'),

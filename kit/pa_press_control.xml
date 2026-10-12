@@ -1,5 +1,5 @@
-<VI _name="pa_press_control.vi" description="Phase 0 helper (P0.11)\3A presses a boolean control of a VI that is already RUNNING\2C addressed by its qualified name in memory (e.g. PA-R-root.lvlib\3APA-R-root.lvclass\3APA-R-ui_loop.vi)\2C through Open VI Reference (string name) + Ctrl Val.Set. Used to press the root UI loop's Stop headlessly. Reads the VI's Execution\3AState before and after.">
-  <Control _name="vi name" type="string" uid="10" uid_parent="root" value="PA-R-root.lvlib\3APA-R-root.lvclass\3APA-R-ui_loop.vi" outputs="value:10.value"/>
+<VI _name="pa_press_control.vi" description="Phase 0 helper (P0.11)\3A presses a boolean control of a VI that is already RUNNING\2C addressed by its qualified name in memory (e.g. PRJ-UI-root.lvlib\3APRJ-UI-root.lvclass\3APRJ-UI-ui_loop.vi)\2C through Open VI Reference (string name) + Ctrl Val.Set. Used to press the root UI loop's Stop headlessly. Reads the VI's Execution\3AState before and after.">
+  <Control _name="vi name" type="string" uid="10" uid_parent="root" value="PRJ-UI-root.lvlib\3APRJ-UI-root.lvclass\3APRJ-UI-ui_loop.vi" outputs="value:10.value"/>
   <Control _name="control name" type="string" uid="11" uid_parent="root" value="Stop" outputs="value:11.value"/>
   <Constant _name="true" type="bool" uid="12" uid_parent="root" value="true" outputs="value:12.value"/>
   <Node _name="Open VI Reference" inputs="application reference (local):,vi path:10.value,error in (no error):" outputs="vi reference:20.vi,error out:20.err" uid="20" uid_parent="root"/>

@@ -17,7 +17,7 @@ What it does
 Usage
     python make_probe.py <src.xml> <dst.xml> [<probe name>] [--force] [--check]
 
-    <probe name>  new _name, e.g. "_probe_ZM-CM-init.vi"; default "_probe_<old name>"
+    <probe name>  new _name, e.g. "_probe_PRJ-CM-init.vi"; default "_probe_<old name>"
     --force       overwrite <dst.xml> if it exists (refused otherwise)
     --check       dry run: print the old and new _name and write nothing
 

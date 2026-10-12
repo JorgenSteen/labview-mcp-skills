@@ -1,5 +1,5 @@
 <VI _name="pa_press_control_signal.vi" description="M3 helper\3A like pa_press_control but through Value (Signaling)\2C so an EVENT STRUCTURE sees a Value Change (Ctrl Val.Set generates no event). Opens a RUNNING VI by qualified name\2C walks Front Panel.Controls[]\2C and on the control whose Label.Text equals control name writes Value (Signaling) = the boolean value. Reports how many controls matched and the merged error of the writes.">
-  <Control _name="vi name" type="string" uid="4100" uid_parent="root" value="PB-U-ui_root.lvlib\3APB-U-ui_root.lvclass\3APB-U-ui_loop.vi" outputs="value:4100.value"/>
+  <Control _name="vi name" type="string" uid="4100" uid_parent="root" value="PRJ-UI-ui_root.lvlib\3APRJ-UI-ui_root.lvclass\3APRJ-UI-ui_loop.vi" outputs="value:4100.value"/>
   <Control _name="control name" type="string" uid="4101" uid_parent="root" value="Stop" outputs="value:4101.value"/>
   <Control _name="value" type="bool" uid="4102" uid_parent="root" value="true" outputs="value:4102.value"/>
   <Node _name="Open VI Reference" inputs="application reference (local):,vi path:4100.value,error in (no error):" outputs="vi reference:4200.vi,error out:4200.err" uid="4200" uid_parent="root"/>

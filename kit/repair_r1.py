@@ -23,7 +23,7 @@ Usage
            [--parent-url "/&lt;vilib&gt;/ActorFramework/Message/Message.lvclass"]
 
     <method>    the method name as it appears in the Send VI's file name:
-                "Send <method>.vi" (e.g. ZM-CI-handle_package).
+                "Send <method>.vi" (e.g. PRJ-CI-handle_package).
     --check     dry run: print what would change (with line numbers) and write nothing.
 
 Exit code 0 when the file is repaired or already repaired, 2 on an unexpected file shape.

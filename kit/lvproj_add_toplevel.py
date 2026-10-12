@@ -9,7 +9,7 @@ Why this exists
     listed in the project so that it opens in the project's application instance.
     lvai_add_vis_to_project needs the project open and re-saves the whole .lvproj; this
     script adds the one line, with the project closed, and changes nothing else.
-    Measured P6 step 6.1 (commit ae7a32f): ZM-launcher.vi and ZM-launcher_test.vi.
+    Measured in a pilot: a launcher VI and a test launcher VI next to the .lvproj.
 
 What it does
     - finds the Dependencies line  <tabs><Item Name="Dependencies" Type="Dependencies"/>
@@ -21,8 +21,8 @@ What it does
       listed anywhere in the project, or when a path is given twice.
 
     The path is relative to the FOLDER of the .lvproj, with forward slashes
-    (e.g. ZM-launcher.vi, or tests/ZM-x.vi). LabVIEW stores URLs relative to the .lvproj
-    FILE, so a file next to the project is written as URL="../ZM-launcher.vi"; the script
+    (e.g. PRJ-launcher.vi, or tests/PRJ-x.vi). LabVIEW stores URLs relative to the .lvproj
+    FILE, so a file next to the project is written as URL="../PRJ-launcher.vi"; the script
     adds that "../" itself.
 
 Usage
