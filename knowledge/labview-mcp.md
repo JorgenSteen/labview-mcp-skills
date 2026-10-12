@@ -437,6 +437,14 @@ They hold for any VI Server or AIXML route, the kit's included.
   broken wire segment, not a type problem. First run `kit/pa_clean_member.xml` (Remove Bad Wires + save of the VI and
   its class, project open and active) and read it cold; rebuild only if that fails. Measured 2026-10: one run fixed
   (state 0 → 1) a VI that five rebuilds and a LabVIEW restart had not. > MCP-candidate: swap-subvis-fixes
+- **Small fixes: edit in place, not by regeneration.** A change of a few wires or nodes in a VI whose layout, icon,
+  panel flags, description or membership a regeneration would lose is a VI Server edit of the existing VI (a kit
+  helper or one derived from it), with the project open and active. It needs no `remove_members`, no library re-add
+  and no `git checkout` (which a harness permission check may refuse). The pattern, measured on four fixes 2026-10:
+  an `apply` input, F first (a dry run that only counts what it finds: every node and wire exactly once), then T;
+  every lookup before any delete, and a node's wires deleted before the node (both orders the other way round
+  raced: a lost lookup, a loose wire); `python <skill>/kit/vi_nets.py` before and after, the diff showing only the
+  intended wires; `pa_clean_member.xml` if a loose end remains; cold state 1.
 - **Deleting a node from a branched wire** leaves a loose end: the VI reads state 0 ("VI has an error of type
   1000088"), and so does a sibling override of the same class; Remove Bad Wires on the edited VI fixes both. The kit's
   delete by terminal name deletes every top-level subVI node with that terminal. (pilot rules 78, 89)

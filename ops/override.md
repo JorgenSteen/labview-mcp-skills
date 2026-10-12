@@ -180,6 +180,13 @@ helpers do not make; Call Parent's `error out` must reach the override's `error 
 - **Replaced by another member with the same pane:** `lvai_swap_subvis` straight onto it (`socket` = the old VI's
   qualified name). It keeps the series wiring and also reaches a node inside the shape-D frame (measured: the stop
   hook swapped in the frame, M-CLOSE M1). Use this route first.
+- **A series hook taken out, no regeneration** (`knowledge/labview-mcp.md`, "Small fixes: edit in place"):
+  `kit/pa_remove_series_block.xml` once per wire pair: `vi path`, `node vi regex` = the hook, `in name`/`out name` =
+  `<C> in`/`<C> out`, then `error in`/`error out` with `delete node` T on that last pair. It does every lookup first,
+  deletes the two wires (and the node), and bridges the source to every other branch and every far end. Read `node
+  hits` 1, `kept count` and `sink count` = the branches you expect, `new wire broken` F, every error 0; then
+  `pa_save_member`. Measured 2026-10 on an Actor Core (a kept frame tunnel, Call Parent as the far end), no `git
+  checkout` needed. Prefer it to the restore-bare-and-rehook route below.
 - **Regenerated, the override holds only a branch hook (A):** commit; `kit/pa_delete_subvi.xml` (`vi path`,
   `class path`, `terminal name` = `<C> in`); `kit/pa_clean_member.xml` on that override (the loose end also breaks a
   sibling override; cleaning the edited one fixes both); re-run `lvai_add_class_method`, re-swap its stubs, restore
