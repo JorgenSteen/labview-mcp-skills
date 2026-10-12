@@ -1,0 +1,16 @@
+<VI _name="pa_save_orphan.vi" description="Kit rescue helper (measured 2026-10): opens a path-less VI BY NAME in the active project's application instance (Application\3AProject\3AActive Project - Application) and saves it with Save.Instrument to the given path\2C so the project can be closed again (Error 1019 after a convert failed at save). Route from labview-mcp docs/aixml-call-loaded-vi.md section 3\3B spellings copied from lvai_close_vi.xml and lvai_af_save_members.xml.">
+  <Control _name="VI Name" conIdx="11" connection="required" outputs="value:10.value" type="string" uid="10" uid_parent="root" value=""/>
+  <Control _name="Save Path" conIdx="10" connection="required" outputs="value:11.value" type="string" uid="11" uid_parent="root" value=""/>
+
+  <Node _name="String To Path" inputs="string:11.value" outputs="path:13.path" uid="13" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Project\3AActive Project" type="{LV.Application}" outputs="Project\3AActive Project:20.proj,reference out:,error out:20.error out" uid="20" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Application" type="{LV.Project}" inputs="reference:20.proj,error in (no error):20.error out" outputs="Application:22.app,reference out:,error out:22.error out" uid="22" uid_parent="root"/>
+  <Node _name="Open VI Reference" inputs="application reference (local):22.app,vi path:10.value,error in (no error):22.error out" outputs="vi reference:24.vi reference,error out:24.error out" uid="24" uid_parent="root"/>
+  <Node _name="Invoke Node" target="Save.Instrument" type="{LV.VI}" inputs="reference:24.vi reference,error in (no error):24.error out,Path to saved file:13.path,Save a Copy:,Without Diagram:" outputs="reference out:,error out:26.error out" uid="26" uid_parent="root"/>
+  <Node _name="Close Reference" inputs="reference:24.vi reference,error in (no error):26.error out" outputs="error out:34.error out" uid="34" uid_parent="root"/>
+  <Node _name="Close Reference" inputs="reference:22.app,error in (no error):34.error out" outputs="error out:36.error out" uid="36" uid_parent="root"/>
+  <Node _name="Unbundle By Name" fields="status,code,source" inputs="input cluster:36.error out" outputs="status:60.status,code:60.code,source:60.source" uid="60" uid_parent="root"/>
+  <Indicator _name="status" conIdx="0" connection="recommended" inputs="value:60.status" type="bool" uid="50" uid_parent="root" value="false"/>
+  <Indicator _name="code" conIdx="1" connection="recommended" inputs="value:60.code" type="int32" uid="51" uid_parent="root" value="0"/>
+  <Indicator _name="source" conIdx="2" connection="recommended" inputs="value:60.source" type="string" uid="52" uid_parent="root" value=""/>
+</VI>

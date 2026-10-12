@@ -1,0 +1,88 @@
+<VI _name="pa_wire_by_label.vi" description="Kit helper (measured 2026-10). Opens a VI by path in the DEFAULT instance (project CLOSED). Walks every diagram object (top level only)\2C keeps the nodes\2C and reads each node's Label.Text and terminal names. Collects the terminal 'source name' of every node whose label is 'source label' and the terminal 'sink name' of every node whose label is 'sink label'. With apply = T and both counts 1\3A Connect Wire (sink terminal\2C Wire Source = source terminal\2C Auto Wire and Auto Route T)\2C then Save.Instrument. With apply = F it only reports (counts and every node label).">
+  <Control _name="vi path" type="string" uid="9001" uid_parent="root" value="" outputs="value:9001.value"/>
+  <Control _name="apply" type="bool" uid="9002" uid_parent="root" value="false" outputs="value:9002.value"/>
+  <Control _name="source label" type="string" uid="9003" uid_parent="root" value="" outputs="value:9003.value"/>
+  <Control _name="source name" type="string" uid="9004" uid_parent="root" value="error out" outputs="value:9004.value"/>
+  <Control _name="sink label" type="string" uid="9005" uid_parent="root" value="" outputs="value:9005.value"/>
+  <Control _name="sink name" type="string" uid="9006" uid_parent="root" value="error in" outputs="value:9006.value"/>
+
+  <Constant _name="node class" type="ref{LV.Node}" uid="9011" uid_parent="root" value="" outputs="value:9011.value"/>
+  <Constant _name="zero" type="int32" uid="9013" uid_parent="root" value="0" outputs="value:9013.value"/>
+  <Constant _name="one" type="int32" uid="9014" uid_parent="root" value="1" outputs="value:9014.value"/>
+
+  <Node _name="String To Path" inputs="string:9001.value" outputs="path:9020.path" uid="9020" uid_parent="root"/>
+  <Node _name="Open VI Reference" inputs="vi path:9020.path" outputs="vi reference:9021.vi,error out:9021.err" uid="9021" uid_parent="root"/>
+  <Indicator _name="open error" type="cluster{bool.status,int32.code,string.source}" uid="9022" uid_parent="root" value="[false,0,]" inputs="value:9021.err"/>
+  <Node _name="Property Node" fields="read+Block Diagram" type="{LV.VI}" inputs="reference:9021.vi,error in (no error):9021.err" outputs="Block Diagram:9023.bd,reference out:,error out:9023.err" uid="9023" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+All Objects[]" type="{LV.Diagram}" inputs="reference:9023.bd,error in (no error):9023.err" outputs="All Objects[]:9024.objs,reference out:,error out:9024.err" uid="9024" uid_parent="root"/>
+  <Indicator _name="find error" type="cluster{bool.status,int32.code,string.source}" uid="9025" uid_parent="root" value="[false,0,]" inputs="value:9024.err"/>
+
+  <Structure _name="For Loop" count="" maxin="" maxout="" uid="9100" uid_parent="root">
+    <Tunnel _id="In1" inputs="value:9024.objs" mode="index" outputs="value:9101.obj" uid="9101" uid_parent="9100"/>
+    <Tunnel _id="In2" inputs="value:9011.value" outputs="value:9102.nc" uid="9102" uid_parent="9100"/>
+    <Tunnel _id="In3" inputs="value:9003.value" outputs="value:9103.sl" uid="9103" uid_parent="9100"/>
+    <Tunnel _id="In4" inputs="value:9004.value" outputs="value:9104.sn" uid="9104" uid_parent="9100"/>
+    <Tunnel _id="In5" inputs="value:9005.value" outputs="value:9105.kl" uid="9105" uid_parent="9100"/>
+    <Tunnel _id="In6" inputs="value:9006.value" outputs="value:9106.kn" uid="9106" uid_parent="9100"/>
+    <Node _name="To More Specific Class" inputs="reference:9101.obj,error in:,target class:9102.nc" outputs="specific class reference:9111.node,error out:9111.err" uid="9111" uid_parent="9100"/>
+    <Node _name="Property Node" fields="read+Label.Text,read+Terminals[]" type="{LV.Node}" inputs="reference:9111.node,error in (no error):9111.err" outputs="Label.Text:9112.lbl,Terminals[]:9112.terms,reference out:,error out:9112.err" uid="9112" uid_parent="9100"/>
+    <Structure _name="For Loop" count="" maxin="" maxout="" uid="9120" uid_parent="9100">
+      <Tunnel _id="In1" inputs="value:9112.terms" mode="index" outputs="value:9121.t" uid="9121" uid_parent="9120"/>
+      <Node _name="Property Node" fields="read+Name" type="{LV.Terminal}" inputs="reference:9121.t,error in (no error):" outputs="Name:9122.name,reference out:,error out:" uid="9122" uid_parent="9120"/>
+      <Tunnel _id="Out1" inputs="value:9122.name" mode="index" outputs="value:9123.names" uid="9123" uid_parent="9120"/>
+    </Structure>
+    <Node _name="Equal?" inputs="x:9112.lbl,y:9103.sl" outputs="x = y?:9130.shit" uid="9130" uid_parent="9100"/>
+    <Node _name="Search 1D Array" inputs="1D array:9123.names,element:9104.sn,start index (0):" outputs="index of element:9131.si" uid="9131" uid_parent="9100"/>
+    <Node _name="Index Array" inputs="array:9112.terms,index:9131.si" outputs="element:9132.st" uid="9132" uid_parent="9100"/>
+    <Node _name="Equal?" inputs="x:9112.lbl,y:9105.kl" outputs="x = y?:9133.khit" uid="9133" uid_parent="9100"/>
+    <Node _name="Search 1D Array" inputs="1D array:9123.names,element:9106.kn,start index (0):" outputs="index of element:9134.ki" uid="9134" uid_parent="9100"/>
+    <Node _name="Index Array" inputs="array:9112.terms,index:9134.ki" outputs="element:9135.kt" uid="9135" uid_parent="9100"/>
+    <Tunnel _id="Out1" cond="9130.shit" inputs="value:9132.st" mode="index" outputs="value:9140.srcs" uid="9140" uid_parent="9100"/>
+    <Tunnel _id="Out2" cond="9133.khit" inputs="value:9135.kt" mode="index" outputs="value:9141.sinks" uid="9141" uid_parent="9100"/>
+    <Tunnel _id="Out3" inputs="value:9112.lbl" mode="index" outputs="value:9142.lbls" uid="9142" uid_parent="9100"/>
+  </Structure>
+  <Node _name="Array Size" inputs="array:9140.srcs" outputs="size(s):9150.ns" uid="9150" uid_parent="root"/>
+  <Indicator _name="source nodes found" type="int32" uid="9151" uid_parent="root" value="0" inputs="value:9150.ns"/>
+  <Node _name="Array Size" inputs="array:9141.sinks" outputs="size(s):9152.nk" uid="9152" uid_parent="root"/>
+  <Indicator _name="sink nodes found" type="int32" uid="9153" uid_parent="root" value="0" inputs="value:9152.nk"/>
+  <Node _name="Flatten To XML" inputs="anything:9142.lbls" outputs="xml string:9154.x" uid="9154" uid_parent="root"/>
+  <Indicator _name="node labels" type="string" uid="9155" uid_parent="root" value="" inputs="value:9154.x"/>
+  <Node _name="Index Array" inputs="array:9140.srcs,index:9013.value" outputs="element:9156.src" uid="9156" uid_parent="root"/>
+  <Node _name="Index Array" inputs="array:9141.sinks,index:9013.value" outputs="element:9157.sink" uid="9157" uid_parent="root"/>
+
+  <Node _name="Equal?" inputs="x:9150.ns,y:9014.value" outputs="x = y?:9250.a" uid="9250" uid_parent="root"/>
+  <Node _name="Equal?" inputs="x:9152.nk,y:9014.value" outputs="x = y?:9251.b" uid="9251" uid_parent="root"/>
+  <Node _name="And" inputs="x:9250.a,y:9251.b" outputs="x .and. y?:9252.ab" uid="9252" uid_parent="root"/>
+  <Node _name="And" inputs="x:9252.ab,y:9002.value" outputs="x .and. y?:9255.go" uid="9255" uid_parent="root"/>
+  <Indicator _name="applied" type="bool" uid="9256" uid_parent="root" value="false" inputs="value:9255.go"/>
+
+  <Structure _name="Case Structure" selectin="9255.go" uid="9300" uid_parent="root">
+    <Tunnel _id="In1" inputs="value:9157.sink" uid="9301" uid_parent="9300"/>
+    <Tunnel _id="In2" inputs="value:9156.src" uid="9302" uid_parent="9300"/>
+    <Tunnel _id="In3" inputs="value:9021.vi" uid="9303" uid_parent="9300"/>
+    <Tunnel _id="In4" inputs="value:9024.err" uid="9304" uid_parent="9300"/>
+    <CaseFrame selector="True" selectout="" uid="9400" uid_parent="9300">
+      <Tunnel _id="In1" outputs="value:9401.sink" uid="9401" uid_parent="9400"/>
+      <Tunnel _id="In2" outputs="value:9402.src" uid="9402" uid_parent="9400"/>
+      <Tunnel _id="In3" outputs="value:9403.vi" uid="9403" uid_parent="9400"/>
+      <Tunnel _id="In4" outputs="value:9404.err" uid="9404" uid_parent="9400"/>
+      <Constant _name="true in" type="bool" uid="9417" uid_parent="9400" value="true" outputs="value:9417.value"/>
+      <Node _name="Invoke Node" target="Connect Wire" type="{LV.Terminal}" inputs="reference:9401.sink,error in (no error):9404.err,Wire Source:9402.src,Auto Wire? (T):9417.value,Wiring Specs:,Auto Route? (F):9417.value" outputs="reference out:,error out:9482.err" uid="9482" uid_parent="9400"/>
+      <Indicator _name="wire error" type="cluster{bool.status,int32.code,string.source}" uid="9483" uid_parent="9400" value="[false,0,]" inputs="value:9482.err"/>
+      <Node _name="Invoke Node" target="Save.Instrument" type="{LV.VI}" inputs="reference:9403.vi,error in (no error):9482.err,Path to saved file:,Save a Copy:,Without Diagram:" outputs="reference out:,error out:9492.err" uid="9492" uid_parent="9400"/>
+      <Indicator _name="save error" type="cluster{bool.status,int32.code,string.source}" uid="9493" uid_parent="9400" value="[false,0,]" inputs="value:9492.err"/>
+      <Tunnel _id="Out1" inputs="value:9492.err" uid="9496" uid_parent="9400"/>
+    </CaseFrame>
+    <CaseFrame selector="False" selectout="" uid="9500" uid_parent="9300">
+      <Tunnel _id="In1" outputs="value:" uid="9501" uid_parent="9500"/>
+      <Tunnel _id="In2" outputs="value:" uid="9502" uid_parent="9500"/>
+      <Tunnel _id="In3" outputs="value:" uid="9503" uid_parent="9500"/>
+      <Tunnel _id="In4" outputs="value:9504.err" uid="9504" uid_parent="9500"/>
+      <Tunnel _id="Out1" inputs="value:9504.err" uid="9513" uid_parent="9500"/>
+    </CaseFrame>
+    <Tunnel _id="Out1" outputs="value:9520.err" uid="9520" uid_parent="9300"/>
+  </Structure>
+
+  <Node _name="Close Reference" inputs="reference:9021.vi,error in (no error):9520.err" outputs="error out:9530.err" uid="9530" uid_parent="root"/>
+  <Indicator _name="error out" type="cluster{bool.status,int32.code,string.source}" uid="9531" uid_parent="root" value="[false,0,]" inputs="value:9530.err"/>
+</VI>

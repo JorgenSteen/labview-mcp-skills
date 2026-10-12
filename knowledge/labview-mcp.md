@@ -252,8 +252,8 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
 - Cannot repair a missing-subVI node: its name reads empty, the call fails with 1055 reported as `noActiveProject`.
   Repair: `lvai_close_vi`, re-run `lvai_add_class_method` from the AIXML, swap. [1.8.5] (pilot rule 86)
   > MCP-candidate: swap-subvis-fixes
-- `constantsJson` finds TOP-LEVEL constants only: a class constant inside a case frame needs a deep replace (a
-  derived VI Server helper). With `class` = a `.ctl` path it turns a bare cluster constant into that typedef's
+- `constantsJson` finds TOP-LEVEL constants only: a class constant inside a case frame needs a deep replace
+  (`kit/pa_replace_constant_deep.xml`). With `class` = a `.ctl` path it turns a bare cluster constant into that typedef's
   constant, which `lvai_bind_typedef_constants` cannot (it needs a subVI terminal). [1.9.5, a harness run 2026-10]
   > MCP-candidate: swap-subvis-fixes
 - The placeholder for a typedef cluster that holds a class flattens it to a scalar `path`, and members with the same
@@ -448,8 +448,8 @@ They hold for any VI Server or AIXML route, the kit's included.
   with `Cluster To Array` → `And Array Elements` before a Boolean array or indicator (`vi_nets.py` shows it offline).
   `Match Regular Expression` is an XNode and cannot be authored: use `Match Pattern` with an anchored
   character-class pattern. (a harness run 2026-10)
-- **Plot names** (no AIXML element): a chart's `Active Plot` → `Plot` → `{LV.Plot}` `Plot Name`, project
-  closed, `Save.Instrument`; spellings from `lvserver.rsc`. **A panel text label:** `New VI Object` style 2321 (Free
+- **Plot names** (no AIXML element): `{LV.WaveformChart}` `Active Plot` → `Plot` → `{LV.Plot}` `Plot Name`, project
+  closed, `Save.Instrument` (`kit/pa_set_plot_names.xml`); spellings from `lvserver.rsc`. **A panel text label:** `New VI Object` style 2321 (Free
   Label) answered 1060 in every owner/class tried; style 21960 (Label (modern)) works but draws a framed label.
   (a harness run 2026-10) > MCP-candidate: control-property-setters
 - **A class save may double the line breaks in `NI.LVClass.Geneology`** (`\r\n` → `\r\n\r\n`): harmless diff noise; do
@@ -493,6 +493,10 @@ They hold for any VI Server or AIXML route, the kit's included.
   broken wire segment, not a type problem. First run `kit/pa_clean_member.xml` (Remove Bad Wires + save of the VI and
   its class, project open and active) and read it cold; rebuild only if that fails. Measured 2026-10: one run fixed
   (state 0 → 1) a VI that five rebuilds and a LabVIEW restart had not. > MCP-candidate: swap-subvis-fixes
+- **Whole VI descriptions in a batch:** `kit/pa_set_vi_descriptions.xml` (project closed) writes many at once from a
+  record file and reads each back; for a search-and-replace inside one description, `pa_replace_description.xml`.
+- **A path-less VI blocks the project close** after a convert failed at save (Error 1019): `kit/pa_save_orphan.xml`
+  saves it by name to a path, then the close works.
 - **Small fixes: edit in place, not by regeneration.** A change of a few wires or nodes in a VI whose layout, icon,
   panel flags, description or membership a regeneration would lose is a VI Server edit of the existing VI (a kit
   helper or one derived from it), with the project open and active. It needs no `remove_members`, no library re-add
@@ -500,7 +504,8 @@ They hold for any VI Server or AIXML route, the kit's included.
   an `apply` input, F first (a dry run that only counts what it finds: every node and wire exactly once), then T;
   every lookup before any delete, and a node's wires deleted before the node (both orders the other way round
   raced: a lost lookup, a loose wire); `python <skill>/kit/vi_nets.py` before and after, the diff showing only the
-  intended wires; `pa_clean_member.xml` if a loose end remains; cold state 1.
+  intended wires; `pa_clean_member.xml` if a loose end remains; cold state 1. Wiring two nodes by label (primitives
+  included), with that dry run: `kit/pa_wire_by_label.xml`.
 - **Deleting a node from a branched wire** leaves a loose end: the VI reads state 0 ("VI has an error of type
   1000088"), and so does a sibling override of the same class; Remove Bad Wires on the edited VI fixes both. The kit's
   delete by terminal name deletes every top-level subVI node with that terminal. (pilot rules 78, 89)
