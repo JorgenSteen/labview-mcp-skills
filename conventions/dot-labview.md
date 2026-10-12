@@ -33,7 +33,7 @@ Schema version 2. All paths are relative to the repo root and use forward slashe
 | `save_version` | the version files must be saved as, e.g. `"20.0"` (the safety rules in SKILL.md say how it is enforced) | yes |
 | `git` | `true`, or `false` with `product_root` (see "No git" below) | yes |
 | `conventions_mode` | `full` (the conventions in `conventions/` apply) or `local` (no conventions; every change follows the pattern of the code around it; see `SKILL.md`, "How much setup a task needs") | yes |
-| `restart_go_ahead` | `ask` (default) or `always`: the user's standing go-ahead to restart LabVIEW for this project, with `restart_go_ahead_note` (who, when, the user's words). Set only by the user; a kill always needs its own go-ahead (`session/restart.md`) | no |
+| `restart_go_ahead` | `ask` (default) or `always`: the user's standing go-ahead to restart LabVIEW for this project, with `restart_go_ahead_note` (who, when, the user's words). Set only by the user; it never covers a kill, which needs the user's go-ahead for that kill or for the session (`session/restart.md`, "Killing LabVIEW") | no |
 | `analysis_depth` | `none`, `quick`, `standard` or `full`: the user's answer to the first-contact question (`SKILL.md`, "First time in a project"; `ops/analysis.md`) | yes |
 | `proof_folder`, `proof_prefix` | where throwaway measurements and skill tests go, and their name prefix | no |
 | `briefs_folder` | where briefs are saved; `<X>` = the session id | no |

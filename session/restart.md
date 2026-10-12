@@ -18,7 +18,7 @@ How a timed-out call blocks the service: `knowledge/labview-mcp.md`, "A failed, 
 |---|---|
 | started by this session: its PID is the one `session/start.md` recorded | this session may close it, no go-ahead |
 | any other, but **empty** (below): nothing open that this session did not start | this session may close or restart it, no go-ahead |
-| any other: the user opened it, an earlier session started it, or the PID differs | only with the user's go-ahead in this context, or the project's standing go-ahead (below) |
+| any other: the user opened it, an earlier session started it, or the PID differs | only with the user's go-ahead in this context; for a restart only, also the project's standing go-ahead (below) |
 | kill (`Stop-Process`), any LabVIEW, this session's own included | only with an explicit go-ahead for that kill, or the user's blanket kill go-ahead for this session ("Killing LabVIEW") |
 
 - **An empty LabVIEW** (the user's rule, 2026-10-09: "if Nigel and basic LabVIEW is open, it is ok to close and
@@ -29,16 +29,17 @@ How a timed-out call blocks the service: `knowledge/labview-mcp.md`, "A failed, 
   - LabVIEW is idle (`<skill>/kit/wait_lv_idle.ps1 -Once`, quiet);
   - if the service answers, `pa_vis_in_memory` lists only labview-mcp's own helpers and VIs this session made (step 5).
   Anything else open, or any check that cannot run, means it is not empty: the go-ahead rule applies. Write in the
-  report which checks made it empty. A kill still needs its own explicit go-ahead.
+  report which checks made it empty. A kill still needs its own go-ahead ("Killing LabVIEW").
 - **A standing go-ahead per project** (the user's rule, 2026-10-09): `project.json` `restart_go_ahead` is `ask` by
   default. Only the user sets it to `always` (with `restart_go_ahead_note`: who, when, their words). With `always`,
   a restart this project needs is done without asking each time, but every guard below still runs; unsaved files
-  this session did not make still mean ask (`SKILL.md`), and a kill still needs its own explicit go-ahead. Never set
+  this session did not make still mean ask (`SKILL.md`), and a kill still needs its own go-ahead ("Killing
+  LabVIEW"). Never set
   `always` on your own, and never infer it from an earlier session's go-ahead.
 - **Ask up front, never by surprise.** While planning a session or a step, decide whether a restart may be needed (a
   class call after `LVClass.Open` work, a measurement that may hang an actor, a known 1562), and ask then. The user
   gives a **single** go-ahead (one named restart) or a **blanket** one for this session; it ends with the session.
-  Ask for a **kill** go-ahead for the session at the same time when the session validates AIXML (scratch VIs, above)
+  Ask for a **kill** go-ahead for the session at the same time when the session validates AIXML (scratch VIs, below)
   or tests failure paths (an actor tree can hang, and only a restart frees it): a restart go-ahead alone cannot be
   used once the close ends in the save dialog.
   Quote it with its date, from the user's own message or from the brief that quotes it (`session/brief.md`,
@@ -48,13 +49,12 @@ How a timed-out call blocks the service: `knowledge/labview-mcp.md`, "A failed, 
 - **Never touch** the Nigel processes (`NI.NigelLocalService`, `LVNigelChat`), never answer a LabVIEW dialog.
 - Kit: `<skill>/kit/lv_windows.ps1`, `lv_close.ps1`, `pa_vis_in_memory.xml`, `pa_vis_modified.xml`,
   `read_saved_answer.py`. Generate the two `pa_vis_*` helpers once at the session start (`knowledge/labview-mcp.md`,
-  "Helper VIs (the kit)"), not right before a close: the validator leaves an `LVMCP Validate` VI in memory, which can
-  itself raise the save prompt the guards exist to prevent.
+  "Helper VIs (the kit)"), not right before a close, so they add no validation scratch at the end. Once any
+  validation has run, the close ends in the save dialog anyway (next bullet).
 - **Tool scratch VIs pile up.** `lvai_validate_aixml` leaves hidden, unsaved `LVMCP Validate*` VIs in memory, more
   with every validation (8–18 per step, 14 still open on labview-mcp 1.9.5-local, a harness run 2026-10). Once any
   is in memory, the close route always ends in the save dialog, which no agent answers: a session that validates
-  AIXML and may need a restart needs a kill, not a close. Ask for the kill go-ahead up front (below).
-  > MCP-candidate: restart-with-guards
+  AIXML and may need a restart needs a kill, not a close. Ask for the kill go-ahead up front (above).
 
 > MCP-candidate: restart-with-guards
 
@@ -99,7 +99,8 @@ Any guard that fails: stop and report; nothing is closed.
    - Exit 0: closed. Note the seconds.
    - Exit 1: read the line `CloseMainWindow returned`. **False:** LabVIEW did not take the close message: busy with a
      VI Server helper, or modal. **True** and no exit: a dialog came up after the request, most likely a save prompt.
-     Report which, with a fresh window list and a CPU sample. Do not kill; the user decides. If the window list
+     Report which, with a fresh window list and a CPU sample. Do not kill unless the session's blanket kill
+     go-ahead covers it ("Killing LabVIEW"); otherwise the user decides. If the window list
      shows only `LVMCP Validate*` as unsaved, say so: it is tool scratch, nothing of the user's, and the route on is a
      kill ("Killing LabVIEW").
      > MCP-candidate: dialog-detection
