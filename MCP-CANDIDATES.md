@@ -96,7 +96,10 @@ and the per-step state lines in the ops files.
 LabVIEW; a hung helper loop is freed only by a restart. **Proposed** `lvai_restart_labview(confirm: true)`: refuse and
 list unsaved VIs (every instance), dialogs, running VIs; close, tell "busy" from "dialog", start, wait for gRPC, report
 port, uptime, steps; optionally reopen the Nigel chat (`--lv-version`, `--lv-bitness`); `ensure_labview` says "still
-starting" instead of `ok:false`. **Evidence** pilot rules 59, 94, 96, 99; rule candidates 105, 111. **Workaround**
+starting" instead of `ok:false`; discard the tool's own scratch VIs (`LVMCP Validate*`) before the close, and have
+`lvai_validate_aixml` close what it opens (they pile up: 8–18 per step, 14 on 1.9.5-local, and any one of them turns
+every close into a save dialog). **Evidence** pilot rules 59, 94, 96, 99; rule candidates 105, 111; a harness run
+2026-10. **Workaround**
 `lv_windows.ps1`, `lv_close.ps1`, `lv_start_nigel_chat.ps1`, `lv_press_ok.ps1`. **Removes** most of `session/restart.md`.
 
 ## memory-inspection
