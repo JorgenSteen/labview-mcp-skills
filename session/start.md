@@ -10,7 +10,11 @@ with its guards and the user's go-ahead.
 
 ## Steps
 
-1. **`lvai_status`.** If it answers, you are done. Note the port and `labviewUpSeconds` for the session's report.
+1. **`lvai_status`.** If it answers, note the port and `labviewUpSeconds` for the session's report, then look at the
+   IDE once, with no LabVIEW call: `powershell -NoProfile -ExecutionPolicy Bypass -File <skill>/kit/lv_windows.ps1`.
+   Unsaved windows (`*` in the title), `LVAutoSave` files or an open project that this session did not make mean the
+   user is working (they may open the project between steps): note them, and ask before any close, save, restart or
+   kill that would touch them (`SKILL.md`, "Save what you made; ask about the rest"). Then you are done.
 2. **It does not answer: look at the processes,** with no LabVIEW call:
    `powershell -NoProfile -ExecutionPolicy Bypass -File <skill>/kit/lv_windows.ps1`. It lists the LabVIEW process,
    the Nigel processes (`NI.NigelLocalService`, `LVNigelChat`), the `LVAutoSave` count, and every LabVIEW window
