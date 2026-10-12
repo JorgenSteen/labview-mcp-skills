@@ -65,7 +65,10 @@ field: an accessor made earlier keeps the bare type for ever. (pilot rule 2)
    `layout.accessors-for-own-data`). A new member of the class reads and writes the field through its accessor, so
    the accessor is made when the first such member is built, in the direction it uses:
    `lvai_create_accessors(lvclassPath, fromField=<index>, fieldCount=1, budgetSeconds=1, accessUi="Read"|"Write",
-   dynamicDispatch=false, virtualFolderName=<the class's accessor folder>)`. Then:
+   dynamicDispatch=false, virtualFolderName=<the class's accessor folder>, projectPath)` (it opens the project
+   itself). When the user asks for the accessors outright, both directions are wanted: two calls, Read then Write.
+   `<index>` = the field's 0-based position in the private data, which is the `nextFromField` the add answered (e.g.
+   a class with fields `events` and `settings` added last: `settings` is 1). Then:
    - the answer must list one VI; if the wizard made both, remove the unused one (`remove_members.py` below, project
      closed). Whether `accessUi` gives one direction is unmeasured. > MCP-candidate: accessor-options
    - **Names** stay the wizard's (`convention: naming.accessor-names`). A custom accessor that groups fields is a

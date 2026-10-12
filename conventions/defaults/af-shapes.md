@@ -32,8 +32,9 @@ source: default
 ## launch-owner
 An actor launches what it owns: a panel its graphs, a hardware manager its hardware actors, a communication manager
 its communication actors, the root the main parts. Each launch is a method of the caller (`prelaunch-settings`),
-called from Actor Core or from a message, never from Pre Launch Init, so a child starts with a running caller that
-can already receive its messages. Launch on request (e.g. a panel when it is asked for) where it fits.
+called from Actor Core (the `init` member before Call Parent, `registration`) or from a message, never from Pre
+Launch Init. A child launched from `init` may send before the caller's message loop runs; its messages wait in the
+caller's queue until Call Parent's loop starts. Launch on request (e.g. a panel when it is asked for) where it fits.
 source: default
 
 ## dependency-direction

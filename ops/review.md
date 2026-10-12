@@ -49,7 +49,7 @@ A finding without evidence is not a finding.
 |---|---|---|
 | a Destroy that can run before the stop is generated or before the loop exits | Stop Core, Actor Core after Call Parent, `close`, the loop VI (nets) | Destroy in Stop Core while the stop is sent after Call Parent; Destroy in the loop VI. Generate-then-Destroy both in Stop Core is not this hazard |
 | the stop's Generate chained on Call Parent's error | Actor Core nets: Generate's `error in` source | skipped exactly when Call Parent failed |
-| a loop whose only exit is an event, with Register skippable by an upstream error | loop VI nets: Register's `error in` (no incoming error in the convention), the error case inside the loop | the loop can start unregistered and wait for ever |
+| a loop whose only exit is an event, with Register skippable by an upstream error | `init` nets (or, in older code, the loop VI's): Register's `error in` (no incoming error in the convention); the error case inside the loop | the loop can start unregistered and wait for ever |
 | Register For Events inside the loop VI (not in an `init` before Call Parent) | Actor Core nets: what runs before Call Parent; loop VI: a Register node | a Call Parent that returns at once lets the stop come before the registration: the tree hangs (measured, `knowledge/actor-framework.md`) |
 | a launch in Pre Launch Init | PLI nets: Launch Root/Nested Actor | hangs |
 | private dynamic-dispatch member; static VI inside a dynamic recursion cycle | `.lvclass` scope and `IsStaticMethod` | broken VI |
@@ -62,14 +62,14 @@ A finding without evidence is not a finding.
 
 | convention ids | where to look |
 |---|---|
-| `af-shapes.helper-loop-vi`, `.helper-loop-error-case`, `.registration`, `.stop-mechanism` | loop VI nets: the error case, Register, the dynamic terminal, Unregister, locals |
+| `af-shapes.helper-loop-vi`, `.helper-loop-error-case`, `.registration`, `.stop-mechanism` | Actor Core: `init` before Call Parent, its refnum into the loop VI; `init` nets: Register; loop VI nets: the refnum control, the error case, the dynamic terminal, Unregister, locals, the `stop` call after each non-event loop |
 | `af-shapes.stop-site`, `.close-vi`, `.resources` | Actor Core after Call Parent, `close`, Stop Core, PLI |
 | `af-shapes.events-typedef`, `.global-events`, `.prelaunch-settings` | private data (decoded), TypeDefs, accessors, PLI |
 | `af-shapes.handle-error-order`, `.handle-last-ack`, `.hook-vis` | Handle Error, HLAC, hook panes (hooks may take `stop actor?`, `Last Ack`) |
 | `af-shapes.timed-work` | event structure frames and Timeout values |
 | `af-shapes.launch-owner`, `.dependency-direction`, `.tree-shape`, `.shutdown-cascade` | launch sites, link info, the launch tree |
 | `af-shapes.base-actor`, `.messages` | class hierarchy (template copies in a family are a note), Messages folders, Drop Message Core |
-| `errors.default-policy`, `.plan-required`, `.no-plan-statement`, `.loop-errors`, `.ignored-errors`, `.release-errors`, `.launcher-error-out`, `.custom-error-codes`, `.placeholder-error` | Handle Error, loop VI error outs, `NI.Lib.Description` in the `.lvclass` XML, Stop Core hooks (unwired `error out` vs Clear Errors) |
+| `errors.default-policy`, `.plan-required`, `.no-plan-statement`, `.loop-errors`, `.ignored-errors`, `.release-errors`, `.launcher-error-out`, `.custom-error-codes`, `.placeholder-error`, `.not-handled-yet` | Handle Error, loop VI error outs, `NI.Lib.Description` in the `.lvclass` XML, Stop Core hooks (unwired `error out` vs Clear Errors) |
 | `naming.*` | file names per class folder, private data labels |
 | `layout.*` | `.lvlib` per actor, virtual folders, typedef owners, scopes, accessors present vs used |
 | `hygiene.descriptions`, `.conditional-disable`, `.test-convention` | `NI.Lib.Description`; Conditional Disable structures and their bookmark comment; the test library |

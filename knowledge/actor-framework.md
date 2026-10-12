@@ -233,7 +233,9 @@ af-shapes.one-pattern-per-area`). NI recommends one data-transfer mechanism per 
 - **Launch on request.** A panel is launched when asked for and reports back when it closes; the manager keeps a status
   table.
 - **Deferred start.** PLI sends an `init` message to self, or Actor Core calls an `init` method; the children are
-  launched from there. They then start with a running caller that can already receive their messages.
+  launched from there. An `init` member in series before Call Parent (`af-shapes.registration`) launches before the
+  caller's message loop runs: messages a child sends meanwhile wait in the caller's queue and are handled once Call
+  Parent's loop starts. *Evidence: measured in a harness run, 2026-10 (a root launching two children from `init`).*
 - **Base actor or direct `Actor`.** AF's reuse model is inheritance: a base actor carries shared overrides, and a child
   decorates them (e.g. adds a loop to Actor Core). A base can offer an empty dynamic hook that its Stop Core calls, so
   a leaf overrides the hook, not Stop Core. Two or three base levels are normal; NI's own samples use them.

@@ -128,7 +128,7 @@ project closed, code per VI, saved in the project's Save version. **Evidence** p
 **Proposed** `lvai_create_override(lvclassPath, parentMethod, projectPath)`: library-qualified name derived, Call Parent
 placed, parent's scope kept, verified from the files, pane returned; a `description` parameter (it keeps NI's help
 text of the parent today). **Evidence** pilot rules 6, 24, 27; a harness run 2026-10 (descriptions replaced in three
-steps). **Workaround** `lvai_create_override.xml`; `pa_replace_description.xml`. **Removes** "create the override" in `ops/override.md`.
+steps). **Workaround** `lvai_create_override.xml`; `pa_set_vi_descriptions.xml`. **Removes** "create the override" in `ops/override.md`.
 
 ## add-hook
 **Status** proposed (S6); the `close` join shape (OV-7) measured 2026-10-09 (`kit/pa_close_join.xml`); PLI failure cleanup (OV-5) settled as the `createResources` member VI.

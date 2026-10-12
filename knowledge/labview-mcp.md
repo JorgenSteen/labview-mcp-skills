@@ -46,11 +46,12 @@ not repeated here.
 | Call or step | Project |
 |---|---|
 | `lvai_exec_state` and the sweep helper (open: good VIs read state 0); Clean Up Diagram; re-save; class/library icon helpers (open: 1562) | **closed** |
-| front-panel property setters and cold read-backs, VI description edit; `pylv_extract`/`pylv_rebuild` with kit bundle scripts; `lvai_generate_vi_with_events`; `lvai_set_event_data_fields` | **closed** |
+| front-panel property setters and cold read-backs, VI description edit (`pa_replace_description`, `pa_set_vi_descriptions`), `pa_set_plot_names`, `pa_wire_by_label`; `pylv_extract`/`pylv_rebuild` with kit bundle scripts; `lvai_generate_vi_with_events`; `lvai_set_event_data_fields` | **closed** |
 | byte-exact kit edits of `.lvclass`/`.lvlib`/`.lvproj`; file deletes; any git restore, checkout, revert or reset | **closed** |
 | AF override and hook helpers, `pa_save_member`, `pa_clean_member`, `pa_rename_member`; `lvai_swap_subvis` (`Replace` is a silent no-op outside the IDE's own instance) | **open and active** |
 | `lvai_wire_dynamic_events`, `pa_wire_dyn_right`, `pa_wire_dyn_deep`, `pa_set_panel_on_call`, `pa_switch_and_reset_boolean`, `pa_array_element_replace`; `lvai_add_class_field`, `lvai_bind_class_fields`, `lvai_add_class_method` on an existing member, `lvpdc_export`/`lvpdc_import` | **open and active** |
 | `pa_set_class_description`, `pa_class_folder_add_files`, `pa_class_folder_create_and_move`, `pa_class_folder_move`, `pa_save_libraries`, `pa_project_vis_modified` | **open and active** |
+| `pa_insert_series_branch`, `pa_remove_series_block`, `pa_wire_nodes`, `pa_reg_to_control`, `pa_reg_indicator`, `pa_replace_constant_deep`, `pa_save_orphan` | **open and active** |
 | `lvai_create_accessors` | opens `projectPath` itself (since 1.8.5) |
 | `lvai_create_typedef` | closed with no `projectPath` (stays closed), or `projectPath` = the active project |
 | converting a VI that calls library or class members | open, one member opened through it |
@@ -418,7 +419,8 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
 - AF overrides and hooks, `ops/override.md` > MCP-candidate: create-override; > MCP-candidate: add-hook
 - Member rename, `ops/rename.md` > MCP-candidate: rename-member
 - Clean Up Diagram, `ops/cleanup.md` > MCP-candidate: cleanup-diagram
-- Front-panel properties and VI description, `ops/helper-loop.md` > MCP-candidate: control-property-setters
+- Front-panel properties, `ops/helper-loop.md`; VI descriptions, "LabVIEW scripting quirks" > MCP-candidate:
+  control-property-setters
 - Restart LabVIEW, `session/restart.md` > MCP-candidate: restart-with-guards
 - An actor's wiring without exports, `ops/review.md` > MCP-candidate: af-describe-actor
 - Class description, a `.ctl` into a class, a member into a virtual folder: "LabVIEW scripting quirks", "Class
@@ -504,7 +506,8 @@ They hold for any VI Server or AIXML route, the kit's included.
   saves it by name to a path, then the close works.
 - **Small fixes: edit in place, not by regeneration.** A change of a few wires or nodes in a VI whose layout, icon,
   panel flags, description or membership a regeneration would lose is a VI Server edit of the existing VI (a kit
-  helper or one derived from it), with the project open and active. It needs no `remove_members`, no library re-add
+  helper or one derived from it), in the project state the helper names ("Project open or closed"; most are open
+  and active, `pa_wire_by_label` runs closed). It needs no `remove_members`, no library re-add
   and no `git checkout` (which a harness permission check may refuse). The pattern, measured on four fixes 2026-10:
   an `apply` input, F first (a dry run that only counts what it finds: every node and wire exactly once), then T;
   every lookup before any delete, and a node's wires deleted before the node (both orders the other way round

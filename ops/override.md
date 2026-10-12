@@ -48,7 +48,7 @@ override is protected and dynamic; a plain-class override keeps its parent's sco
 folder (`convention: layout.class-folders`; `kit/pa_class_folder_create_and_move.xml`, or `pa_class_folder_move.xml` when the folder exists; project open and
 active; no question needed).
 The new override carries NI's help text of the parent method as its VI description: replace it per `convention:
-hygiene.descriptions` with `kit/pa_replace_description.xml` (project closed). (a harness run 2026-10) > MCP-candidate: create-override
+hygiene.descriptions` with the whole new text: `kit/pa_set_vi_descriptions.xml` (project closed; one record per VI). (a harness run 2026-10) > MCP-candidate: create-override
 Close the project, read the override cold (state 1), commit. Measured on four AF overrides in skillsaudit M-CLOSE
 M3/M4 (2026-10-09) and in the pilot. (pilot rule 6)
 
@@ -68,8 +68,8 @@ M3/M4 (2026-10-09) and in the pilot. (pilot rule 6)
 Pre Launch Init has no `error in`, and its parent does nothing, so the order of work in it is free
 (`knowledge/actor-framework.md`). B-after is the measured form in which a hook's error reaches PLI's `error out`, so
 a failed create fails the launch. Where there is no error-handling plan, the statement `errors.no-plan-statement`
-goes into the class description and Handle Error's VI description (`kit/pa_replace_description.xml`, project
-closed). Hook placement here; what each hook VI does is set by the conventions cited.
+goes into the class description (`kit/pa_set_class_description.xml`, project open and active) and Handle Error's
+VI description (`kit/pa_set_vi_descriptions.xml`, project closed). Hook placement here; what each hook VI does is set by the conventions cited.
 
 ## 3. Place each hook
 
@@ -86,7 +86,8 @@ beside everything else on that wire. Only the class terminal is wired. (pilot ru
 **B. Series before Call Parent:** `kit/pa_insert_series2.xml`: `vi path`, `class path`, `hook vi path`,
 `panel name A` = `<C> in`, `hook in A` = `<C> in`, `hook out A` = `<C> out`; the error wire as block B:
 `panel name B` = `error in`, `hook in B` = `error in`, `hook out B` = `error out`. Measured on Actor Core (M-CLOSE M4,
-all 0). The hook needs both class terminals.
+all 0). The hook needs both class terminals. Then `kit/pa_save_member.xml` (`vi path`, `class path`) in a separate
+call.
 - **A wire with branches** (Actor Core whose class wire also feeds the helper loop, the stop frame or `close`):
   `pa_insert_series2` reconnects only one far end and drops the other branches. Use `kit/pa_insert_series_branch.xml`
   instead: the same `vi path`, `hook vi path` and A/B names, plus `far name A` = Call Parent's class input (`Actor in`,
