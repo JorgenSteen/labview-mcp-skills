@@ -161,12 +161,26 @@ recipe in `ops/class-field.md`.
 ## add-to-class
 **Status** proposed (MC-6, settled). **Gap** no tool adds a `.ctl` or VI to a class; `lvai_add_to_library` re-saves the
 whole library. **Proposed** `lvai_add_to_class(lvclassPath, itemPath, virtualFolderName)`, saving only the `.lvclass`.
-**Evidence** rule candidate 106; Q17. **Workaround** ask the user. **Removes** that note in `ops/class-field.md`.
+**Evidence** rule candidate 106; Q17; a harness run 2026-10-11/12 (11 `.ctl` added by VI Server). **Workaround**
+`kit/pa_class_folder_add_files.xml`, `pa_save_libraries.xml`, `pa_project_vis_modified.xml` (the caller relink is the
+hard part: the tool should load and save the callers). **Removes** those helpers and the notes that cite them.
 
 ## library-virtual-folder
 **Status** proposed. **Gap** `lvai_add_to_library` refuses a missing virtual folder; no tool creates one. **Proposed**
 `createFolder: true`, for `.lvlib` and `.lvclass`. **Evidence** pilot rule 92; S7. **Workaround** library root.
 **Removes** that bullet.
+
+## class-description
+**Status** proposed. **Gap** no tool sets a class's or library's description (`NI.Lib.Description`). **Proposed**
+`lvai_set_class_description(lvclassPath, text)`: writes, reads back, saves only the `.lvclass`; refuses or
+transliterates characters outside CP1252 (stored ANSI: "→" became "?" with no error). **Evidence** a harness run
+2026-10-11/12 (15 classes). **Workaround** `kit/pa_set_class_description.xml`. **Removes** that helper.
+
+## move-to-folder
+**Status** proposed. **Gap** no tool moves a class or library member into a virtual folder. **Proposed**
+`lvai_move_to_folder(lvclassPath, folder, itemNames, createFolder)`, saving only the `.lvclass`. **Evidence** a harness
+run 2026-10-11/12 (every member of 15 classes). **Workaround** `kit/pa_class_folder_create_and_move.xml`,
+`pa_class_folder_move.xml`. **Removes** those helpers.
 
 ## rename-member
 **Status** proposed (S5); RN-1, RN-3, RN-4 settled (and the user's Q33: renames only through LabVIEW). **Gap** no rename tool; an unloaded caller keeps the old link
@@ -276,7 +290,8 @@ to test frameworks that may be missing. **Proposed** agents read a shipped trap 
 
 ## vi-server-catalogue
 **Status** proposed. **Gap** `lvai_vi_server_reference` lacks `BD.CleanUp` and the Project and Library classes (Save,
-Close, `SetSaveVersion`); `lvai_aixml_reference` lacks `ref{UDP}`. **Proposed** add them. **Evidence** pilot rules 46,
+Close, `SetSaveVersion`), `{LV.LVClassLibrary}` `Description` and `{LV.ProjectItem}` (`AddItem`, `Move`, `Name`);
+`lvai_aixml_reference` lacks `ref{UDP}`. **Proposed** add them. **Evidence** pilot rules 46,
 51; agent V. **Removes** those notes.
 
 ## convert-target-folder

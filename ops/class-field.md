@@ -41,9 +41,10 @@ field: an accessor made earlier keeps the bare type for ever. (pilot rule 2)
    `projectPath`, the file flat in the class folder (`convention: layout.flat-files`). `verifiedFromFile` must say
    typedef and `needsLabviewSave false`. Spellings and the `overwrite` trap: `knowledge/labview-mcp.md`,
    "lvai_create_typedef, lvai_resave_ctl, lvai_describe_ctl".
-   - **Owner** per `convention: layout.typedef-placement`. No labview-mcp tool adds a `.ctl` to a class: ask the user
-     to add it to the class's folder in the Project Explorer (and save the class), or to name another owner. If the
-     folder is missing in an existing class, stop and ask; never fall back to the class or library root.
+   - **Owner** per `convention: layout.typedef-placement`. No labview-mcp tool adds a `.ctl` to a class: add it right after it is created,
+     before anything uses it, with `kit/pa_class_folder_add_files.xml` (folder `TypeDefs`, project open and active);
+     added later it is renamed and its callers relink (`knowledge/labview-mcp.md`, "LabVIEW scripting quirks",
+     "Class description, typedef membership, virtual folders"). Never fall back to the class or library root.
      > MCP-candidate: add-to-class
    - Where the area keeps typedefs in its library: `lvai_add_to_library` into that folder (it refuses a missing
      folder, and saves every library member). > MCP-candidate: library-virtual-folder

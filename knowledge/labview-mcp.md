@@ -50,6 +50,7 @@ not repeated here.
 | byte-exact kit edits of `.lvclass`/`.lvlib`/`.lvproj`; file deletes; any git restore, checkout, revert or reset | **closed** |
 | AF override and hook helpers, `pa_save_member`, `pa_clean_member`, `pa_rename_member`; `lvai_swap_subvis` (`Replace` is a silent no-op outside the IDE's own instance) | **open and active** |
 | `lvai_wire_dynamic_events`, `pa_wire_dyn_right`, `pa_set_panel_on_call`, `pa_switch_and_reset_boolean`, `pa_array_element_replace`; `lvai_add_class_field`, `lvai_bind_class_fields`, `lvai_add_class_method` on an existing member, `lvpdc_export`/`lvpdc_import` | **open and active** |
+| `pa_set_class_description`, `pa_class_folder_add_files`, `pa_class_folder_create_and_move`, `pa_class_folder_move`, `pa_save_libraries`, `pa_project_vis_modified` | **open and active** |
 | `lvai_create_accessors` | opens `projectPath` itself (since 1.8.5) |
 | `lvai_create_typedef` | closed with no `projectPath` (stays closed), or `projectPath` = the active project |
 | converting a VI that calls library or class members | open, one member opened through it |
@@ -311,7 +312,7 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
 - Refuses a virtual folder that does not exist, and a new library has none (`Controls` included); no tool creates one.
   [1.8.5] (pilot rule 92) > MCP-candidate: library-virtual-folder
 - One add re-saves every member of the library (11 files: all 7 VIs, the class, the other `.ctl`), each a save that can
-  change its version. No tool adds a `.ctl` to a class. [1.8.5] (audit rule candidate 106) > MCP-candidate: add-to-class
+  change its version. No tool adds a `.ctl` to a class (kit route: "Class description, typedef membership, virtual folders" below). [1.8.5] (audit rule candidate 106) > MCP-candidate: add-to-class
 - Messages go one folder each into `Messages for this Actor` (folder name; check `placedIn`). A
   `projectEntriesToRemove` for a `.ctl` the `.lvproj` never listed needs nothing. (pilot rule 20)
 
@@ -371,6 +372,9 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
 - Front-panel properties and VI description, `ops/helper-loop.md` > MCP-candidate: control-property-setters
 - Restart LabVIEW, `session/restart.md` > MCP-candidate: restart-with-guards
 - An actor's wiring without exports, `ops/review.md` > MCP-candidate: af-describe-actor
+- Class description, a `.ctl` into a class, a member into a virtual folder: "LabVIEW scripting quirks", "Class
+  description, typedef membership, virtual folders" > MCP-candidate: class-description; > MCP-candidate:
+  add-to-class; > MCP-candidate: move-to-folder
 
 ## LabVIEW scripting quirks
 
@@ -391,6 +395,22 @@ They hold for any VI Server or AIXML route, the kit's included.
   (pilot rule 52)
 - **VI description:** read `VI Description`, replace, write, `Save.Instrument` (project closed) keeps the icon, layout
   and state 1 (`pa_replace_description.xml`); edit the `.xml` source as text. (pilot rule 81)
+- **Class description, typedef membership, virtual folders** (VI Server, project open and active; measured on LabVIEW
+  2026 Q3 32-bit, 2026-10-11/12, on 15 classes). The names are not in `lvai_vi_server_reference`; they come from
+  LabVIEW's `resource\lvserver.rsc`. **Description:** `LVClass.Open` on the project's application, write
+  `{LV.LVClassLibrary}` `Description`, read back, `Save` (`kit/pa_set_class_description.xml`). It is stored ANSI
+  (CP1252): "→" became "?" with no error, so write ASCII and read back. **Folder:** `{LV.Library}` `AddItem` (Type
+  `Folder`); **member into it:** `{LV.ProjectItem}` `Move` (`New Parent` = the folder item)
+  (`kit/pa_class_folder_create_and_move.xml`, `pa_class_folder_move.xml`). A move changes only the `.lvclass` (no file
+  move, no rename, no relink): routine, no question. **File into a class:** `{LV.ProjectItem}` `AddItem` (Name, Path,
+  Type) on the folder item (`kit/pa_class_folder_add_files.xml`). **A `.ctl` added to a class is renamed**
+  (`Class.lvclass:X.ctl`) and every caller relinks: add it right after it is created, before anything uses it. Added
+  later: open every caller outside the class through the project first (so it relinks in memory), add, then
+  `kit/pa_save_libraries.xml` on each library whose members use it and `kit/pa_project_vis_modified.xml` (`save
+  modified?` T) for top-level VIs. A `.ctl` saves only through a library Save All (`Open VI Reference` answers 1035).
+  LabVIEW makes the added typedef public. A harness permission check may stop the typedef add as a shared-resource
+  change while it allows the moves. > MCP-candidate: class-description; > MCP-candidate: add-to-class; >
+  MCP-candidate: move-to-folder
 - **Clean Up Diagram** (`{LV.VI}` `BD.CleanUp` + `Save.Instrument`, project closed) keeps classes, state, icon and the
   AIXML export; 0.25–0.8 s per generated VI, 4–5 s on older trees. A regeneration discards it. On a hand-laid diagram
   it can grow it (1160x495 to 1290x925): `convention: hygiene` says where it runs. (pilot rule 46; audit rule candidate 109)

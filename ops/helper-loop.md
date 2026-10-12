@@ -94,8 +94,9 @@ or when a concern is off, follow the surrounding code instead.
 9. **Membership:** `lvai_add_class_method` with the **existing VI only** (`methodsJson`
    `[{"vi": "<member path>", "classTerminals": ["<C> in"]}]`, `projectPath`). With `aixml` as well it re-converts the
    VI and steps 5–8 are lost. Then `lvai_swap_subvis` the stubs; scope private (`kit/set_scope.py`, project closed);
-   the folder `Helpers` (`convention: layout.class-folders`): no tool places a member in a virtual folder, so ask the
-   user. (pilot rule 91) > MCP-candidate: add-class-method-rerun, add-to-class
+   the folder `Helpers` (`convention: layout.class-folders`): `kit/pa_class_folder_create_and_move.xml`, or
+   `pa_class_folder_move.xml` when the folder exists (project open and active; no question needed). (pilot rule 91)
+   > MCP-candidate: add-class-method-rerun, move-to-folder
 10. **Panel and controls** (`knowledge/labview-mcp.md`, "LabVIEW scripting quirks", panel flags and mechanical action):
     - a loop with a user-facing panel only: `kit/pa_set_panel_on_call.xml` (project open and active), read back cold
       with `kit/pa_read_panel_on_call.xml`; re-apply after any regeneration;

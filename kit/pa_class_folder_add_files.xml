@@ -1,0 +1,54 @@
+<VI _name="pa_class_folder_add_files.vi" description="Kit helper\3A creates a virtual folder in a class and adds existing files to it as class members\2C through LabVIEW's own VI Server\3A Project\3AActive Project -&gt; Application -&gt; LVClass.Open -&gt; {LV.Library} AddItem (Name = folder\2C Type Folder) -&gt; for each path in item paths (\3B-separated) {LV.ProjectItem} AddItem on the FOLDER item (Name = file name\2C Path\2C Type = item type) -&gt; Edit LVLibs.lvlib\3ASave All This Library.vi on the class (only modified\3A the class and the added files). Callers outside the class relinked in memory are NOT saved here (separate save step). Project OPEN and ACTIVE.">
+  <Control _name="class path" type="string" uid="4100" uid_parent="root" value="" outputs="value:4100.value"/>
+  <Control _name="folder" type="string" uid="4101" uid_parent="root" value="" outputs="value:4101.value"/>
+  <Control _name="item paths" type="string" uid="4102" uid_parent="root" value="" outputs="value:4102.value"/>
+  <Control _name="item type" type="string" uid="4103" uid_parent="root" value="VI" outputs="value:4103.value"/>
+  <Constant _name="Folder Type" type="string" uid="4110" uid_parent="root" value="Folder" outputs="value:4110.value"/>
+  <Constant _name="Empty Path" type="path" uid="4111" uid_parent="root" value="" outputs="value:4111.value"/>
+  <Constant _name="sep" type="string" uid="4112" uid_parent="root" value="\3B" outputs="value:4112.value"/>
+  <Constant _name="tab" type="string" uid="4113" uid_parent="root" value="\09" outputs="value:4113.value"/>
+  <Constant _name="lf" type="string" uid="4114" uid_parent="root" value="\0A" outputs="value:4114.value"/>
+  <Constant _name="empty" type="string" uid="4115" uid_parent="root" value="" outputs="value:4115.value"/>
+  <Node _name="Property Node" fields="read+Project\3AActive Project" type="{LV.Application}" inputs="error in (no error):" outputs="Project\3AActive Project:4210.proj,reference out:,error out:4210.err" uid="4210" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Application" type="{LV.Project}" inputs="reference:4210.proj,error in (no error):4210.err" outputs="Application:4215.app,reference out:,error out:4215.err" uid="4215" uid_parent="root"/>
+  <Node _name="String To Path" inputs="string:4100.value" outputs="path:4220.path" uid="4220" uid_parent="root"/>
+  <Node _name="Invoke Node" target="LVClass.Open" type="{LV.Application}" inputs="reference:4215.app,Path:4220.path,error in (no error):4215.err" outputs="reference out:,error out:4230.err,LVClass.Open:4230.cls" uid="4230" uid_parent="root"/>
+  <Indicator _name="open class error" type="cluster{bool.status,int32.code,string.source}" uid="4231" uid_parent="root" value="[false,0,]" inputs="value:4230.err"/>
+  <Node _name="Invoke Node" target="AddItem" type="{LV.Library}" inputs="reference:4230.cls,error in (no error):4230.err,Name:4101.value,Path:4111.value,Type:4110.value" outputs="reference out:,error out:4240.err,AddItem:4240.folder" uid="4240" uid_parent="root"/>
+  <Indicator _name="add folder error" type="cluster{bool.status,int32.code,string.source}" uid="4241" uid_parent="root" value="[false,0,]" inputs="value:4240.err"/>
+  <Structure _name="While Loop" count="" uid="4300" uid_parent="root">
+    <ShiftReg uid="4310" uid_parent="4300">
+      <Left inputs="value:4102.value" outputs="value:4311.rest" uid="4311" uid_parent="4310"/>
+      <Right inputs="value:4320.after" outputs="value:4312.restout" uid="4312" uid_parent="4310"/>
+    </ShiftReg>
+    <ShiftReg uid="4313" uid_parent="4300">
+      <Left inputs="value:4115.value" outputs="value:4314.rep" uid="4314" uid_parent="4313"/>
+      <Right inputs="value:4340.rep" outputs="value:4315.report" uid="4315" uid_parent="4313"/>
+    </ShiftReg>
+    <ShiftReg uid="4316" uid_parent="4300">
+      <Left inputs="value:4240.err" outputs="value:4317.err" uid="4317" uid_parent="4316"/>
+      <Right inputs="value:4330.err" outputs="value:4318.errout" uid="4318" uid_parent="4316"/>
+    </ShiftReg>
+    <Tunnel _id="In1" inputs="value:4112.value" outputs="value:4301.sep" uid="4301" uid_parent="4300"/>
+    <Tunnel _id="In2" inputs="value:4113.value" outputs="value:4302.tab" uid="4302" uid_parent="4300"/>
+    <Tunnel _id="In3" inputs="value:4114.value" outputs="value:4303.lf" uid="4303" uid_parent="4300"/>
+    <Tunnel _id="In4" inputs="value:4240.folder" outputs="value:4304.folder" uid="4304" uid_parent="4300"/>
+    <Tunnel _id="In5" inputs="value:4103.value" outputs="value:4305.type" uid="4305" uid_parent="4300"/>
+    <Node _name="Match Pattern" inputs="string:4311.rest,regular expression:4301.sep,offset (0):" outputs="before substring:4320.path,match substring:,after substring:4320.after,offset past match:" uid="4320" uid_parent="4300"/>
+    <Node _name="String To Path" inputs="string:4320.path" outputs="path:4321.p" uid="4321" uid_parent="4300"/>
+    <Node _name="Strip Path" inputs="path:4321.p" outputs="stripped path:,name:4322.name" uid="4322" uid_parent="4300"/>
+    <Node _name="Invoke Node" target="AddItem" type="{LV.ProjectItem}" inputs="reference:4304.folder,error in (no error):4317.err,Name:4322.name,Path:4321.p,Type:4305.type" outputs="reference out:,error out:4330.err,AddItem:" uid="4330" uid_parent="4300"/>
+    <Node _name="Unbundle By Name" fields="code" inputs="input cluster:4330.err" outputs="code:4331.code" uid="4331" uid_parent="4300"/>
+    <Node _name="Number To Decimal String" inputs="number:4331.code" outputs="decimal integer string:4332.c" uid="4332" uid_parent="4300"/>
+    <Node _name="Concatenate Strings" inputs="string:4314.rep,string:4332.c,string:4302.tab,string:4322.name,string:4303.lf" outputs="concatenated string:4340.rep" uid="4340" uid_parent="4300"/>
+    <Node _name="Empty String/Path?" inputs="string/path:4320.after" outputs="empty?:4360.e" uid="4360" uid_parent="4300"/>
+    <Condition inputs="value:4360.e" uid="4361" uid_parent="4300" value="stop"/>
+  </Structure>
+  <Indicator _name="report" type="string" uid="4800" uid_parent="root" value="" inputs="value:4315.report"/>
+  <Constant _name="only modified" type="bool" uid="4116" uid_parent="root" value="true" outputs="value:4116.value"/>
+  <Call target="Edit LVLibs.lvlib\3ASave All This Library.vi" inputs="Library in:4230.cls,Save Only Modified VIs and Libraries? (F):4116.value,error in (no error):4318.errout" outputs="Library out:,error out:4500.err" uid="4500" uid_parent="root"/>
+  <Indicator _name="save class error" type="cluster{bool.status,int32.code,string.source}" uid="4501" uid_parent="root" value="[false,0,]" inputs="value:4500.err"/>
+  <Node _name="Close Reference" inputs="reference:4240.folder,error in (no error):4500.err" outputs="error out:4510.err" uid="4510" uid_parent="root"/>
+  <Node _name="Close Reference" inputs="reference:4230.cls,error in (no error):4510.err" outputs="error out:4520.err" uid="4520" uid_parent="root"/>
+  <Indicator _name="error out" type="cluster{bool.status,int32.code,string.source}" uid="4530" uid_parent="root" value="[false,0,]" inputs="value:4520.err"/>
+</VI>

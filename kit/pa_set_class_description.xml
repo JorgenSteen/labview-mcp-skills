@@ -1,0 +1,19 @@
+<VI _name="pa_set_class_description.vi" description="Kit helper\3A sets a class's description (NI.Lib.Description) through LabVIEW's own VI Server\3A Project\3AActive Project -&gt; Application -&gt; LVClass.Open (class path) -&gt; write {LV.LVClassLibrary} Description -&gt; read it back -&gt; {LV.LVClassLibrary} Save. Project OPEN and ACTIVE (the class is edited in the project's instance and saved through it).">
+  <Control _name="class path" type="string" uid="4100" uid_parent="root" value="" outputs="value:4100.value"/>
+  <Control _name="description" type="string" uid="4101" uid_parent="root" value="" outputs="value:4101.value"/>
+  <Node _name="Property Node" fields="read+Project\3AActive Project" type="{LV.Application}" inputs="error in (no error):" outputs="Project\3AActive Project:4210.proj,reference out:,error out:4210.err" uid="4210" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Application" type="{LV.Project}" inputs="reference:4210.proj,error in (no error):4210.err" outputs="Application:4215.app,reference out:,error out:4215.err" uid="4215" uid_parent="root"/>
+  <Node _name="String To Path" inputs="string:4100.value" outputs="path:4220.path" uid="4220" uid_parent="root"/>
+  <Node _name="Invoke Node" target="LVClass.Open" type="{LV.Application}" inputs="reference:4215.app,Path:4220.path,error in (no error):4215.err" outputs="reference out:,error out:4230.err,LVClass.Open:4230.cls" uid="4230" uid_parent="root"/>
+  <Indicator _name="open class error" type="cluster{bool.status,int32.code,string.source}" uid="4231" uid_parent="root" value="[false,0,]" inputs="value:4230.err"/>
+  <Node _name="Property Node" fields="read+Description" type="{LV.LVClassLibrary}" inputs="reference:4230.cls,error in (no error):4230.err" outputs="Description:4240.desc,reference out:4240.cls,error out:4240.err" uid="4240" uid_parent="root"/>
+  <Indicator _name="description before" type="string" uid="4241" uid_parent="root" value="" inputs="value:4240.desc"/>
+  <Node _name="Property Node" fields="write+Description" type="{LV.LVClassLibrary}" inputs="reference:4240.cls,error in (no error):4240.err,Description:4101.value" outputs="reference out:4250.cls,error out:4250.err" uid="4250" uid_parent="root"/>
+  <Indicator _name="write error" type="cluster{bool.status,int32.code,string.source}" uid="4251" uid_parent="root" value="[false,0,]" inputs="value:4250.err"/>
+  <Node _name="Property Node" fields="read+Description" type="{LV.LVClassLibrary}" inputs="reference:4250.cls,error in (no error):4250.err" outputs="Description:4260.desc,reference out:4260.cls,error out:4260.err" uid="4260" uid_parent="root"/>
+  <Indicator _name="description after" type="string" uid="4261" uid_parent="root" value="" inputs="value:4260.desc"/>
+  <Node _name="Invoke Node" target="Save" type="{LV.LVClassLibrary}" inputs="reference:4260.cls,error in (no error):4260.err" outputs="reference out:,error out:4270.err" uid="4270" uid_parent="root"/>
+  <Indicator _name="save class error" type="cluster{bool.status,int32.code,string.source}" uid="4271" uid_parent="root" value="[false,0,]" inputs="value:4270.err"/>
+  <Node _name="Close Reference" inputs="reference:4230.cls,error in (no error):4270.err" outputs="error out:4280.err" uid="4280" uid_parent="root"/>
+  <Indicator _name="error out" type="cluster{bool.status,int32.code,string.source}" uid="4290" uid_parent="root" value="[false,0,]" inputs="value:4280.err"/>
+</VI>
