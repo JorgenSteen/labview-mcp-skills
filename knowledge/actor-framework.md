@@ -126,9 +126,15 @@ docs, or NI/AF designers on the NI forum), **observed in production** (the user'
 - **Generating an event nobody registered for does nothing,** with no error. So a stop sent to a loop that never
   registered (for example one that returned at once on an error) is harmless, and it cannot rescue such a loop.
   *Evidence: documented (LabVIEW help for Generate User Event).*
-- **Events generated before Register are not seen.** Registration starts queuing from the moment Register runs. A
-  stop generated before the loop has registered is lost. *Evidence: documented (LabVIEW help); the consequence for
-  an actor that stops very early is reasoned, unmeasured.*
+- **Events generated before Register are not seen, and that hangs a tree.** Registration starts queuing from the
+  moment Register runs; a stop generated before it is lost. With Register inside the loop VI, a Call Parent that
+  returns at once (an error wired into it, e.g. a failed nested launch in the root) lets the stop hook generate the
+  stop before the loop has registered: the loop never exits, `close` never runs, Actor Core never returns, no Last Ack
+  reaches the caller, Normal Stop answers 0 and changes nothing, and the tree stays in memory until LabVIEW restarts.
+  Registering in an `init` member in series before Call Parent fixes it. *Evidence: documented (LabVIEW help); measured
+  in a harness run, 2026-10: the failing launch hung the tree with Register in the loop VI, and with `init` the same
+  run passed (Last Ack in 70 ms carrying the real error), early stop 5 of 5 with no hang on two actors.*
+  (`convention: af-shapes.registration`.)
 - **Destroy on an already destroyed user event answered error 0** in 5 of 5 runs (the loop VI had destroyed the events
   and `close` destroyed them again). *Evidence: measured indirectly, 2026-10-09 (skillsaudit M-CLOSE M1).* Do not build
   on it; destroy each event in one place.
@@ -284,7 +290,5 @@ Open questions. They are not decided, and nothing in the skill may assume an ans
 - **PLI failure cleanup and the Stop Core release order** were open proposals (AP-2, AP-4, OV-3, OV-5, DR-6). The user
   settled them on 2026-10-09 as conventions (`convention: af-shapes.pli-failure-cleanup`, `af-shapes.stop-core-order`).
   The PLI shape (a case structure on the merged error that reuses the release VIs) has not been run yet.
-- **A stop that comes before the loop has registered** (an actor stopped right after launch) is lost by documented
-  behaviour. Whether that can happen with the stop sent after Call Parent was not measured.
 - **1608 in the parent Handle Error:** whether it is cleared like 43 or passed on.
 - **`Clear Errors.vi` in older LabVIEW versions** (e.g. 2020): whether `specific error code to clear` exists there.

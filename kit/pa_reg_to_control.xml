@@ -1,0 +1,205 @@
+<VI _name="pa_reg_to_control.vi" description="Kit helper (init registration shape\3B built on pa_insert_series2.xml and pa_wire_dyn_deep.xml\3B measured 2026-10). In a helper-loop VI it replaces the top-level Register For Events by an INPUT CONTROL that carries the same event registration refnum: (1) Create Control on Register's input 'event registration refnum' (typed like the registration), (2) remembers the far end of Register's refnum output wire (the loop tunnel) and the owners of the sources on 'event source' (Unbundle By Name) and 'error in (no error)' (the fresh no-error constant), (3) deletes every wire on Register and on that Unbundle, (4) deletes Register, the Unbundle and the constant, (5) wires the new control's terminal to the remembered far end, (6) assigns the control to connector pane slot 'term index' (AssignCtrlToTerm), (7) Save.Instrument. No Remove Bad Wires (it would remove the sourceless inner refnum chain before step 5). Project OPEN and ACTIVE.">
+  <Control _name="VI Path" type="string" uid="4210" uid_parent="root" value="" outputs="value:4210.value"/>
+  <Control _name="term index" type="int32" uid="4211" uid_parent="root" value="10" outputs="value:4211.value"/>
+  <Node _name="String To Path" inputs="string:4210.value" outputs="path:4212.path" uid="4212" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Project\3AActive Project" type="{LV.Application}" inputs="reference:,error in (no error):" outputs="Project\3AActive Project:4220.proj,reference out:,error out:4220.err" uid="4220" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Application" type="{LV.Project}" inputs="reference:4220.proj,error in (no error):4220.err" outputs="Application:4221.app,reference out:,error out:4221.err" uid="4221" uid_parent="root"/>
+  <Node _name="Open VI Reference" inputs="application reference (local):4221.app,vi path:4212.path,error in (no error):4221.err" outputs="vi reference:4222.vi,error out:4222.err" uid="4222" uid_parent="root"/>
+  <Indicator _name="open error" type="cluster{bool.status,int32.code,string.source}" uid="4223" uid_parent="root" value="[false,0,]" inputs="value:4222.err"/>
+  <Node _name="Property Node" fields="read+Block Diagram" type="{LV.VI}" inputs="reference:4222.vi,error in (no error):4222.err" outputs="Block Diagram:4230.bd,reference out:,error out:4230.err" uid="4230" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+All Objects[]" type="{LV.Diagram}" inputs="reference:4230.bd,error in (no error):4230.err" outputs="All Objects[]:4231.objs,reference out:,error out:4231.err" uid="4231" uid_parent="root"/>
+
+  <Structure _name="For Loop" count="" maxin="" maxout="" uid="4240" uid_parent="root">
+    <Tunnel _id="In1" inputs="value:4231.objs" mode="index" outputs="value:4241.obj" uid="4241" uid_parent="4240"/>
+    <Node _name="Property Node" fields="read+Class Name" type="{LV.GObject}" inputs="reference:4241.obj" outputs="Class Name:4242.class,reference out:,error out:" uid="4242" uid_parent="4240"/>
+    <Constant _name="register" type="string" uid="4243" uid_parent="4240" value="RegisterForEvents" outputs="value:4243.value"/>
+    <Node _name="Equal?" inputs="x:4243.value,y:4242.class" outputs="x = y?:4244.eq" uid="4244" uid_parent="4240"/>
+    <Tunnel _id="Out1" cond="4244.eq" inputs="value:4241.obj" mode="index" outputs="value:4245.value" uid="4245" uid_parent="4240"/>
+  </Structure>
+  <Node _name="Array Size" inputs="array:4245.value" outputs="size(s):4246.n" uid="4246" uid_parent="root"/>
+  <Indicator _name="register count" type="int32" uid="4247" uid_parent="root" value="0" inputs="value:4246.n"/>
+  <Constant _name="first" type="int32" uid="4248" uid_parent="root" value="0" outputs="value:4248.value"/>
+  <Node _name="Index Array" inputs="array:4245.value,index:4248.value" outputs="element:4249.reg" uid="4249" uid_parent="root"/>
+  <Constant _name="node class" type="ref{LV.Node}" uid="4250" uid_parent="root" value="" outputs="value:4250.value"/>
+  <Node _name="To More Specific Class" inputs="reference:4249.reg,error in:4231.err,target class:4250.value" outputs="specific class reference:4251.node,error out:4251.err" uid="4251" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Terminals[]" type="{LV.Node}" inputs="reference:4251.node,error in (no error):4251.err" outputs="Terminals[]:4252.terms,reference out:,error out:4252.err" uid="4252" uid_parent="root"/>
+  <Indicator _name="find error" type="cluster{bool.status,int32.code,string.source}" uid="4253" uid_parent="root" value="[false,0,]" inputs="value:4252.err"/>
+
+  <Structure _name="For Loop" count="" maxin="" maxout="" uid="4260" uid_parent="root">
+    <Tunnel _id="In1" inputs="value:4252.terms" mode="index" outputs="value:4261.term" uid="4261" uid_parent="4260"/>
+    <Node _name="Property Node" fields="read+Name,read+Is Source?" type="{LV.Terminal}" inputs="reference:4261.term" outputs="Name:4262.name,Is Source?:4262.src,reference out:,error out:" uid="4262" uid_parent="4260"/>
+    <Constant _name="refnum name" type="string" uid="4263" uid_parent="4260" value="event registration refnum" outputs="value:4263.value"/>
+    <Constant _name="source name" type="string" uid="4264" uid_parent="4260" value="event source" outputs="value:4264.value"/>
+    <Constant _name="error name" type="string" uid="4265" uid_parent="4260" value="error in (no error)" outputs="value:4265.value"/>
+    <Node _name="Equal?" inputs="x:4263.value,y:4262.name" outputs="x = y?:4266.eq" uid="4266" uid_parent="4260"/>
+    <Node _name="Equal?" inputs="x:4264.value,y:4262.name" outputs="x = y?:4267.eq" uid="4267" uid_parent="4260"/>
+    <Node _name="Equal?" inputs="x:4265.value,y:4262.name" outputs="x = y?:4268.eq" uid="4268" uid_parent="4260"/>
+    <Node _name="Not" inputs="x:4262.src" outputs=".not. x?:4269.sink" uid="4269" uid_parent="4260"/>
+    <Node _name="And" inputs="x:4266.eq,y:4269.sink" outputs="x .and. y?:4270.rin" uid="4270" uid_parent="4260"/>
+    <Node _name="And" inputs="x:4266.eq,y:4262.src" outputs="x .and. y?:4271.rout" uid="4271" uid_parent="4260"/>
+    <Tunnel _id="Out1" cond="4270.rin" inputs="value:4261.term" mode="index" outputs="value:4272.value" uid="4272" uid_parent="4260"/>
+    <Tunnel _id="Out2" cond="4271.rout" inputs="value:4261.term" mode="index" outputs="value:4273.value" uid="4273" uid_parent="4260"/>
+    <Tunnel _id="Out3" cond="4267.eq" inputs="value:4261.term" mode="index" outputs="value:4274.value" uid="4274" uid_parent="4260"/>
+    <Tunnel _id="Out4" cond="4268.eq" inputs="value:4261.term" mode="index" outputs="value:4275.value" uid="4275" uid_parent="4260"/>
+    <Tunnel _id="Out5" inputs="value:4262.name" mode="index" outputs="value:4276.value" uid="4276" uid_parent="4260"/>
+  </Structure>
+  <Node _name="Flatten To XML" inputs="anything:4276.value" outputs="xml string:4277.xml" uid="4277" uid_parent="root"/>
+  <Indicator _name="register terminal names" type="string" uid="4278" uid_parent="root" value="" inputs="value:4277.xml"/>
+  <Node _name="Index Array" inputs="array:4272.value,index:4248.value" outputs="element:4280.rin" uid="4280" uid_parent="root"/>
+  <Node _name="Index Array" inputs="array:4273.value,index:4248.value" outputs="element:4281.rout" uid="4281" uid_parent="root"/>
+  <Node _name="Index Array" inputs="array:4274.value,index:4248.value" outputs="element:4282.rsrc" uid="4282" uid_parent="root"/>
+  <Node _name="Index Array" inputs="array:4275.value,index:4248.value" outputs="element:4283.rerr" uid="4283" uid_parent="root"/>
+
+  <Node _name="Invoke Node" target="Create Control" type="{LV.Terminal}" inputs="reference:4280.rin,error in (no error):4252.err,Value:" outputs="reference out:,Create Control:4290.new,error out:4290.err" uid="4290" uid_parent="root"/>
+  <Indicator _name="create control error" type="cluster{bool.status,int32.code,string.source}" uid="4291" uid_parent="root" value="[false,0,]" inputs="value:4290.err"/>
+  <Node _name="Property Node" fields="read+Class Name" type="{LV.GObject}" inputs="reference:4290.new" outputs="Class Name:4292.class,reference out:,error out:" uid="4292" uid_parent="root"/>
+  <Indicator _name="new object class" type="string" uid="4293" uid_parent="root" value="" inputs="value:4292.class"/>
+  <Constant _name="control class" type="ref{LV.Control}" uid="4294" uid_parent="root" value="" outputs="value:4294.value"/>
+  <Node _name="To More Specific Class" inputs="reference:4290.new,error in:4290.err,target class:4294.value" outputs="specific class reference:4295.ctl,error out:4295.err" uid="4295" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Terminal,read+Label.Text" type="{LV.Control}" inputs="reference:4295.ctl,error in (no error):4295.err" outputs="Terminal:4296.cterm,Label.Text:4296.label,reference out:,error out:4296.err" uid="4296" uid_parent="root"/>
+  <Indicator _name="new control label" type="string" uid="4297" uid_parent="root" value="" inputs="value:4296.label"/>
+  <Indicator _name="control cast error" type="cluster{bool.status,int32.code,string.source}" uid="4298" uid_parent="root" value="[false,0,]" inputs="value:4296.err"/>
+
+  <Constant _name="no terminal" type="ref{LV.Terminal}" uid="4300" uid_parent="root" value="" outputs="value:4300.value"/>
+  <Node _name="Property Node" fields="read+Connected Wire" type="{LV.Terminal}" inputs="reference:4281.rout,error in (no error):4296.err" outputs="Connected Wire:4301.wire,reference out:,error out:4301.err" uid="4301" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Terminals[]" type="{LV.Wire}" inputs="reference:4301.wire,error in (no error):4301.err" outputs="Terminals[]:4302.wterms,reference out:,error out:4302.err" uid="4302" uid_parent="root"/>
+  <Node _name="Array Size" inputs="array:4302.wterms" outputs="size(s):4303.n" uid="4303" uid_parent="root"/>
+  <Indicator _name="out wire ends" type="int32" uid="4304" uid_parent="root" value="0" inputs="value:4303.n"/>
+  <Structure _name="For Loop" count="" maxin="" maxout="" uid="4310" uid_parent="root">
+    <Tunnel _id="In1" inputs="value:4302.wterms" mode="index" outputs="value:4311.wterm" uid="4311" uid_parent="4310"/>
+    <Tunnel _id="In2" inputs="value:4281.rout" outputs="value:4312.self" uid="4312" uid_parent="4310"/>
+    <ShiftReg uid="4313" uid_parent="4310">
+      <Left inputs="value:4300.value" outputs="value:4314.prev" uid="4314" uid_parent="4313"/>
+      <Right inputs="value:4316.sel" outputs="value:4317.far" uid="4315" uid_parent="4313"/>
+    </ShiftReg>
+    <Node _name="Not Equal?" inputs="x:4311.wterm,y:4312.self" outputs="x != y?:4318.neq" uid="4318" uid_parent="4310"/>
+    <Node _name="Select" inputs="t:4311.wterm,s:4318.neq,f:4314.prev" outputs="s? t\3Af:4316.sel" uid="4316" uid_parent="4310"/>
+  </Structure>
+  <Node _name="Property Node" fields="read+Class Name" type="{LV.GObject}" inputs="reference:4317.far" outputs="Class Name:4319.class,reference out:,error out:" uid="4319" uid_parent="root"/>
+  <Indicator _name="far end class" type="string" uid="4320" uid_parent="root" value="" inputs="value:4319.class"/>
+
+  <Node _name="Property Node" fields="read+Connected Wire" type="{LV.Terminal}" inputs="reference:4282.rsrc,error in (no error):4302.err" outputs="Connected Wire:4330.wire,reference out:,error out:4330.err" uid="4330" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Terminals[]" type="{LV.Wire}" inputs="reference:4330.wire,error in (no error):4330.err" outputs="Terminals[]:4331.wterms,reference out:,error out:4331.err" uid="4331" uid_parent="root"/>
+  <Structure _name="For Loop" count="" maxin="" maxout="" uid="4332" uid_parent="root">
+    <Tunnel _id="In1" inputs="value:4331.wterms" mode="index" outputs="value:4333.wterm" uid="4333" uid_parent="4332"/>
+    <Tunnel _id="In2" inputs="value:4282.rsrc" outputs="value:4334.self" uid="4334" uid_parent="4332"/>
+    <ShiftReg uid="4335" uid_parent="4332">
+      <Left inputs="value:4300.value" outputs="value:4336.prev" uid="4336" uid_parent="4335"/>
+      <Right inputs="value:4338.sel" outputs="value:4339.far" uid="4337" uid_parent="4335"/>
+    </ShiftReg>
+    <Node _name="Property Node" fields="read+Is Source?" type="{LV.Terminal}" inputs="reference:4333.wterm" outputs="Is Source?:4345.src,reference out:,error out:" uid="4345" uid_parent="4332"/>
+    <Node _name="Not Equal?" inputs="x:4333.wterm,y:4334.self" outputs="x != y?:4340.neq" uid="4340" uid_parent="4332"/>
+    <Node _name="Not" inputs="x:4345.src" outputs=".not. x?:4346.sink" uid="4346" uid_parent="4332"/>
+    <Node _name="And" inputs="x:4340.neq,y:4346.sink" outputs="x .and. y?:4347.other" uid="4347" uid_parent="4332"/>
+    <Node _name="Select" inputs="t:4333.wterm,s:4345.src,f:4336.prev" outputs="s? t\3Af:4338.sel" uid="4338" uid_parent="4332"/>
+    <Tunnel _id="Out1" cond="4347.other" inputs="value:4333.wterm" mode="index" outputs="value:4348.value" uid="4348" uid_parent="4332"/>
+  </Structure>
+  <Node _name="Array Size" inputs="array:4348.value" outputs="size(s):4349.n" uid="4349" uid_parent="root"/>
+  <Indicator _name="other consumers of event source" type="int32" uid="4344" uid_parent="root" value="0" inputs="value:4349.n"/>
+  <Node _name="Property Node" fields="read+Owner" type="{LV.GObject}" inputs="reference:4339.far,error in (no error):4331.err" outputs="Owner:4341.unb,reference out:,error out:4341.err" uid="4341" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Class Name" type="{LV.GObject}" inputs="reference:4341.unb" outputs="Class Name:4342.class,reference out:,error out:" uid="4342" uid_parent="root"/>
+  <Indicator _name="source owner class" type="string" uid="4343" uid_parent="root" value="" inputs="value:4342.class"/>
+
+  <Node _name="Property Node" fields="read+Connected Wire" type="{LV.Terminal}" inputs="reference:4283.rerr,error in (no error):4341.err" outputs="Connected Wire:4350.wire,reference out:,error out:4350.err" uid="4350" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Terminals[]" type="{LV.Wire}" inputs="reference:4350.wire,error in (no error):4350.err" outputs="Terminals[]:4351.wterms,reference out:,error out:4351.err" uid="4351" uid_parent="root"/>
+  <Structure _name="For Loop" count="" maxin="" maxout="" uid="4352" uid_parent="root">
+    <Tunnel _id="In1" inputs="value:4351.wterms" mode="index" outputs="value:4353.wterm" uid="4353" uid_parent="4352"/>
+    <Tunnel _id="In2" inputs="value:4283.rerr" outputs="value:4354.self" uid="4354" uid_parent="4352"/>
+    <ShiftReg uid="4355" uid_parent="4352">
+      <Left inputs="value:4300.value" outputs="value:4356.prev" uid="4356" uid_parent="4355"/>
+      <Right inputs="value:4358.sel" outputs="value:4359.far" uid="4357" uid_parent="4355"/>
+    </ShiftReg>
+    <Node _name="Not Equal?" inputs="x:4353.wterm,y:4354.self" outputs="x != y?:4360.neq" uid="4360" uid_parent="4352"/>
+    <Node _name="Select" inputs="t:4353.wterm,s:4360.neq,f:4356.prev" outputs="s? t\3Af:4358.sel" uid="4358" uid_parent="4352"/>
+  </Structure>
+  <Node _name="Property Node" fields="read+Owner" type="{LV.GObject}" inputs="reference:4359.far,error in (no error):4351.err" outputs="Owner:4361.konst,reference out:,error out:4361.err" uid="4361" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Class Name" type="{LV.GObject}" inputs="reference:4361.konst" outputs="Class Name:4362.class,reference out:,error out:" uid="4362" uid_parent="root"/>
+  <Indicator _name="error owner class" type="string" uid="4363" uid_parent="root" value="" inputs="value:4362.class"/>
+  <Indicator _name="lookup error" type="cluster{bool.status,int32.code,string.source}" uid="4364" uid_parent="root" value="[false,0,]" inputs="value:4361.err"/>
+
+  <Structure _name="For Loop" count="" maxin="" maxout="" uid="4370" uid_parent="root">
+    <Tunnel _id="In1" inputs="value:4252.terms" mode="index" outputs="value:4371.term" uid="4371" uid_parent="4370"/>
+    <Tunnel _id="In2" inputs="value:4361.err" outputs="value:4378.err" uid="4378" uid_parent="4370"/>
+    <Node _name="Property Node" fields="read+Connected Wire" type="{LV.Terminal}" inputs="reference:4371.term,error in (no error):4378.err" outputs="Connected Wire:4372.wire,reference out:,error out:4372.err" uid="4372" uid_parent="4370"/>
+    <Node _name="Invoke Node" target="Delete" type="{LV.Wire}" inputs="reference:4372.wire,error in (no error):4372.err" outputs="reference out:,error out:4373.err" uid="4373" uid_parent="4370"/>
+    <Node _name="Unbundle By Name" fields="code" inputs="input cluster:4373.err" outputs="code:4374.code" uid="4374" uid_parent="4370"/>
+    <Tunnel _id="Out1" inputs="value:4374.code" mode="index" outputs="value:4375.value" uid="4375" uid_parent="4370"/>
+  </Structure>
+  <Node _name="Flatten To XML" inputs="anything:4375.value" outputs="xml string:4376.xml" uid="4376" uid_parent="root"/>
+  <Indicator _name="register wire delete codes" type="string" uid="4377" uid_parent="root" value="" inputs="value:4376.xml"/>
+
+  <Structure _name="For Loop" count="" maxin="" maxout="" uid="4500" uid_parent="root">
+    <Tunnel _id="In1" inputs="value:4348.value" mode="index" outputs="value:4501.term" uid="4501" uid_parent="4500"/>
+    <Tunnel _id="In2" inputs="value:4339.far" outputs="value:4502.src" uid="4502" uid_parent="4500"/>
+    <Tunnel _id="In3" inputs="value:4375.value" outputs="value:4507.order" uid="4507" uid_parent="4500"/>
+    <Constant _name="auto" type="bool" uid="4503" uid_parent="4500" value="true" outputs="value:4503.value"/>
+    <Node _name="Invoke Node" target="Connect Wire" type="{LV.Terminal}" inputs="reference:4501.term,error in (no error):,Wire Source:4502.src,Auto Wire? (T):4503.value,Auto Route? (F):4503.value" outputs="reference out:,error out:4504.err" uid="4504" uid_parent="4500"/>
+    <Node _name="Unbundle By Name" fields="code" inputs="input cluster:4504.err" outputs="code:4505.code" uid="4505" uid_parent="4500"/>
+    <Tunnel _id="Out1" inputs="value:4505.code" mode="index" outputs="value:4506.value" uid="4506" uid_parent="4500"/>
+  </Structure>
+  <Node _name="Flatten To XML" inputs="anything:4506.value" outputs="xml string:4508.xml" uid="4508" uid_parent="root"/>
+  <Indicator _name="reconnect codes" type="string" uid="4509" uid_parent="root" value="" inputs="value:4508.xml"/>
+  <Constant _name="zero" type="int32" uid="4510" uid_parent="root" value="0" outputs="value:4510.value"/>
+  <Node _name="Equal?" inputs="x:4349.n,y:4510.value" outputs="x = y?:4511.eq" uid="4511" uid_parent="root"/>
+  <Structure _name="Case Structure" selectin="4511.eq" uid="4520" uid_parent="root">
+    <Tunnel _id="In1" inputs="value:4341.unb" uid="4521" uid_parent="4520"/>
+    <Tunnel _id="In2" inputs="value:4361.err" uid="4522" uid_parent="4520"/>
+    <Tunnel _id="In3" inputs="value:4506.value" uid="4523" uid_parent="4520"/>
+    <CaseFrame selector="True" selectout="" uid="4530" uid_parent="4520">
+      <Tunnel _id="In1" outputs="value:4531.unb" uid="4531" uid_parent="4530"/>
+      <Tunnel _id="In2" outputs="value:4532.err" uid="4532" uid_parent="4530"/>
+      <Tunnel _id="In3" outputs="value:4533.order" uid="4533" uid_parent="4530"/>
+      <Constant _name="node class 2" type="ref{LV.Node}" uid="4380" uid_parent="4530" value="" outputs="value:4380.value"/>
+      <Node _name="To More Specific Class" inputs="reference:4531.unb,error in:4532.err,target class:4380.value" outputs="specific class reference:4381.unode,error out:4381.err" uid="4381" uid_parent="4530"/>
+      <Node _name="Property Node" fields="read+Terminals[]" type="{LV.Node}" inputs="reference:4381.unode,error in (no error):4381.err" outputs="Terminals[]:4382.uterms,reference out:,error out:4382.err" uid="4382" uid_parent="4530"/>
+      <Structure _name="For Loop" count="" maxin="" maxout="" uid="4383" uid_parent="4530">
+        <Tunnel _id="In1" inputs="value:4382.uterms" mode="index" outputs="value:4384.term" uid="4384" uid_parent="4383"/>
+        <Tunnel _id="In2" inputs="value:4533.order" outputs="value:4392.order" uid="4392" uid_parent="4383"/>
+        <Node _name="Property Node" fields="read+Connected Wire" type="{LV.Terminal}" inputs="reference:4384.term" outputs="Connected Wire:4385.wire,reference out:,error out:4385.err" uid="4385" uid_parent="4383"/>
+        <Node _name="Invoke Node" target="Delete" type="{LV.Wire}" inputs="reference:4385.wire,error in (no error):4385.err" outputs="reference out:,error out:4386.err" uid="4386" uid_parent="4383"/>
+        <Node _name="Unbundle By Name" fields="code" inputs="input cluster:4386.err" outputs="code:4387.code" uid="4387" uid_parent="4383"/>
+        <Tunnel _id="Out1" inputs="value:4387.code" mode="index" outputs="value:4388.value" uid="4388" uid_parent="4383"/>
+      </Structure>
+      <Node _name="Flatten To XML" inputs="anything:4388.value" outputs="xml string:4389.xml" uid="4389" uid_parent="4530"/>
+      <Node _name="Invoke Node" target="Delete" type="{LV.GObject}" inputs="reference:4531.unb,error in (no error):4382.err" outputs="reference out:,error out:4400.err" uid="4400" uid_parent="4530"/>
+      <Tunnel _id="Out1" inputs="value:4389.xml" uid="4534" uid_parent="4530"/>
+      <Tunnel _id="Out2" inputs="value:4400.err" uid="4535" uid_parent="4530"/>
+    </CaseFrame>
+    <CaseFrame selector="False" selectout="" uid="4540" uid_parent="4520">
+      <Tunnel _id="In1" outputs="value:" uid="4541" uid_parent="4540"/>
+      <Tunnel _id="In2" outputs="value:4542.err" uid="4542" uid_parent="4540"/>
+      <Tunnel _id="In3" outputs="value:" uid="4543" uid_parent="4540"/>
+      <Constant _name="kept" type="string" uid="4544" uid_parent="4540" value="unbundle kept (other consumers)" outputs="value:4544.value"/>
+      <Tunnel _id="Out1" inputs="value:4544.value" uid="4545" uid_parent="4540"/>
+      <Tunnel _id="Out2" inputs="value:4542.err" uid="4546" uid_parent="4540"/>
+    </CaseFrame>
+    <Tunnel _id="Out1" outputs="value:4550.value" uid="4550" uid_parent="4520"/>
+    <Tunnel _id="Out2" outputs="value:4551.value" uid="4551" uid_parent="4520"/>
+  </Structure>
+  <Indicator _name="unbundle wire delete codes" type="string" uid="4390" uid_parent="root" value="" inputs="value:4550.value"/>
+  <Indicator _name="delete unbundle error" type="cluster{bool.status,int32.code,string.source}" uid="4401" uid_parent="root" value="[false,0,]" inputs="value:4551.value"/>
+  <Node _name="Invoke Node" target="Delete" type="{LV.GObject}" inputs="reference:4361.konst,error in (no error):4551.value" outputs="reference out:,error out:4402.err" uid="4402" uid_parent="root"/>
+  <Indicator _name="delete constant error" type="cluster{bool.status,int32.code,string.source}" uid="4403" uid_parent="root" value="[false,0,]" inputs="value:4402.err"/>
+  <Node _name="Invoke Node" target="Delete" type="{LV.GObject}" inputs="reference:4249.reg,error in (no error):4402.err" outputs="reference out:,error out:4404.err" uid="4404" uid_parent="root"/>
+  <Indicator _name="delete register error" type="cluster{bool.status,int32.code,string.source}" uid="4405" uid_parent="root" value="[false,0,]" inputs="value:4404.err"/>
+
+  <Constant _name="auto wire" type="bool" uid="4410" uid_parent="root" value="true" outputs="value:4410.value"/>
+  <Node _name="Invoke Node" target="Connect Wire" type="{LV.Terminal}" inputs="reference:4317.far,error in (no error):4404.err,Wire Source:4296.cterm,Auto Wire? (T):4410.value,Auto Route? (F):4410.value" outputs="reference out:4411.ref,error out:4411.err" uid="4411" uid_parent="root"/>
+  <Indicator _name="connect error" type="cluster{bool.status,int32.code,string.source}" uid="4412" uid_parent="root" value="[false,0,]" inputs="value:4411.err"/>
+  <Node _name="Property Node" fields="read+Connected Wire" type="{LV.Terminal}" inputs="reference:4411.ref,error in (no error):4411.err" outputs="Connected Wire:4413.wire,reference out:,error out:4413.err" uid="4413" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Is Broken?,read+Terminals[]" type="{LV.Wire}" inputs="reference:4413.wire,error in (no error):4413.err" outputs="Is Broken?:4414.broken,Terminals[]:4414.ends,reference out:,error out:4414.err" uid="4414" uid_parent="root"/>
+  <Node _name="Array Size" inputs="array:4414.ends" outputs="size(s):4415.n" uid="4415" uid_parent="root"/>
+  <Indicator _name="new wire ends" type="int32" uid="4416" uid_parent="root" value="0" inputs="value:4415.n"/>
+  <Indicator _name="new wire broken" type="bool" uid="4417" uid_parent="root" value="false" inputs="value:4414.broken"/>
+
+  <Node _name="Property Node" fields="read+Connector Pane\3AReference" type="{LV.VI}" inputs="reference:4222.vi,error in (no error):4414.err" outputs="Connector Pane\3AReference:4420.cp,reference out:,error out:4420.err" uid="4420" uid_parent="root"/>
+  <Node _name="Invoke Node" target="AssignCtrlToTerm" type="{LV.ConnectorPane}" inputs="reference:4420.cp,error in (no error):4420.err,Control:4295.ctl,TermIdx:4211.value" outputs="reference out:,error out:4421.err" uid="4421" uid_parent="root"/>
+  <Indicator _name="assign error" type="cluster{bool.status,int32.code,string.source}" uid="4422" uid_parent="root" value="[false,0,]" inputs="value:4421.err"/>
+  <Node _name="Property Node" fields="read+Is On Connector Pane" type="{LV.Control}" inputs="reference:4295.ctl,error in (no error):4421.err" outputs="Is On Connector Pane:4423.on,reference out:,error out:4423.err" uid="4423" uid_parent="root"/>
+  <Indicator _name="on pane" type="bool" uid="4424" uid_parent="root" value="false" inputs="value:4423.on"/>
+
+  <Node _name="Invoke Node" target="Save.Instrument" type="{LV.VI}" inputs="reference:4222.vi,error in (no error):4423.err" outputs="reference out:,error out:4430.err" uid="4430" uid_parent="root"/>
+  <Indicator _name="save error" type="cluster{bool.status,int32.code,string.source}" uid="4431" uid_parent="root" value="[false,0,]" inputs="value:4430.err"/>
+  <Node _name="Close Reference" inputs="reference:4222.vi,error in (no error):4430.err" outputs="error out:4432.err" uid="4432" uid_parent="root"/>
+  <Indicator _name="error out" type="cluster{bool.status,int32.code,string.source}" uid="4433" uid_parent="root" value="[false,0,]" inputs="value:4432.err"/>
+</VI>

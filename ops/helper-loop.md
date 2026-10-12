@@ -40,8 +40,12 @@ or when a concern is off, follow the surrounding code instead.
    element, which the event frames select (`knowledge/labview-mcp.md`, "lvai_create_typedef ..."). Make `Read
    events` and `Write events` only when step 2 uses them. Global events: `convention: af-shapes.global-events`.
    > MCP-candidate: user-event-cluster
-2. **Role members:** `createEvents`, `stop`, `close` and any sender, named per `convention: naming.role-names`; their
-   content per `af-shapes.events-typedef`, `af-shapes.stop-site`, `af-shapes.close-vi`, `af-shapes.resources`.
+2. **Role members:** `createEvents`, `init`, `stop`, `close` and any sender, named per `convention: naming.role-names`;
+   their content per `af-shapes.events-typedef`, `af-shapes.registration`, `af-shapes.stop-site`, `af-shapes.close-vi`,
+   `af-shapes.resources`. `init`: `Read events` on a fresh error chain → `Unbundle By Name` → `Register For Events`
+   on a fresh "no error" constant, its refnum output left unwired (step 11 puts it on the pane); `error out` = Merge
+   Errors (`error in`, `Read events`' error, Register's error); for a root that launches nested actors, the launches
+   too (as subVIs).
    Author each in AIXML with the class as a `path` stand-in and the accessors as `lvai_placeholder_subvi` stubs.
    Then **one** `lvai_add_class_method` call for all of them (`methodsJson` entries with `aixml` and `vi`,
    `classTerminals` = `["<C> in"]`, no `dispatchTerminals` = static; `projectPath`), and **one** `lvai_swap_subvis`
@@ -52,7 +56,9 @@ or when a concern is off, follow the surrounding code instead.
    build on a second destroy answering 0.
 3. **Loop VI AIXML** at the member path (`convention: af-shapes.helper-loop-vi`), class terminal `<C> in` as a `path`
    stand-in, accessor and `Send` calls as stubs:
-   - **Registration, outside the loop** (`convention: af-shapes.registration`): `Read events` → `Unbundle By Name` →
+   - **Registration, outside the loop, for now** (`convention: af-shapes.registration`): author it in the loop VI as
+     below, because the dynamic wiring (step 5) needs a Register node to wire from; step 7b then replaces it with a
+     refnum input fed by `init`. `Read events` → `Unbundle By Name` →
      `Register For Events` with one `event source` per element (the measured form; the whole cluster compiles, not run
      here) and **no incoming error** (a fresh "no error", measured in the pilot) → the loop(s) → `Unregister For
      Events` → `Merge Errors` (`error in`, the loop's error, Unregister's) → `error out`. Leave Register's output and
@@ -62,7 +68,8 @@ or when a concern is off, follow the surrounding code instead.
      a shift register; a `<Structure _name="Case Structure">` with `selectin` = that error. Error frame: the loop's stop
      terminal T, the error passed on. No Error frame: the event structure (or the loop's work). The AIXML reference
      lists error-cluster selectors (`No Error`, `Error 1..5`, `Default`). Every output tunnel needs a value in both
-     frames. **Unmeasured:** this shape was not built in the measurement (the measured loop had no case structure).
+     frames (the refnum tunnel step 5 creates is the exception: step 7 sets it). Built and run in a harness run
+     (2026-10, state 1 after steps 5–7).
    - Frames select the element label, e.g. ` <stop>\3A User Event `. Timeout frame per `convention:
      af-shapes.timed-work`; an event structure whose frames are all user events needs an empty one for step 7.
    - Sends to its own actor: `Read Self Enqueuer` → a generated `Send <method>.vi` (protected: the VI must be a member).
@@ -97,11 +104,20 @@ or when a concern is off, follow the surrounding code instead.
    only the new refnum tunnel (it flags EVERY case output tunnel left unwired in a frame, which in hand-built code can
    hide a real missing wire); then run it without `--check`. It sets "Use Default if Unwired", which AIXML refuses
    ("Invalid property"). Measured 2026-10: cold state 1 with the flag, 0 without. > MCP-candidate: wire-dynamic-events-fix
+7b. **Registration refnum as an input** (`convention: af-shapes.registration`), project open and active, edited in
+   place: `kit/pa_reg_to_control.xml` (`VI Path`, `term index` = a free connector-pane slot, measured 10). It creates
+   a control on Register's refnum input (typed like the registration), deletes Register, its Unbundle and the fresh
+   constant (another consumer of the Unbundle is reconnected), wires the control to the loop tunnel Register fed, and
+   puts it on the pane. Read `register count` 1, `new wire ends` 2, `new wire broken` F, `on pane` T, every error 0.
+   `Read events` stays when its error feeds the loop; Unregister's `error in` is then unwired (no error). Re-check
+   step 7 offline afterwards: the spec rows and the use-default flag are unchanged (measured). It runs no Remove Bad
+   Wires on purpose (that would remove the inner refnum chain before the new wire exists). Measured on a throwaway,
+   then on a member, 2026-10: state 1.
 8. **Event data**, project closed, only for a frame that reads its payload: `lvai_set_event_data_fields(viPath,
    fields="<dataNodeUid> <placeholderUid>:4")`. `ok:false` before membership is expected.
 9. **Membership:** `lvai_add_class_method` with the **existing VI only** (`methodsJson`
    `[{"vi": "<member path>", "classTerminals": ["<C> in"]}]`, `projectPath`). With `aixml` as well it re-converts the
-   VI and steps 5–8 are lost. Then `lvai_swap_subvis` the stubs; scope private (`kit/set_scope.py`, project closed);
+   VI and steps 5–8 (7b included) are lost. Then `lvai_swap_subvis` the stubs; scope private (`kit/set_scope.py`, project closed);
    the folder `Helpers` (`convention: layout.class-folders`): `kit/pa_class_folder_create_and_move.xml`, or
    `pa_class_folder_move.xml` when the folder exists (project open and active; no question needed). (pilot rule 91)
    > MCP-candidate: add-class-method-rerun, move-to-folder
@@ -117,9 +133,19 @@ or when a concern is off, follow the surrounding code instead.
     - Pre Launch Init: `createEvents` is called by `createResources`, the one Pre Launch Init hook (shape F in
       `ops/override.md`), so a failed create fails the launch and is cleaned up. An actor whose only resources are its
       events may hook `createEvents` itself as shape B-after (measured), but then nothing cleans up a partial create.
+    - `init` first, project open and active: `kit/pa_reg_indicator.xml` (`VI Path` = `init`, `term index` = a free
+      output slot, measured 2) creates the refnum indicator on Register's output and puts it on the pane (`on pane` T,
+      errors 0); then `pa_save_member`, and scope private (`kit/set_scope.py`, project closed).
     - Actor Core, in this order: the loop as shape A from `<C> in` (or C after a series hook); the `stop` hook as
       shape D (`source terminal name` = `<C> in` finds the loop's node on that wire); then shape D-close with
       `close vi path` = `close`, `loop vi regex` = the loop VI's name, `stop vi regex` = the stop hook's name.
+    - Then `init` in series before Call Parent (class and error): `kit/pa_insert_series_branch.xml` (shape B on a wire
+      with branches, `ops/override.md`): `wire A kept branches` = the loop, the stop frame and `close`. Then
+      `kit/pa_wire_nodes.xml`: `source vi regex` = `init`'s name, `source terminal name` = `event registration
+      refnum`, `sink vi regex` = the loop VI's name, `sink terminal name` = the label of the control step 7b made
+      (`event registration refnum`); `source hits` and `sink hits` 1, `wire ends` 2, `wire broken` F. It does not save:
+      `pa_save_member`. Measured on two actors, 2026-10 (one of them a root whose `init` also launches the nested
+      actors).
     - The kit's branch hook wires the class terminal only: the loop's `error in` stays unwired (no error), as in the
       measured run. That is the user's decision (2026-10-09): no extra wiring.
     - No Stop Core override is made for the loop (`convention: af-shapes.resources`).
@@ -128,12 +154,18 @@ or when a concern is off, follow the surrounding code instead.
 
 - Close the project. Cold sweep of the class folder with a negative control, and `kit/check_membership.py <class
   folder>` (`ops/sweep.md`). State 0 on the loop before step 9 is expected; after it, every member reads 1.
-- Export the loop VI (`lvai_convert_vi_to_aixml`; create the folder first): Register before the loop with no incoming
-  error, the case structure with both frames inside the loop, Unregister after it; a loop `<Tunnel ... inputs="value:<Register>.event registration refnum">` whose inside net has no
-  consumer, a loop output tunnel feeding Unregister, no refnum `<Tunnel>` on the event structure; variant 2 lists its
-  locals (init write, event-loop write, producer read). `python <skill>/kit/vi_nets.py <vi>` shows the dynamic
-  terminal's wire offline.
-- Export Actor Core: the D-close shape (`ops/override.md`, "Checks").
+- Export the loop VI (`lvai_convert_vi_to_aixml`; create the folder first): no Register node; the `event registration
+  refnum` control on the pane feeding a loop `<Tunnel>` whose inside net has no consumer in the export (the dynamic
+  terminal has no AIXML element), the case structure with both frames inside the loop, Unregister after it fed by a
+  loop output tunnel, no refnum `<Tunnel>` on the event structure; variant 2 lists its locals (init write, event-loop
+  write, producer read). `python <skill>/kit/vi_nets.py <vi>` shows the dynamic terminal's wire offline.
+- Export Actor Core: `init` (`<C> in`, `error in`) → Call Parent (`Actor in` = `init`'s `<C> out`, `error in` =
+  `init`'s error); the loop takes `<C> in` from the panel and the refnum from `init`; then the D-close shape
+  (`ops/override.md`, "Checks").
+- **Early stop ×5:** launch the actor and send Normal Stop right after launch (the run VI with its run time 0), five
+  times: every stop code 0, the caller gets the Last Ack each time, no hang, the loop and Actor Core read 1 cold
+  afterwards. For a root, also make a nested launch fail on purpose: the root must stop by itself and its Last Ack
+  must carry the nested error. Measured 2026-10 on two actors, 5 of 5 each (`knowledge/actor-framework.md`).
 - Run (`ops/run-checks.md`) with timestamped lines, each writer its own file (`knowledge/actor-framework.md`,
   "Observing and testing actors"): the stop line, the loop's exit, then `close` after both. Measured: `close` 20–112 ms
   after the later of the two, error 0, 5 of 5, one of them with a launcher that exits at once and a stop ~16 s later

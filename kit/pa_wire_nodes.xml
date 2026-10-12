@@ -1,0 +1,61 @@
+<VI _name="pa_wire_nodes.vi" description="Kit helper (node search as in pa_close_join.xml\3B measured 2026-10). On the top-level diagram of an override it finds the subVI node whose VI Name matches 'source vi regex' and takes its terminal named 'source terminal name'; finds the subVI node matching 'sink vi regex' and takes its terminal named 'sink terminal name'; Connect Wire sink &lt;- source. Reads the new wire back (ends, broken). Does NOT save: run pa_save_member next. Project OPEN and ACTIVE.">
+  <Control _name="vi path" type="string" uid="7001" uid_parent="root" value="" outputs="value:7001.value"/>
+  <Control _name="source vi regex" type="string" uid="7002" uid_parent="root" value="" outputs="value:7002.value"/>
+  <Control _name="source terminal name" type="string" uid="7003" uid_parent="root" value="" outputs="value:7003.value"/>
+  <Control _name="sink vi regex" type="string" uid="7004" uid_parent="root" value="" outputs="value:7004.value"/>
+  <Control _name="sink terminal name" type="string" uid="7005" uid_parent="root" value="" outputs="value:7005.value"/>
+  <Constant _name="zero" type="int32" uid="7010" uid_parent="root" value="0" outputs="value:7010.value"/>
+  <Constant _name="subvi class" type="ref{LV.SubVI}" uid="7011" uid_parent="root" value="" outputs="value:7011.value"/>
+  <Constant _name="true" type="bool" uid="7012" uid_parent="root" value="true" outputs="value:7012.value"/>
+  <Node _name="String To Path" inputs="string:7001.value" outputs="path:7020.path" uid="7020" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Project\3AActive Project" type="{LV.Application}" inputs="reference:,error in (no error):" outputs="Project\3AActive Project:7021.proj,reference out:,error out:7021.err" uid="7021" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Application" type="{LV.Project}" inputs="reference:7021.proj,error in (no error):7021.err" outputs="Application:7022.app,reference out:,error out:7022.err" uid="7022" uid_parent="root"/>
+  <Node _name="Open VI Reference" inputs="application reference (local):7022.app,vi path:7020.path,error in (no error):7022.err" outputs="vi reference:7023.vi,error out:7023.err" uid="7023" uid_parent="root"/>
+  <Indicator _name="open error" type="cluster{bool.status,int32.code,string.source}" uid="7024" uid_parent="root" value="[false,0,]" inputs="value:7023.err"/>
+  <Node _name="Property Node" fields="read+Block Diagram" type="{LV.VI}" inputs="reference:7023.vi,error in (no error):7023.err" outputs="Block Diagram:7025.bd,reference out:,error out:7025.err" uid="7025" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+All Objects[]" type="{LV.Diagram}" inputs="reference:7025.bd,error in (no error):7025.err" outputs="All Objects[]:7026.objs,reference out:,error out:7026.err" uid="7026" uid_parent="root"/>
+  <Structure _name="For Loop" count="" maxin="" maxout="" uid="7100" uid_parent="root">
+    <Tunnel _id="In1" inputs="value:7026.objs" mode="index" outputs="value:7101.obj" uid="7101" uid_parent="7100"/>
+    <Tunnel _id="In2" inputs="value:7011.value" outputs="value:7102.sc" uid="7102" uid_parent="7100"/>
+    <Tunnel _id="In3" inputs="value:7002.value" outputs="value:7103.srx" uid="7103" uid_parent="7100"/>
+    <Tunnel _id="In4" inputs="value:7003.value" outputs="value:7104.stn" uid="7104" uid_parent="7100"/>
+    <Tunnel _id="In5" inputs="value:7004.value" outputs="value:7105.krx" uid="7105" uid_parent="7100"/>
+    <Tunnel _id="In6" inputs="value:7005.value" outputs="value:7106.ktn" uid="7106" uid_parent="7100"/>
+    <Tunnel _id="In7" inputs="value:7010.value" outputs="value:7107.z" uid="7107" uid_parent="7100"/>
+    <Node _name="To More Specific Class" inputs="reference:7101.obj,error in:,target class:7102.sc" outputs="specific class reference:7110.sv,error out:7110.err" uid="7110" uid_parent="7100"/>
+    <Node _name="Property Node" fields="read+VI Name,read+Terminals[]" type="{LV.SubVI}" inputs="reference:7110.sv,error in (no error):7110.err" outputs="VI Name:7111.vn,Terminals[]:7111.terms,reference out:,error out:" uid="7111" uid_parent="7100"/>
+    <Structure _name="For Loop" count="" maxin="" maxout="" uid="7120" uid_parent="7100">
+      <Tunnel _id="In1" inputs="value:7111.terms" mode="index" outputs="value:7121.t" uid="7121" uid_parent="7120"/>
+      <Node _name="Property Node" fields="read+Name" type="{LV.Terminal}" inputs="reference:7121.t,error in (no error):" outputs="Name:7122.name,reference out:,error out:" uid="7122" uid_parent="7120"/>
+      <Tunnel _id="Out1" inputs="value:7122.name" mode="index" outputs="value:7123.names" uid="7123" uid_parent="7120"/>
+    </Structure>
+    <Node _name="Match Pattern" inputs="string:7111.vn,regular expression:7103.srx,offset (0):" outputs="before substring:,match substring:,after substring:,offset past match:7130.off" uid="7130" uid_parent="7100"/>
+    <Node _name="Greater Or Equal?" inputs="x:7130.off,y:7107.z" outputs="x &gt;= y?:7131.issrc" uid="7131" uid_parent="7100"/>
+    <Node _name="Search 1D Array" inputs="1D array:7123.names,element:7104.stn,start index (0):" outputs="index of element:7132.si" uid="7132" uid_parent="7100"/>
+    <Node _name="Index Array" inputs="array:7111.terms,index:7132.si" outputs="element:7133.st" uid="7133" uid_parent="7100"/>
+    <Node _name="Match Pattern" inputs="string:7111.vn,regular expression:7105.krx,offset (0):" outputs="before substring:,match substring:,after substring:,offset past match:7140.off" uid="7140" uid_parent="7100"/>
+    <Node _name="Greater Or Equal?" inputs="x:7140.off,y:7107.z" outputs="x &gt;= y?:7141.issink" uid="7141" uid_parent="7100"/>
+    <Node _name="Search 1D Array" inputs="1D array:7123.names,element:7106.ktn,start index (0):" outputs="index of element:7142.ki" uid="7142" uid_parent="7100"/>
+    <Node _name="Index Array" inputs="array:7111.terms,index:7142.ki" outputs="element:7143.kt" uid="7143" uid_parent="7100"/>
+    <Tunnel _id="Out1" cond="7131.issrc" inputs="value:7133.st" mode="index" outputs="value:7150.srcs" uid="7150" uid_parent="7100"/>
+    <Tunnel _id="Out2" cond="7141.issink" inputs="value:7143.kt" mode="index" outputs="value:7151.sinks" uid="7151" uid_parent="7100"/>
+    <Tunnel _id="Out3" inputs="value:7111.vn" mode="index" outputs="value:7152.vns" uid="7152" uid_parent="7100"/>
+  </Structure>
+  <Node _name="Array Size" inputs="array:7150.srcs" outputs="size(s):7160.n" uid="7160" uid_parent="root"/>
+  <Indicator _name="source hits" type="int32" uid="7161" uid_parent="root" value="0" inputs="value:7160.n"/>
+  <Node _name="Array Size" inputs="array:7151.sinks" outputs="size(s):7162.n" uid="7162" uid_parent="root"/>
+  <Indicator _name="sink hits" type="int32" uid="7163" uid_parent="root" value="0" inputs="value:7162.n"/>
+  <Node _name="Flatten To XML" inputs="anything:7152.vns" outputs="xml string:7164.xml" uid="7164" uid_parent="root"/>
+  <Indicator _name="vi names" type="string" uid="7165" uid_parent="root" value="" inputs="value:7164.xml"/>
+  <Node _name="Index Array" inputs="array:7150.srcs,index:7010.value" outputs="element:7170.src" uid="7170" uid_parent="root"/>
+  <Node _name="Index Array" inputs="array:7151.sinks,index:7010.value" outputs="element:7171.sink" uid="7171" uid_parent="root"/>
+  <Node _name="Invoke Node" target="Connect Wire" type="{LV.Terminal}" inputs="reference:7171.sink,error in (no error):7026.err,Wire Source:7170.src,Auto Wire? (T):7012.value,Wiring Specs:,Auto Route? (F):7012.value" outputs="reference out:7180.ref,error out:7180.err" uid="7180" uid_parent="root"/>
+  <Indicator _name="connect error" type="cluster{bool.status,int32.code,string.source}" uid="7181" uid_parent="root" value="[false,0,]" inputs="value:7180.err"/>
+  <Node _name="Property Node" fields="read+Connected Wire" type="{LV.Terminal}" inputs="reference:7180.ref,error in (no error):7180.err" outputs="Connected Wire:7182.wire,reference out:,error out:7182.err" uid="7182" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Is Broken?,read+Terminals[]" type="{LV.Wire}" inputs="reference:7182.wire,error in (no error):7182.err" outputs="Is Broken?:7183.broken,Terminals[]:7183.ends,reference out:,error out:7183.err" uid="7183" uid_parent="root"/>
+  <Node _name="Array Size" inputs="array:7183.ends" outputs="size(s):7184.n" uid="7184" uid_parent="root"/>
+  <Indicator _name="wire ends" type="int32" uid="7185" uid_parent="root" value="0" inputs="value:7184.n"/>
+  <Indicator _name="wire broken" type="bool" uid="7186" uid_parent="root" value="false" inputs="value:7183.broken"/>
+  <Node _name="Close Reference" inputs="reference:7023.vi,error in (no error):7183.err" outputs="error out:7190.err" uid="7190" uid_parent="root"/>
+  <Indicator _name="error out" type="cluster{bool.status,int32.code,string.source}" uid="7191" uid_parent="root" value="[false,0,]" inputs="value:7190.err"/>
+</VI>

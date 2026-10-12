@@ -109,8 +109,8 @@ lives in `Helpers` (`layout.class-folders`).
 source: default
 
 ## helper-loop-error-case
-The error case is INSIDE the loop. Register For Events and Unregister For Events sit outside it and run regardless of
-an incoming error (`registration`). The loop carries the error in a shift register; inside the loop, a case structure on
+The error case is INSIDE the loop. The registration refnum comes in from `init` and Unregister For Events sits after
+the loop, outside the error case, and runs regardless of an incoming error (`registration`). The loop carries the error in a shift register; inside the loop, a case structure on
 that error:
 - **Error case:** the loop stops at this iteration and passes the error on.
 - **No Error case:** the loop's work (the event structure, or the timed or polling work).
@@ -120,11 +120,19 @@ iteration instead of leaving it waiting.
 source: default
 
 ## registration
-Register For Events sits right before the loop and Unregister For Events right after it, both outside the error case
-and both run regardless of an incoming error: Register gets no incoming error (a fresh "no error"), Unregister runs
-with one anyway. New code never registers in Pre Launch Init. The registration refnum enters the
-event structure's dynamic event terminal (left edge), and the terminal's right-side output is wired out of the loop
-into Unregister. There is no separate tunnel for the refnum, and no wire around the event structure.
+Each actor with a helper loop has a private, static `init` member that Actor Core calls in series BEFORE Call Parent
+(class and error). `init` does what Actor Core sets up: Register For Events on a fresh "no error" (and, for an actor
+that launches nested actors, those launches), with the registration refnum out on its pane. The loop VI takes the
+refnum as an input: it enters the event structure's dynamic event terminal (left edge), the terminal's right-side
+output is wired out of the loop into Unregister For Events, which sits right after the loop, outside the error case,
+and runs regardless of an incoming error. There is no separate tunnel for the refnum, and no wire around the event
+structure. New code never registers in Pre Launch Init.
+Why: user events are not latched. With Register inside the loop VI, a Call Parent that returns at once (an error
+wired into it, e.g. a failed nested launch) lets the stop hook generate the stop before the loop has registered; the
+stop is lost, the loop never exits, `close` never runs, no Last Ack is sent and the tree hangs until LabVIEW
+restarts. Measured in a harness run (2026-10): that failure hung the tree with Register in the loop VI, and passed
+with `init` (Last Ack in 70 ms with the real error; early stop 5 of 5, no hang, on two actors).
+Instead of: Register For Events inside the loop VI right before the loop.
 source: default
 
 ## stop-mechanism
