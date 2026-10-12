@@ -5,6 +5,10 @@
 import sys
 BOM = b"\xef\xbb\xbf"
 STRUCTURAL = (b"<?xml", b"<Project", b"</Project>", b'<Item Name="My Computer"')
+if len(sys.argv) != 3 or sys.argv[1] in ("-h", "--help"):
+    print("usage: python lvproj_drop.py <project .lvproj> <substring>\n"
+          "Removes the <Item ...> lines that contain <substring>, byte-exact; project CLOSED.")
+    sys.exit(2)
 path, needle = sys.argv[1], sys.argv[2].encode("utf-8")
 data = open(path, "rb").read()
 bom = data.startswith(BOM)

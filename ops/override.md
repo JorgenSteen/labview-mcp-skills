@@ -44,9 +44,9 @@ mode, or when a concern is off, follow the surrounding code instead.
 | `vi name in memory` | `<Lib>.lvlib:<Class>.lvclass:<file name>.vi`; only for a class in no library `<Class>.lvclass:<file name>.vi` |
 
 All seven error outputs 0. The new diagram is class in (and error in) → Call Parent → class out (and error out). The
-override is protected and dynamic; a plain-class override keeps its parent's scope. Put it in the class's override
-folder (`convention: layout.class-folders`; `kit/pa_class_folder_create_and_move.xml`, or `pa_class_folder_move.xml` when the folder exists; project open and
-active; no question needed).
+override is protected and dynamic; a plain-class override keeps its parent's scope. Put it in AF Overrides for an
+actor's AF method, Methods otherwise (`convention: layout.class-folders`; `kit/pa_class_folder_create_and_move.xml`, or
+`pa_class_folder_move.xml` when the folder exists; project open and active; no question needed).
 The new override carries NI's help text of the parent method as its VI description: replace it per `convention:
 hygiene.descriptions` with the whole new text: `kit/pa_set_vi_descriptions.xml` (project closed; one record per VI). (a harness run 2026-10) > MCP-candidate: create-override
 Close the project, read the override cold (state 1), commit. Measured on four AF overrides in skillsaudit M-CLOSE
@@ -222,7 +222,7 @@ helpers do not make; Call Parent's `error out` must reach the override's `error 
 ## Report
 
 ```
-override <class>:<method> created yes/no (errors 0)  protected  dynamic  member  folder <name|asked>
+override <class>:<method> created yes/no (errors 0)  protected  dynamic  member  folder <name> (created|moved)
 hooks: <hook> shape <A|B|B-after|C|D|D-close|E-after>  helper errors 0  hits <...>  saved by <helper|pa_save_member>
 unmeasured shapes used: <none|F|H|E-after 3 wires|B-after on Stop Core>  user asked: <yes/no>
 changed: <method> route <swap|unhook-rehook|restore-bare-and-rehook>  pa_clean_member <n/a|run>

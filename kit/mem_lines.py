@@ -6,6 +6,9 @@
 Writes every line to <out>; prints the lines that are modified (fp/bd/vi != 0) or match a filter."""
 import json, re, sys, html
 
+if len(sys.argv) < 3 or sys.argv[1] in ("-h", "--help"):
+    print(__doc__)
+    sys.exit(2)
 src, out = sys.argv[1], sys.argv[2]
 filters = sys.argv[3:]
 raw = open(src, encoding="utf-8").read()

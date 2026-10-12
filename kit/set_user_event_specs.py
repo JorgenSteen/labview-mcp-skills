@@ -28,6 +28,10 @@ def rows(path):
 def main(argv):
     check = "--check" in argv
     argv = [a for a in argv if a != "--check"]
+    if len(argv) < 2 or argv[0] in ("-h", "--help"):
+        print("usage: set_user_event_specs.py <bundle dir> <base name> <diagramIdx>:<name>:<dynIndex> [...] [--check]\n"
+              "       --check only prints the current EventSpec rows.")
+        sys.exit(2)
     bundle, base, specs = argv[0], argv[1], argv[2:]
     p = "%s/%s_BDHb.xml" % (bundle, base)
     if check:

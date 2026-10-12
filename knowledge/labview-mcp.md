@@ -1,7 +1,7 @@
 # labview-mcp: operating rules, known gaps, quirks
 
 The toolchain layer: how to drive labview-mcp without hurting the files or the service, what each tool gets wrong,
-and the LabVIEW scripting quirks met on the way. Measured with labview-mcp 1.7.2 to 1.8.5 on LabVIEW 2026 Q3 32-bit;
+and the LabVIEW scripting quirks met on the way. Measured with labview-mcp 1.7.2 to 1.9.5 on LabVIEW 2026 Q3 32-bit;
 each gap carries its version in brackets. On a newer labview-mcp, re-check a gap before working around it.
 
 `> MCP-candidate: <id>` marks a workaround for a gap that `MCP-CANDIDATES.md` proposes to fix in labview-mcp. Kit files
@@ -290,8 +290,8 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
 
 ### lvai_create_typedef, lvai_resave_ctl, lvai_describe_ctl
 - No class element in a cluster and no default value: a cluster `{protocol: <class>}` or a U32 with default 500 needs
-  a derived VI Server helper after the create. [1.9.5, a harness run 2026-10] > MCP-candidate:
-  typedef-class-element-default
+  a derived VI Server helper after the create. [1.9.5, a harness run 2026-10]
+  > MCP-candidate: typedef-class-element-default
 - A `projectPath` other than the active project closes and saves the active project (a pilot project re-saved, 5 stray
   entries swept): pass the active project, or none. [1.8.5] (pilot rule 67) > MCP-candidate: close-project-guard
 - `overwrite: true` on a library's typedef drops it from the library (callers: "Missing typedef …"): repair with
@@ -419,13 +419,13 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
 - AF overrides and hooks, `ops/override.md` > MCP-candidate: create-override; > MCP-candidate: add-hook
 - Member rename, `ops/rename.md` > MCP-candidate: rename-member
 - Clean Up Diagram, `ops/cleanup.md` > MCP-candidate: cleanup-diagram
-- Front-panel properties, `ops/helper-loop.md`; VI descriptions, "LabVIEW scripting quirks" > MCP-candidate:
-  control-property-setters
+- Front-panel properties, `ops/helper-loop.md`; VI descriptions, "LabVIEW scripting quirks"
+  > MCP-candidate: control-property-setters
 - Restart LabVIEW, `session/restart.md` > MCP-candidate: restart-with-guards
 - An actor's wiring without exports, `ops/review.md` > MCP-candidate: af-describe-actor
 - Class description, a `.ctl` into a class, a member into a virtual folder: "LabVIEW scripting quirks", "Class
-  description, typedef membership, virtual folders" > MCP-candidate: class-description; > MCP-candidate:
-  add-to-class; > MCP-candidate: move-to-folder
+  description, typedef membership, virtual folders" > MCP-candidate: class-description;
+  > MCP-candidate: add-to-class; > MCP-candidate: move-to-folder
 - **A new project or a plain library** (no tool; `lvai_lvproj_reference` calls `.lvproj` generation unsupported).
   Measured VI Server spellings (a harness run, 2026-10), in a helper VI:
   - `.lvproj`: `{LV.Application}` `Project.New` → `{LV.Project}` `My Computer` → `AddItem` with Type `Folder` per
@@ -478,10 +478,11 @@ They hold for any VI Server or AIXML route, the kit's included.
   (`Class.lvclass:X.ctl`) and every caller relinks: add it right after it is created, before anything uses it. Added
   later: open every caller outside the class through the project first (so it relinks in memory), add, then
   `kit/pa_save_libraries.xml` on each library whose members use it and `kit/pa_project_vis_modified.xml` (`save
-  modified?` T) for top-level VIs. A `.ctl` saves only through a library Save All (`Open VI Reference` answers 1035).
+  modified?` T) for top-level VIs (on a large project its answer is saved to a file: read it with
+  `kit/mem_lines.py`). A `.ctl` saves only through a library Save All (`Open VI Reference` answers 1035).
   LabVIEW makes the added typedef public. A harness permission check may stop the typedef add as a shared-resource
-  change while it allows the moves. > MCP-candidate: class-description; > MCP-candidate: add-to-class; >
-  MCP-candidate: move-to-folder
+  change while it allows the moves. > MCP-candidate: class-description; > MCP-candidate: add-to-class;
+  > MCP-candidate: move-to-folder
 - **Clean Up Diagram and Remove Bad Wires keep a helper-loop VI's dynamic event wiring, user-event specs and
   use-default tunnels** (measured, a harness run 2026-10): no probe needed before cleaning one.
 - **Clean Up Diagram** (`{LV.VI}` `BD.CleanUp` + `Save.Instrument`, project closed) keeps classes, state, icon and the

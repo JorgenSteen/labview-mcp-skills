@@ -85,6 +85,8 @@ def check():
 def main(argv):
     if argv[:1] == ["--check"]:
         return check()
+    if argv[:1] in (["-h"], ["--help"]):
+        argv = []
     repo, rev, files = "", "WT", []
     i = 0
     while i < len(argv):

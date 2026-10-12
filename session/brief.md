@@ -138,7 +138,7 @@ contain; pass that. They know neither the project's conventions nor this skill's
 | vi-editor | the rules of the concerns the change touches; in an old area the local pattern (`SKILL.md`, "New code in an old area") | it regenerates the VI: layout, decorations and the icon are lost; only the named change; never on a VI it could not back up |
 | caraya / lunit / vitester | `hygiene.test-convention`, `hygiene.test-library`, `hygiene.test-after-edit`; naming of the test VIs | the test library path; the LUnit agent **restarts LabVIEW**: get the go-ahead first (`session/restart.md`) |
 | doc-generator | none (it writes no code) | the output path, outside the source tree unless the user names one |
-| DQMH | `naming.prefix`, `naming.class-library-names` for the module name; `layout.class-folders` | the project must be open and active; its last step is one keystroke into a frontmost dialog, so it cannot run unattended |
+| DQMH | `naming.prefix`, `naming.class-library-names` for the module name; `layout.class-folders` | the module name, target directory, `.lvproj` path (required), module type in the user's words, keep "Do Something" or not; the project must be open and active (a module writes ~50 files and saves the `.lvproj`); modules, events and unit tests run with no dialog and no keystroke, so it can run unattended |
 
 **Check the result** against the same rules before the next step, with no LabVIEW call while the agent runs: names
 and folders from the files (`.lvclass`/`.lvlib` XML, a glob), scope and accessors from the `.lvclass`, the save

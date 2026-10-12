@@ -20,6 +20,9 @@ USE_DEFAULT = 0x200000
 def main(argv):
     check = "--check" in argv
     argv = [a for a in argv if a != "--check"]
+    if len(argv) < 2 or argv[0] in ("-h", "--help"):
+        print("usage: set_use_default.py <bundle dir> <base name> [--check]")
+        sys.exit(2)
     bundle, base = argv[0], argv[1]
     p = "%s/%s_BDHb.xml" % (bundle, base)
     s = io.open(p, encoding="utf-8").read()

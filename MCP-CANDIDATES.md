@@ -7,9 +7,9 @@ labview-mcp is open source (Zuehlke/labview-mcp); each entry is written so it ca
 <skill>`). When labview-mcp ships one: replace each marked passage with a call to the new tool, delete what **Removes**
 lists, set the status to `shipped in <version>`, and keep the entry.
 
-**Status:** `proposed` (asked for by this skill's sources), `open in audit` (no longer used: every audit proposal was
-settled on 2026-10-09; kept for the history of older entries) decided by the user), `possibly fixed upstream` (labview-mcp's source or docs suggest it is covered; no run here
-confirms it), `submitted` (issue or PR open upstream), `shipped`.
+**Status:** `proposed` (asked for by this skill's sources), `open in audit` (no longer used: the user settled every
+audit proposal on 2026-10-09; kept for the history of older entries), `possibly fixed upstream` (labview-mcp's source
+or docs suggest it is covered; no run here confirms it), `submitted` (issue or PR open upstream), `shipped`.
 
 **Contributing upstream** (the user's decision, 2026-10-09). The candidates stay in this skill until labview-mcp
 ships them. What goes upstream is both the candidates (as issues or pull requests) and the knowledge behind them: the
@@ -18,9 +18,9 @@ gap descriptions and measured facts in `knowledge/labview-mcp.md`, in the form o
 - Nothing is sent without the user's go-ahead for that batch, since it publishes to an outside repository.
 - After a send, set the status to `submitted` with the link.
 
-**Baseline:** labview-mcp 1.8.5 (`133df69`, the installed version). The local checkout of the plugin repository is at
-`f3091d4`, which is the **v1.8.0** tag, older than 1.8.5; upstream has v1.8.6 (`7702e6d`), not inspected. Check each
-entry against the newest release before submitting it.
+**Baseline:** labview-mcp 1.9.5-local, the installed version; the entries were measured with 1.7.2 to 1.9.5, each gap
+with its version in `knowledge/labview-mcp.md`. The local checkout of the plugin repository is at `f3091d4`, the
+**v1.8.0** tag, older than the installed version. Check each entry against the newest release before submitting it.
 
 **Evidence ids:** "pilot rule N" = the pilot project's toolchain rules; S1–S10 = its MCP suggestions;
 S11–S16, "rule candidate 100–111" and letter-number ids (MC-1, KT-1, ...) = the skills audit (`skillsaudit/`).
@@ -109,7 +109,7 @@ every close into a save dialog). **Evidence** pilot rules 59, 94, 96, 99; rule c
 **Status** proposed (S2). **Gap** VI Server memory reads see only the default instance, never classes or libraries,
 and no running top-level VI. **Proposed** `lvai_memory(instances: all)`: VIs, classes, libraries, modified flags and
 running VIs per instance. **Evidence** pilot rules 59, 96. **Workaround** `pa_vis_in_memory.xml`, `pa_vis_modified.xml`
-after the close. **Removes** guards (b)/(c) in `session/restart.md`.
+after the close. **Removes** step 5 and the empty check's memory read in `session/restart.md`.
 
 ## exec-state-batch
 **Status** proposed; CS-1 settled; KT-8, KT-2 are kit TODOs. **Gap** `lvai_exec_state` takes one VI. **Proposed**
@@ -121,7 +121,7 @@ sweep (116 VIs in 22 s); rule candidate 108 (~30 s per VI when the library reloa
 ## cleanup-diagram
 **Status** proposed (S3). **Gap** no tool runs Clean Up Diagram. **Proposed** `lvai_cleanup_diagram(viPaths | folder)`,
 project closed, code per VI, saved in the project's Save version. **Evidence** pilot rule 46. **Workaround**
-`pa_cleanup_diagram(_file).xml`. **Removes** `ops/cleanup.md` steps 2–3.
+`pa_cleanup_diagram(_file).xml`. **Removes** `ops/cleanup.md` steps 3–6.
 
 ## create-override
 **Status** proposed (S6). **Gap** no tool makes an override with Call Parent; AIXML cannot author Call Parent.
@@ -136,8 +136,9 @@ steps). **Workaround** `lvai_create_override.xml`; `pa_set_vi_descriptions.xml`.
 terminal removes every hook). **Proposed** `lvai_af_add_hook(override, class, hookVi, shape, errorWiring)` with shapes
 branch, series, series-then-branch, after-call-parent, close-join; it knows each AF pane, returns the wires made, saves
 separately. `lvai_af_remove_hook` deletes one node, removes bad wires, re-saves siblings. **Evidence** pilot rules 6,
-23, 27, 28, 74, 76–79, 88, 89, 97. **Workaround** `af_add_hook_call(_node)`, `pa_insert_series2`, `pa_insert_seq_hook`,
-`pa_append_seq_hook`, `pa_delete_subvi`, `pa_clean_member`, `pa_save_member`. **Removes** most of `ops/override.md`.
+23, 27, 28, 74, 76–79, 88, 89, 97. **Workaround** `af_add_hook_call(_node)`, `pa_insert_series2`,
+`pa_insert_series_branch`, `pa_insert_seq_hook`, `pa_append_seq_hook`, `pa_wire_nodes`, `pa_close_join`,
+`pa_remove_series_block`, `pa_delete_subvi`, `pa_clean_member`, `pa_save_member`. **Removes** most of `ops/override.md`.
 
 ## add-class-method-rerun
 **Status** proposed (S6). **Gap** a re-run on a called method fails with 56003 after dropping the member; a failed
@@ -176,7 +177,8 @@ hard part: the tool should load and save the callers). Also a member with NO cla
 
 ## library-virtual-folder
 **Status** proposed. **Gap** `lvai_add_to_library` refuses a missing virtual folder; no tool creates one. **Proposed**
-`createFolder: true`, for `.lvlib` and `.lvclass`. **Evidence** pilot rule 92; S7. **Workaround** library root.
+`createFolder: true`, for `.lvlib` and `.lvclass`. **Evidence** pilot rule 92; S7. **Workaround** `{LV.Library}`
+`AddItem` Folder (`pa_class_folder_create_and_move.xml`; unmeasured on a `.lvlib`).
 **Removes** that bullet.
 
 ## class-description
@@ -202,7 +204,7 @@ pilot rules 64, 85–87. **Workaround** `pa_rename_member.xml`, `pa_resave_vis.x
 not save members, and does nothing on a plain `.lvlib` unless members are opened. **Proposed** `lvai_set_owner_icon(owner,
 png)`: Set Icon, open members, apply, save each, codes per member. **Evidence** pilot rules 26, 42, 58, 59.
 **Workaround** `icon_set_class_icon`, `icon_set_library_icon`, `icon_apply_icon_and_save_n`. **Removes** `ops/icons.md`
-steps 3–4.
+steps 5–6.
 
 ## icon-generator
 **Status** proposed (S1); KT-3 open, KT-4 settled in the audit. **Gap** icons come from a kit generator. **Proposed** a
@@ -213,7 +215,7 @@ Q19, Q20. **Workaround** `make_icons.py`. **Removes** "generate" in `ops/icons.m
 **Status** proposed (S1); a "before" read-back (IC-4) settled. **Gap** `Save VI Icon to File` writes nothing into a
 missing folder or past MAX_PATH, with no error. **Proposed** a batch read-back against expected PNGs returning pixel
 differences. **Evidence** pilot rules 58, 80. **Workaround** `icon_get_vi_icons_n(_file).xml`, `icon_readback_inputs.py`,
-`pixcmp.py`. **Removes** `ops/icons.md` step 5.
+`pixcmp.py`. **Removes** `ops/icons.md` steps 3 and 7 (the read-backs).
 
 ## set-vi-icon-keep-layers
 **Status** proposed (MC-5). **Gap** `lvai_set_vi_icon` flattens the icon. **Proposed** `keepOwnLayer: true`
@@ -228,7 +230,8 @@ no value in the other frames, and AIXML refuses "Use Default if Unwired". **Prop
 sides; until then `rightSideTo: "Unregister For Events"`, several user events (`dynIndex` = position on Register),
 the finish on the diagram route, no project save, the event structure found at any depth, Use Default set on the
 tunnel it creates, and the property allowed in AIXML. **Evidence** pilot rules 39, 60; a harness run 2026-10.
-**Workaround** `pa_wire_dyn_deep.xml`, `pa_wire_dyn_right.xml`, `set_use_default.py`, `set_user_event_specs.py`. **Removes** `ops/helper-loop.md` build steps 3–5.
+**Workaround** `pa_wire_dyn_deep.xml`, `pa_wire_dyn_right.xml`, `set_use_default.py`, `set_user_event_specs.py`,
+`pa_reg_to_control.xml`, `pa_reg_indicator.xml`. **Removes** `ops/helper-loop.md` build steps 5–7b.
 
 ## user-event-cluster
 **Status** proposed (S7). **Gap** an events typedef, its field and accessor take several calls. **Proposed**

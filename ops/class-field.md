@@ -147,7 +147,7 @@ for: remove them (route C, step 1).
 
 ```
 field <add|change|remove> <class> <field> <plain|typedef|class|array-of-class>
-typedef <ctl> (new|existing) owner <class folder|library|asked>  bound <describe_class reading>
+typedef <ctl> (new|existing) owner <class folder|library> (created|added)  bound <describe_class reading>
 accessors made <list: name, R/W, scope, static>  callers moved <n> (regenerated <n>, re-hooked <n>)  removed: <...>
 re-save <ok>/<n>  sweep <ok>/<n>, control 0 7, membership ok  round-trip test <pass|none>  versions unchanged yes/no
 side effects: <library files re-saved, project items>   commits <hashes>

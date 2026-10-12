@@ -1,6 +1,10 @@
 # patch_ctl.py - turn a pylv_extract bundle of a generated VI into a typedef control:
 # <Instrument Type="Standard"> -> "Control", TypeDefVI="0" -> "1" (anchored so StrictTypeDefVI is untouched).
 import re, sys
+if len(sys.argv) < 2 or sys.argv[1] in ("-h", "--help"):
+    print("usage: python patch_ctl.py <bundle file> [<bundle file> ...]\n"
+          "Patches each file in place: Instrument Type Standard -> Control, TypeDefVI 0 -> 1.")
+    sys.exit(2)
 for p in sys.argv[1:]:
     s = open(p, encoding="utf-8").read()
     s, n1 = re.subn(r'<Instrument Type="Standard"', '<Instrument Type="Control"', s)
