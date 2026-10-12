@@ -74,6 +74,10 @@ closed). Hook placement here; what each hook VI does is set by the conventions c
 ## 3. Place each hook
 
 Commit before each hook. Project open and active, class loaded. `<C>` = the class's terminal prefix.
+**Hook terminal names:** the `hook in`/`hook out`/`hook terminal name`/`in name`/`out name` inputs below must be the
+hook's names as its pane has them: read them with `lvai_vi_terminals` first. A member made by `lvai_add_class_method`
+may name its error input `error in (no error)` instead of `error in`; pass what the pane says. Panel and Call Parent
+terminal names (`panel name`, `far name`) are the override's own and are as written below.
 
 **A. Branch beside Call Parent:** `kit/af_add_hook_call.xml`: `vi path` = the override, `class path`, `hook vi path`,
 `source terminal name` = `<C> in`, `hook terminal name` = `<C> in`. It taps the **panel** terminal, so the hook runs
