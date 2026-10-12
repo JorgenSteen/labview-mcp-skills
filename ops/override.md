@@ -148,6 +148,17 @@ half rewired and unsaved), and the stop hook's and `close`'s error input is foun
 `error in (no error)` (hooks made by `lvai_add_class_method`); that version is validated, not yet run.
 > MCP-candidate: add-hook
 
+**D-append. A further teardown hook after Call Parent in Actor Core (unmeasured on Actor Core):** after Call Parent
+returns, the actor has stopped, so only teardown belongs there; Actor Core has no `<C> out` after Call Parent (`Actor
+out` is typed `Actor`), so B-after does not apply. The hook goes into D's frame after the stop hook:
+`kit/pa_append_seq_hook.xml`: `vi path` = Actor Core, `class path`, `hook vi path`, `source terminal name` = the class
+wire from BEFORE Call Parent as D uses it (`<C> out` of the series hook, or `<C> in`), `hook terminal name` = the
+hook's class input, `prev order terminal name` = the stop hook's error output, `hook order terminal name` = the hook's
+error input (both read with `lvai_vi_terminals`). Then `pa_save_member`. Do it before D-close; the appended hook's
+`error out` is left unwired by the helper: end it in `Clear Errors` with `kit/af_add_hook_call_node.xml`
+(`convention: errors.ignored-errors`) or merge it by hand. The helper was measured in the pilot on another override;
+on Actor Core this route is written from its description (2026-10-12) and not run yet.
+
 **E-after. Handle Error, Call Parent first:** a handler that only logs needs class and error: B-after with
 `panel name B` = `error out` as above (the parent has already cleared 43, so the log sees real errors only;
 `stop actor?` passes from Call Parent untouched). Unmeasured on Handle Error (measured on PLI). A handler that may
@@ -194,6 +205,8 @@ helpers do not make; Call Parent's `error out` must reach the override's `error 
   hits` 1, `kept count` and `sink count` = the branches you expect, `new wire broken` F, every error 0; then
   `pa_save_member`. Measured 2026-10 on an Actor Core (a kept frame tunnel, Call Parent as the far end), no `git
   checkout` needed. Prefer it to the restore-bare-and-rehook route below.
+- **Putting a hook back:** before Call Parent, shape B (`pa_insert_series_branch` on a wire with branches); after
+  Call Parent in Actor Core only as teardown, shape D-append (unmeasured there).
 - **Regenerated, the override holds only a branch hook (A):** commit; `kit/pa_delete_subvi.xml` (`vi path`,
   `class path`, `terminal name` = `<C> in`); `kit/pa_clean_member.xml` on that override (the loose end also breaks a
   sibling override; cleaning the edited one fixes both); re-run `lvai_add_class_method`, re-swap its stubs, restore
