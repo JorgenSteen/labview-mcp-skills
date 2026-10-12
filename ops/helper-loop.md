@@ -3,12 +3,13 @@
 **When:** a task adds a helper loop to an actor (a UI or panel loop, an acquisition or producer loop, a loop on user
 events), adds user events for one, or changes how a loop is registered or stopped.
 
-**What it gives:** the events typedef and its field, the role members (`createEvents`, `stop`, `close`, senders), the
-loop VI as a private class member with the registration wired through the event structure's dynamic terminal, the
-hooks on Pre Launch Init and Actor Core, every member executable cold, and a run in which the actor stops cleanly.
+**What it gives:** the events typedef and its field, the role members (`createResources`, `createEvents`, `init`,
+`stop`, `close`, senders), the loop VI as a private class member with the registration refnum from `init` wired
+through the event structure's dynamic terminal, the hooks on Pre Launch Init and Actor Core, every member executable
+cold, and runs in which the actor stops cleanly (also right after launch and after a loop error).
 
-**Not here:** creating the overrides and each helper's inputs for a hook (`ops/override.md`, shapes A, B-after, D,
-D-close); the events field route (`ops/class-field.md`, route A); a new actor class (the class-generator agent, below);
+**Not here:** creating the overrides and each helper's inputs for a hook (`ops/override.md`, sections 1 and 3: shapes
+F, A or C, B on a wire with branches, D, D-close); the events field route (`ops/class-field.md`, route A); a new actor class (the class-generator agent, below);
 how AF and user events behave (`knowledge/actor-framework.md`, "User events and helper-loop hazards"). In local mode,
 or when a concern is off, follow the surrounding code instead.
 
@@ -28,7 +29,8 @@ or when a concern is off, follow the surrounding code instead.
   and the folder, naming and scope rules from that file's table; check it afterwards as that file says.
 - **The kind of loop** (`convention: af-shapes.stop-mechanism`): every loop VI has at least one loop on an async stop
   (a user event by default). Variant 1 is that event loop alone; variant 2 adds other loops (timed producer, polling)
-  in the same VI, stopped by the local `stop` the event loop sets. A polling-only loop VI therefore gets an event loop
+  in the same VI, stopped by the local `stop` the event loop sets; each of them calls the actor's `stop` member when
+  it ends, so the event loop ends too. A polling-only loop VI therefore gets an event loop
   too. A notifier or queue instead of the user event is allowed by the convention but not measured here.
 - **Build order, project state, commits:** `knowledge/labview-mcp.md`, "Evidence, git, build order" and "Project open
   or closed, per kind of call". Commit before each structural step (typedef, field, each member, the loop, each hook).
@@ -40,15 +42,22 @@ or when a concern is off, follow the surrounding code instead.
    element, which the event frames select (`knowledge/labview-mcp.md`, "lvai_create_typedef ..."). Make `Read
    events` and `Write events` only when step 2 uses them. Global events: `convention: af-shapes.global-events`.
    > MCP-candidate: user-event-cluster
-2. **Role members:** `createEvents`, `init`, `stop`, `close` and any sender, named per `convention: naming.role-names`;
-   their content per `af-shapes.events-typedef`, `af-shapes.registration`, `af-shapes.stop-site`, `af-shapes.close-vi`,
-   `af-shapes.resources`. `init`: `Read events` on a fresh error chain → `Unbundle By Name` → `Register For Events`
-   on a fresh "no error" constant, its refnum output left unwired (step 11 puts it on the pane); `error out` = Merge
-   Errors (`error in`, `Read events`' error, Register's error); for a root that launches nested actors, the launches
-   too (as subVIs).
+2. **Role members:** `createResources`, `createEvents`, `init`, `stop`, `close` and any sender, named per
+   `convention: naming.role-names`; their content per `af-shapes.resources`, `af-shapes.pli-failure-cleanup`,
+   `af-shapes.events-typedef`, `af-shapes.registration`, `af-shapes.stop-site`, `af-shapes.close-vi`.
+   - `createResources`: the one Pre Launch Init hook; calls `createEvents` (and creates any other resource), cleans
+     up on its own error (`ops/override.md`, shape F, for its AIXML).
+   - `createEvents`: creates the user events and writes the `events` field.
+   - `init`: `Read events` on a fresh error chain → `Unbundle By Name` → `Register For Events` on a fresh "no error"
+     constant, its refnum output left unwired (step 11 puts it on the pane); `error out` = Merge Errors (`error in`,
+     `Read events`' error, Register's error); for a root that launches nested actors, the launches too (as subVIs).
+   - `stop`: `Read events` → Generate the stop event. `close`: per `af-shapes.close-vi`.
    Author each in AIXML with the class as a `path` stand-in and the accessors as `lvai_placeholder_subvi` stubs.
-   Then **one** `lvai_add_class_method` call for all of them (`methodsJson` entries with `aixml` and `vi`,
-   `classTerminals` = `["<C> in"]`, no `dispatchTerminals` = static; `projectPath`), and **one** `lvai_swap_subvis`
+   **Class terminals per member:** a member that goes in series on the class wire or writes a field returns the
+   object: `createResources`, `createEvents` and `init` declare `<C> in` AND `<C> out` in their AIXML and get
+   `classTerminals` = `["<C> in", "<C> out"]`; `stop` and `close` take `<C> in` only (`["<C> in"]`).
+   Then **one** `lvai_add_class_method` call for all of them (`methodsJson` entries with `aixml`, `vi` and their
+   `classTerminals`, no `dispatchTerminals` = static; `projectPath`), and **one** `lvai_swap_subvis`
    with `editsJson` for every stub (`kit/make_batch_json.py` builds it; it warns on a shared stub). Measured: two
    members, two stubs each, one call each (M-CLOSE M1). Scope private with `kit/set_scope.py` (project closed). Commit.
    **The loop VI does not destroy the events:** it does Unregister only, and `close` destroys. The measured proof's
@@ -73,21 +82,26 @@ or when a concern is off, follow the surrounding code instead.
    - Frames select the element label, e.g. ` <stop>\3A User Event `. Timeout frame per `convention:
      af-shapes.timed-work`; an event structure whose frames are all user events needs an empty one for step 7.
    - Sends to its own actor: `Read Self Enqueuer` → a generated `Send <method>.vi` (protected: the VI must be a member).
+     The message class must exist first (`lvai_create_message_class`; messages before overrides, `knowledge/labview-
+     mcp.md`, "Evidence, git, build order"); in this AIXML the `Send` VI is a stub, swapped in step 9.
      Loop errors per `convention: errors.loop-errors` (measured: the project's error method, then `Send Normal Stop`
      to self).
    - Variant 2: one VI, the locals by `<Node _name="Local Variable" element="stop" .../>` (`inputs=` writes,
      `outputs=` reads); `stop` written F before the loops (`af-shapes.stop-mechanism`); the producer's read of `stop`
      sequenced after its `Wait (ms)` (unsequenced it costs up to two intervals: `knowledge/actor-framework.md`);
      after each non-event loop, a Flat Sequence with the actor's `stop` member → `Clear Errors` on its error, so a
-     loop that ends on an error stops the event loop too.
+     loop that ends on an error stops the event loop too. `stop` is a stub here like the accessors, swapped in step 9.
    - `kit/example_helper_loop.xml` is an older body with a notifier exit: copy spellings from it, not its stop shape.
 4. **Generate**, project closed: `lvai_generate_vi_with_events(aiXmlFilePath, viPath = <member path>)`. `ok:false` and
-   state 0 are expected until step 9. It refuses two event structures in one document. Whether it keeps an event
-   structure nested in a case frame inside the loop is unmeasured. > MCP-candidate: generate-with-events-fixes
+   state 0 are expected until step 9 (the stubs and the unwired registration); any other refusal (a parse error, a
+   missing frame in the export) is a real failure. It refuses two event structures in one document. It keeps an event
+   structure nested in a case frame inside the loop (measured 2026-10). > MCP-candidate: generate-with-events-fixes
    A panel control with a static event (e.g. a `Stop` button) gets its Value Change frame from the generator itself;
    that row survives step 7 (`--check` lists it as a static row) (a harness run, 2026-10).
-5. **Both sides of the registration**, project open and active (the VI is not a member yet; the `.lvproj` lists it
-   loose until step 9): `kit/pa_wire_dyn_deep.xml` (`VI Path`, capitals as written). It finds the event structure up
+5. **Both sides of the registration**, project open and active (the VI is not a member yet; opening the project with
+   it in memory can adopt it as a loose top-level item: after step 9, check the `.lvproj` with the project closed and
+   drop a leftover loose entry with `lvproj_drop.py`). Before step 9 a helper's own `Save.Instrument` is the save
+   (`pa_save_member` needs the class membership): `kit/pa_wire_dyn_deep.xml` (`VI Path`, capitals as written). It finds the event structure up
    to three levels down (loop → case frame → event structure, the error-case shape), wires Register's refnum output to
    the dynamic terminal and the right-side terminal to Unregister on the top-level diagram. Read `event structure
    found`, `left terminal found`, `right terminal found`, `register found`, `unregister found` T, `left wire ends` and
@@ -95,21 +109,27 @@ or when a concern is off, follow the surrounding code instead.
    `lvai_wire_dynamic_events` searches two levels only: here it answers Error 91 / `helperDidNotAnswer` and changes
    nothing. The new right-side tunnel has no value in the Error frame and breaks the VI until step 7.
    > MCP-candidate: wire-dynamic-events-fix
-6. **One-level shapes only** (event structure directly in the top-level loop, no error case): left side
+6. **Skip on the error-case shape.** For a one-level shape only (event structure directly in the top-level loop, no
+   error case, e.g. existing code): left side
    `lvai_wire_dynamic_events(viPath, finishUserEvents: false)` (expected `sourceFrom diagram`, `wireEndsAfter 2`,
    Error 91 / `helperDidNotAnswer`; the default `finishUserEvents` closes and saves the active project), right side
    `kit/pa_wire_dyn_right.xml` (`VI Path`): `event structure found`, `dyn out found`, `unregister found` T, `wire ends
    after` 2, `wire broken` F. (pilot rule 60)
 7. **User-event specs**, project closed: `pylv_extract` → `python <skill>/kit/set_user_event_specs.py <bundle> <base>
-   <diagramIdx>:<element label>:<dynIndex> ...` → `pylv_rebuild`. `diagramIdx` = the frame's position in the document
-   (Timeout included), `dynIndex` = the source's 1-based position on Register. Run `--check` before (current rows) and
-   after. Needed for one event too. Measured rows: `0:error:2 2:stop:1`, `1:stop_event:1`. (pilot rules 39, 60)
+   <diagramIdx>:<element label>:<dynIndex> ...` → `pylv_rebuild`. `<bundle>` = the folder `pylv_extract` wrote,
+   `<base>` = the VI's file name without `.vi` (the bundle's files are `<base>_*.xml`). `diagramIdx` = the frame's
+   0-based position in the event structure's frame list as the AIXML export lists it (Timeout included), `dynIndex` =
+   the source's 1-based position on Register. Run `--check` before (current rows) and after: after, one row per
+   user-event frame with its `dynIndex`, plus any static row the generator made. Needed for one event too. Measured
+   rows: `0:error:2 2:stop:1`, `1:stop_event:1`. (pilot rules 39, 60)
    In the same round trip, after step 5: `python <skill>/kit/set_use_default.py <bundle> <base> --check` must list
    only the new refnum tunnel (it flags EVERY case output tunnel left unwired in a frame, which in hand-built code can
-   hide a real missing wire); then run it without `--check`. It sets "Use Default if Unwired", which AIXML refuses
+   hide a real missing wire); if it lists more, stop and wire or report those first; then run it without `--check`. It sets "Use Default if Unwired", which AIXML refuses
    ("Invalid property"). Measured 2026-10: cold state 1 with the flag, 0 without. > MCP-candidate: wire-dynamic-events-fix
 7b. **Registration refnum as an input** (`convention: af-shapes.registration`), project open and active, edited in
-   place: `kit/pa_reg_to_control.xml` (`VI Path`, `term index` = a free connector-pane slot, measured 10). It creates
+   place: `kit/pa_reg_to_control.xml` (`VI Path`, `term index` = a free INPUT slot of the pane: read the pane with
+   `lvai_connector_pane` and take a slot with no terminal on the input side; measured 10 with the class and error
+   terminals at 11, 8, 3, 0). It creates
    a control on Register's refnum input (typed like the registration), deletes Register, its Unbundle and the fresh
    constant (another consumer of the Unbundle is reconnected), wires the control to the loop tunnel Register fed, and
    puts it on the pane. Read `register count` 1, `new wire ends` 2, `new wire broken` F, `on pane` T, every error 0.
@@ -118,9 +138,14 @@ or when a concern is off, follow the surrounding code instead.
    Wires on purpose (that would remove the inner refnum chain before the new wire exists). Measured on a throwaway,
    then on a member, 2026-10: state 1.
 8. **Event data**, project closed, only for a frame that reads its payload: `lvai_set_event_data_fields(viPath,
-   fields="<dataNodeUid> <placeholderUid>:4")`. `ok:false` before membership is expected.
+   fields="<dataNodeUid> <placeholderUid>:4")`. Both uids are the ones the step-3 AIXML wrote: the frame's Event Data
+   Node, and a labelled constant `Payload Placeholder` wired into the primitive or subVI input that consumes the field
+   (author it in step 3; an indicator or tunnel cannot be the sink). `4` = the first payload item (0 Source, 1 Type,
+   2 Time, 3 the event refnum; 4 and 5 for a two-element cluster); at most two fields per frame. `ok:false` before
+   membership is expected: read the frame's data node again after step 9 (export or cold state).
 9. **Membership:** `lvai_add_class_method` with the **existing VI only** (`methodsJson`
-   `[{"vi": "<member path>", "classTerminals": ["<C> in"]}]`, `projectPath`). With `aixml` as well it re-converts the
+   `[{"vi": "<member path>", "classTerminals": ["<C> in"]}]`, `projectPath`); after it, check the `.lvproj` for a
+   loose entry of the loop VI (step 5). With `aixml` as well it re-converts the
    VI and steps 5–8 (7b included) are lost. Then `lvai_swap_subvis` the stubs; scope private (`kit/set_scope.py`, project closed);
    the folder `Helpers` (`convention: layout.class-folders`): `kit/pa_class_folder_create_and_move.xml`, or
    `pa_class_folder_move.xml` when the folder exists (project open and active; no question needed). (pilot rule 91)
@@ -130,19 +155,23 @@ or when a concern is off, follow the surrounding code instead.
       with `kit/pa_read_panel_on_call.xml`; re-apply after any regeneration;
     - a Stop button a test must press: Switch When Released, reset to F by a local in its own frame (author the local
       in AIXML), then `kit/pa_set_mechanical_action.xml` (`mechanical action` 1, project closed);
-    - variant 2's `stop`: off the pane, a switch, hidden with `kit/pa_set_control_visible.xml` (project closed); prove
-      action and visibility with `kit/pa_read_boolean.xml` cold (the export shows neither).
+    - variant 2's `stop`: off the pane, hidden with `kit/pa_set_control_visible.xml` (project closed). It must be a
+      SWITCH, never a latch (a latched Boolean cannot have a local variable): a new Boolean control is Switch When
+      Pressed (0) by default, so nothing to set. Prove it cold with `kit/pa_read_boolean.xml`: mechanical action 0 or
+      1 (not 3–5), visible F (the export shows neither).
     > MCP-candidate: control-property-setters
-11. **Wire it into the overrides**, each hook by `ops/override.md`, commit and `pa_save_member` as that file says:
-    - Pre Launch Init: `createEvents` is called by `createResources`, the one Pre Launch Init hook (shape F in
-      `ops/override.md`), so a failed create fails the launch and is cleaned up. An actor whose only resources are its
-      events may hook `createEvents` itself as shape B-after (measured), but then nothing cleans up a partial create.
+11. **Wire it into the overrides**, each hook by `ops/override.md` (section 1 to create an override; section 3: F,
+    A or C, B on a wire with branches, D, D-close), commit and `pa_save_member` as that file says:
+    - Pre Launch Init: `createResources` is the one Pre Launch Init hook (shape F), so a failed create fails the
+      launch and is cleaned up (`af-shapes.pli-failure-cleanup`).
     - `init` first, project open and active: `kit/pa_reg_indicator.xml` (`VI Path` = `init`, `term index` = a free
-      output slot, measured 2) creates the refnum indicator on Register's output and puts it on the pane (`on pane` T,
+      OUTPUT slot read with `lvai_connector_pane`, measured 2) creates the refnum indicator on Register's output and puts it on the pane (`on pane` T,
       errors 0); then `pa_save_member`, and scope private (`kit/set_scope.py`, project closed).
     - Actor Core, in this order: the loop as shape A from `<C> in` (or C after a series hook); the `stop` hook as
       shape D (`source terminal name` = `<C> in` finds the loop's node on that wire); then shape D-close with
-      `close vi path` = `close`, `loop vi regex` = the loop VI's name, `stop vi regex` = the stop hook's name.
+      `close vi path` = `close`, `loop vi regex` = the loop VI's name, `stop vi regex` = the stop hook's name. The
+      current D-close version is validated, not run: read its answers as `ops/override.md` lists them and name it
+      under "unmeasured steps met" in the report.
     - Then `init` in series before Call Parent (class and error): `kit/pa_insert_series_branch.xml` (shape B on a wire
       with branches, `ops/override.md`): `wire A kept branches` = the loop, the stop frame and `close`. Then
       `kit/pa_wire_nodes.xml`: `source vi regex` = `init`'s name, `source terminal name` = `event registration
@@ -166,29 +195,34 @@ or when a concern is off, follow the surrounding code instead.
 - Export Actor Core: `init` (`<C> in`, `error in`) → Call Parent (`Actor in` = `init`'s `<C> out`, `error in` =
   `init`'s error); the loop takes `<C> in` from the panel and the refnum from `init`; then the D-close shape
   (`ops/override.md`, "Checks").
-- **Early stop ×5:** launch the actor and send Normal Stop right after launch (the run VI with its run time 0), five
-  times: every stop code 0, the caller gets the Last Ack each time, no hang, the loop and Actor Core read 1 cold
-  afterwards. For a root, also make a nested launch fail on purpose: the root must stop by itself and its Last Ack
-  must carry the nested error. Measured 2026-10 on two actors, 5 of 5 each (`knowledge/actor-framework.md`).
+- **Early stop ×5:** launch the actor and send Normal Stop right after launch: the headless launcher VI of
+  `ops/run-checks.md` ("Behaviour runs", headless run) with its run time 0, five times: every stop code 0, the caller
+  gets the Last Ack each time, no hang, the loop and Actor Core read 1 cold afterwards. For a root, also make a nested
+  launch fail on purpose (e.g. pre-launch settings the child's `createResources` must refuse, such as an invalid
+  folder): the root must stop by itself and its Last Ack must carry the nested error. Measured 2026-10 on two actors, 5 of 5 each (`knowledge/actor-framework.md`).
 - Run (`ops/run-checks.md`) with timestamped lines, each writer its own file (`knowledge/actor-framework.md`,
   "Observing and testing actors"): the stop line, the loop's exit, then `close` after both. Measured: `close` 20–112 ms
   after the later of the two, error 0, 5 of 5, one of them with a launcher that exits at once and a stop ~16 s later
   (M-CLOSE M1). Actor Core and the loop read 1 cold after the run.
 - Variant 2: test the `stop` reset by calling the loop VI twice from one caller (two tool runs unload it in between).
-- Variant 2: make the producer fail on purpose (e.g. a stub that returns an error): the actor must stop by itself,
-  the caller gets the Last Ack, no hang, and a later Normal Stop answers 1556 (the queue is gone).
+- Variant 2: make the producer fail on purpose: `lvai_swap_subvis` its work subVI onto a throwaway VI with the same
+  pane that returns a custom error, run, then swap back (commit before, check the swap-back with a cold read). The
+  actor must stop by itself, the caller gets the Last Ack, no hang, and a later Normal Stop answers 1556 (the queue is
+  gone).
 - Then `ops/cleanup.md` and `ops/icons.md` for the VIs this task made.
 
 ## Report
 
 ```
 (one block per helper loop)
-loop <class>:<vi> variant <1|2>  events <elements>  member private static  folder <Helpers|asked>
-members: createEvents stop close <senders>  add_class_method 1 call  swaps 1 call  error case <frames as exported>
-build: generate ok  left wireEndsAfter <n> (91 expected)  right ends <n> broken <F>  specs <rows>  data fields <ok|n/a>
-panel on call <r/r|n/a>  Stop action <1|n/a>  stop hidden <yes|n/a>  export <ok>  locals <n|n/a>
-hooks: PLI createEvents B-after; Actor Core loop A|C, stop D, close D-close   sweep <ok>/<n>, control 0 7, membership ok
-run: stop <tick> loop exit <tick> close <tick> err <code>  second call <ok|n/a>   unmeasured steps met: <list>
+loop <class>:<vi> variant <1|2>  events <elements>  member private static  folder Helpers <created|moved>
+members: createResources createEvents init stop close <senders>  add_class_method 1 call  swaps 1 call  error case <frames>
+build: generate ok  dyn deep left <ends>/<broken> right <ends>/<broken>  specs <rows>  use-default <tunnels>  data fields <ok|n/a>
+reg input: term <n> on pane <T>  init indicator: term <n> on pane <T>  init->loop wire <ends>/<broken>
+panel on call <r/r|n/a>  Stop action <1|n/a>  stop action <0|1> hidden <yes|n/a>  export <ok>  locals <n|n/a>
+hooks: PLI createResources F; Actor Core init B (kept branches <n>), loop A|C, stop D, close D-close   sweep <ok>/<n>, control 0 7, membership ok
+run: stop <tick> loop exit <tick> close <tick> err <code>  early stop <n>/5  producer failure <stopped|hung|n/a>
+second call <ok|n/a>   unmeasured steps met: <list>
 side effects: <...>   commits <hashes>   LabVIEW calls <n>   issues: <exact error text or none>
 ```
 
@@ -201,5 +235,5 @@ side effects: <...>   commits <hashes>   LabVIEW calls <n>   issues: <exact erro
 - A loop branched beside Call Parent never sees its actor stop through a failed `Send`: its only exits are the stop
   event or the local `stop`. A hung loop cannot be aborted by VI Server; only a LabVIEW restart frees it.
 - The vi-generator agent is not the route for the loop VI: it is a member that calls protected AF VIs, and the agent
-  knows neither steps 6–7 nor that `lvai_wire_dynamic_events`'s default closes and saves the project. It fits a plain
+  knows neither steps 5–7b nor that `lvai_wire_dynamic_events`'s default closes and saves the project. It fits a plain
   function VI the loop calls (brief per `session/brief.md`).

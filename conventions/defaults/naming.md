@@ -61,7 +61,7 @@ Members and typedefs with a fixed role in an actor (`af-shapes`) have these defa
 | creates everything Pre Launch Init owns, cleans up on its own error | `<P>-<ABBR>-createResources.vi` |
 | creates the actor's user events (called by `createResources`) | `<P>-<ABBR>-createEvents.vi` |
 | registers the helper loop's events before Call Parent, and launches a root's nested actors (Actor Core, `af-shapes.registration`) | `<P>-<ABBR>-init.vi` |
-| sends the helper loop's stop (Actor Core) | `<P>-<ABBR>-stop.vi` |
+| sends the helper loop's stop (Actor Core, and the loop VI's non-event loops when they end) | `<P>-<ABBR>-stop.vi` |
 | releases what the helper loop used (Actor Core) | `<P>-<ABBR>-close.vi` |
 | the actor's own user events | `<P>-<ABBR>-EVENTS.ctl`, field `events` |
 | global events (root) | `<P>-<ABBR>-GLOBAL_EVENTS.ctl`, `<ABBR>` = the root's |

@@ -154,7 +154,8 @@ the actor runs on with a dead producer until shutdown. Built and run in a harnes
 source: default
 
 ## stop-site
-Actor Core sends the stop right after Call Parent: the stop event and/or the local, per `stop-mechanism`. The stop
+Actor Core sends the stop right after Call Parent: it generates the stop event (the `stop` member). The local `stop`
+is set inside the loop VI by its event loop (`stop-mechanism`); Actor Core cannot write it. The stop
 hook runs on a fresh error chain. Call Parent's `error out` only sets the order, and nothing consumes it there. The
 hook takes the class wire from before Call Parent (the child type).
 Why: the stop is sent whenever Call Parent returns, for any reason; a Call Parent error cannot skip it.
