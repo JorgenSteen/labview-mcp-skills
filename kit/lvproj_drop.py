@@ -1,9 +1,26 @@
 # lvproj_drop.py - remove <Item ...> lines from a .lvproj whose line contains a given substring,
-# byte-exact otherwise (BOM and CRLF preserved). Project must be CLOSED in LabVIEW.
+# byte-exact otherwise: the BOM and the file's own line ending (CRLF or LF) are kept.
+# Project must be CLOSED in LabVIEW. Writes nothing when nothing matches or when a match
+# would remove a structural line (the substring is too broad).
 import sys
-path, needle = sys.argv[1], sys.argv[2]
+BOM = b"\xef\xbb\xbf"
+STRUCTURAL = (b"<?xml", b"<Project", b"</Project>", b'<Item Name="My Computer"')
+path, needle = sys.argv[1], sys.argv[2].encode("utf-8")
 data = open(path, "rb").read()
-lines = data.split(b"\r\n")
-kept = [l for l in lines if needle.encode("utf-8") not in l]
-open(path, "wb").write(b"\r\n".join(kept))
-print("removed", len(lines) - len(kept), "line(s); CR count now", b"\r\n".join(kept).count(b"\r"))
+bom = data.startswith(BOM)
+body = data[len(BOM):] if bom else data
+nl = b"\r\n" if b"\r\n" in body else b"\n"
+lines = body.split(nl)
+gone = [l for l in lines if needle in l]
+if not gone:
+    sys.exit("nothing written: no line contains %r" % needle.decode("utf-8"))
+bad = [l for l in gone if l.lstrip().startswith(STRUCTURAL)]
+if bad:
+    sys.exit("nothing written: the substring matches structural line(s): %s"
+             % "; ".join(l.strip().decode("utf-8", "replace")[:80] for l in bad))
+kept = [l for l in lines if needle not in l]
+open(path, "wb").write((BOM if bom else b"") + nl.join(kept))
+print("removed %d line(s), %d -> %d; EOL %s, BOM %s"
+      % (len(gone), len(lines), len(kept), "CRLF" if nl == b"\r\n" else "LF", "yes" if bom else "no"))
+for l in gone:
+    print("  -", l.strip().decode("utf-8", "replace"))
