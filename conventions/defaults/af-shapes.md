@@ -137,12 +137,20 @@ source: default
 
 ## stop-mechanism
 Every helper-loop VI has at least one loop that waits on an asynchronous stop: a user event by default, or another
-async mechanism (a notifier, a queue). That loop exits on the stop and sets a local `stop` to T, which stops every
-other loop in the VI (polling, timed producer, ...).
-- A loop VI with only one loop: that loop is the event loop, and the stop event ends it.
+async mechanism (a notifier, a queue). Every loop stops the others when it ends, whatever ended it:
+- The event loop exits on the stop and sets a local `stop` to T, which stops every other loop in the VI (polling,
+  timed producer, ...).
+- Every other loop, after it ends (on an error or on `stop`), calls the actor's own `stop` member in series (a Flat
+  Sequence after the loop), then Clear Errors on that call: a second stop to a loop that has already ended does
+  nothing (nobody is registered any more), and its error is ignored on purpose.
+- A loop VI with only one loop: that loop is the event loop, and the stop event ends it. A local `stop` exists only
+  when there is a second loop.
 - All the loops sit in the one loop VI, because a local works only inside the VI that owns the control (Actor Core
   cannot write it). `stop` is written F before the loops start, because an off-pane control keeps its last value.
 - Never stop a loop by aborting it.
+Why: with the local written by the event loop only, a producer that ends on an error stops only itself; the event
+loop waits for the stop event, which Actor Core sends only after Call Parent returns, which waits on the loop VI, so
+the actor runs on with a dead producer until shutdown. Built and run in a harness run (2026-10), no hang.
 source: default
 
 ## stop-site

@@ -77,7 +77,9 @@ or when a concern is off, follow the surrounding code instead.
      to self).
    - Variant 2: one VI, the locals by `<Node _name="Local Variable" element="stop" .../>` (`inputs=` writes,
      `outputs=` reads); `stop` written F before the loops (`af-shapes.stop-mechanism`); the producer's read of `stop`
-     sequenced after its `Wait (ms)` (unsequenced it costs up to two intervals: `knowledge/actor-framework.md`).
+     sequenced after its `Wait (ms)` (unsequenced it costs up to two intervals: `knowledge/actor-framework.md`);
+     after each non-event loop, a Flat Sequence with the actor's `stop` member → `Clear Errors` on its error, so a
+     loop that ends on an error stops the event loop too.
    - `kit/example_helper_loop.xml` is an older body with a notifier exit: copy spellings from it, not its stop shape.
 4. **Generate**, project closed: `lvai_generate_vi_with_events(aiXmlFilePath, viPath = <member path>)`. `ok:false` and
    state 0 are expected until step 9. It refuses two event structures in one document. Whether it keeps an event
@@ -171,6 +173,8 @@ or when a concern is off, follow the surrounding code instead.
   after the later of the two, error 0, 5 of 5, one of them with a launcher that exits at once and a stop ~16 s later
   (M-CLOSE M1). Actor Core and the loop read 1 cold after the run.
 - Variant 2: test the `stop` reset by calling the loop VI twice from one caller (two tool runs unload it in between).
+- Variant 2: make the producer fail on purpose (e.g. a stub that returns an error): the actor must stop by itself,
+  the caller gets the Last Ack, no hang, and a later Normal Stop answers 1556 (the queue is gone).
 - Then `ops/cleanup.md` and `ops/icons.md` for the VIs this task made.
 
 ## Report
