@@ -114,6 +114,9 @@ LabVIEW calls <n>   sweep calls <s> s in total
 - State 0 "VI has an error of type 1000088" beside a freshly edited override can be a loose wire end in a **sibling**
   override of the same class (`knowledge/labview-mcp.md`, "LabVIEW scripting quirks"; repair with
   `pa_clean_member.xml` on the sibling, in the op that made the edit).
+- State 0 with a broken-wire text (`<terminal> @ <node> | ...`) after a generate, swap or bind: run
+  `pa_clean_member.xml` before any rebuild (`knowledge/labview-mcp.md`, "LabVIEW scripting quirks", "Remove bad wires
+  first").
 - A single `lvai_exec_state` answering -1 means the reference never opened: read `code` and `source`, it is no
   verdict about the VI.
 - After a LabVIEW restart, a class-level call may behave differently from the old instance (a class icon set, say).

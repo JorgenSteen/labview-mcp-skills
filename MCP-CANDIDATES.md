@@ -319,9 +319,12 @@ an `array{path}` stand-in. **Evidence** pilot rule 53; S4. **Removes** that bull
 
 ## swap-subvis-fixes
 **Status** proposed. **Gap** a stub shared by several nodes is swapped on an unpredictable node; a missing-subVI node
-cannot be swapped and the error reads `noActiveProject`. **Proposed** select the node by uid or frame path; repair or
-name a missing-subVI node. **Evidence** pilot rules 38, 72, 86; S5. **Workaround** export after each swap
-(`aixml_frames.py`). **Removes** those bullets.
+cannot be swapped and the error reads `noActiveProject`; a swap, bind or `lvai_add_class_method` can leave a broken
+wire segment and answer only "state 0". **Proposed** select the node by uid or frame path; repair or name a
+missing-subVI node; run Remove Bad Wires at the end of `lvai_swap_subvis`, `lvai_bind_typedef_constants` and
+`lvai_add_class_method` and report the broken-wire list. **Evidence** pilot rules 38, 72, 86; S5; a harness run 2026-10
+(five rebuilds and a restart where one Remove Bad Wires fixed it). **Workaround** export after each swap
+(`aixml_frames.py`); `pa_clean_member.xml`. **Removes** those bullets.
 
 ## describe-class-ancestry
 **Status** proposed. **Gap** `lvai_describe_class` lists rename history as ancestors for a class derived from LabVIEW

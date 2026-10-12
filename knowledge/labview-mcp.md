@@ -432,6 +432,11 @@ They hold for any VI Server or AIXML route, the kit's included.
   inner terminal, then delete that inner wire. `New VI Object` for a structure needs `vi object class` and `style`
   (Flat Sequence: `ref{LV.FlatSequence}`, style 2069); with neither `style` nor `path` the AIXML refuses the node, an
   empty `path` answers 1059. (pilot rules 76, 77, 90)
+- **Remove bad wires first.** A VI at cold state 0 with a broken-wire text after a generate, swap or bind
+  (`<terminal> @ <node> | ...`, e.g. `output cluster @ NamedBundler | settings @ SubVI`) usually has a leftover
+  broken wire segment, not a type problem. First run `kit/pa_clean_member.xml` (Remove Bad Wires + save of the VI and
+  its class, project open and active) and read it cold; rebuild only if that fails. Measured 2026-10: one run fixed
+  (state 0 → 1) a VI that five rebuilds and a LabVIEW restart had not. > MCP-candidate: swap-subvis-fixes
 - **Deleting a node from a branched wire** leaves a loose end: the VI reads state 0 ("VI has an error of type
   1000088"), and so does a sibling override of the same class; Remove Bad Wires on the edited VI fixes both. The kit's
   delete by terminal name deletes every top-level subVI node with that terminal. (pilot rules 78, 89)
