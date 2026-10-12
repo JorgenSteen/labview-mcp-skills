@@ -186,6 +186,7 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
 ### lvai_exec_state
 - "VI has an error of type 8" on a class member can mean the class implements an interface without overriding one of
   its methods: check the overrides before a sweep of the callers. [1.9.5, a harness run 2026-10]
+  > MCP-candidate: clearer-answers
 - One VI per call. A tree needs the kit sweep (`pa_exec_state_sweep_file.xml`, `sweep_paths.py`) and a file-side
   membership check (`check_membership.py`): `ops/sweep.md`. The helper reloads each VI's library per VI, so where the
   hierarchy does not resolve a VI costs > 1 s, up to ~30 s, against 51–97 ms where it does. Size batches from a timed
@@ -260,7 +261,7 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
   pane get ONE shared stub, so a swap cannot tell them apart: make one stub per target by hand. [1.9.5, a harness run 2026-10]
   > MCP-candidate: placeholder-array-of-class
 - `lvai_bind_typedef_constants` with a bare `subViName` answers 1055 "no active project" when it means "name not
-  qualified": pass the library-qualified name. [1.9.5, a harness run 2026-10]
+  qualified": pass the library-qualified name. [1.9.5, a harness run 2026-10] > MCP-candidate: clearer-answers
 
 ### lvai_create_class, lvai_create_interface
 - With a parent class, the PARENT is added as a top-level `.lvproj` item: drop it right after (`lvproj_drop.py`,
@@ -287,6 +288,9 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
   (`ops/class-field.md`). [1.8.5] (pilot rule 68) > MCP-candidate: remove-class-field
 
 ### lvai_create_typedef, lvai_resave_ctl, lvai_describe_ctl
+- No class element in a cluster and no default value: a cluster `{protocol: <class>}` or a U32 with default 500 needs
+  a derived VI Server helper after the create. [1.9.5, a harness run 2026-10] > MCP-candidate:
+  typedef-class-element-default
 - A `projectPath` other than the active project closes and saves the active project (a pilot project re-saved, 5 stray
   entries swept): pass the active project, or none. [1.8.5] (pilot rule 67) > MCP-candidate: close-project-guard
 - `overwrite: true` on a library's typedef drops it from the library (callers: "Missing typedef …"): repair with
@@ -334,6 +338,7 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
   > MCP-candidate: add-to-class
 - `ok: false` with `pathStandInsLeft` for a path stand-in INSIDE a cluster terminal is a false alarm when a later
   pane bind resolves it: read the state after the bind. [1.9.5, a harness run 2026-10]
+  > MCP-candidate: clearer-answers
 
 ### lvai_add_to_library
 - Refuses a virtual folder that does not exist, and a new library has none (`Controls` included); no tool creates one.

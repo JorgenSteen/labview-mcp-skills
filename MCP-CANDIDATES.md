@@ -28,7 +28,8 @@ S11–S16, "rule candidate 100–111" and letter-number ids (MC-1, KT-1, ...) = 
 ## call-lock
 **Status** proposed. **Gap** nothing stops two clients calling LabVIEW at once (the client gate guards only the
 connect). **Proposed** a server-side queue: one LabVIEW call at a time across clients; a second waits, or answers `busy:
-<tool> since <s>`. **Evidence** S9; parallel calls in four pilot sessions. **Workaround** "strictly sequential" in every
+<tool> since <s>`. **Evidence** S9; parallel calls in four pilot sessions; a harness run 2026-10 (two calls in one message in 6 of about 14
+steps, read-only ones included). **Workaround** "strictly sequential" in every
 brief. **Removes** that rule in `knowledge/labview-mcp.md` and `session/brief.md`.
 
 ## deadline-abort
@@ -74,7 +75,9 @@ project is active: `projectPath` only names the file swept and is not compared. 
 is missing; the answer does not list what LabVIEW rewrote. `lvai_create_typedef` with a foreign `projectPath` closes and
 saves the active project. **Proposed** refuse when `projectPath` differs from the active project (name both); sweep
 only items this session added; answer with every side effect (items removed, Dependencies rebuilt, `.lvproj`, `.lvlps`,
-`.UserState`, version and BOM). **Evidence** pilot rules 67, 83, 95; rule candidate 102; audit M4; CloseTools source
+`.UserState`, version and BOM); keep the file's own EOL and BOM (`lvai_create_class` writes LF without a BOM, and
+agents restored the `.lvproj` from git about 30 times in one session, a harness run 2026-10); name a path-less VI that
+blocks the close after a failed convert (1019) instead of failing. **Evidence** pilot rules 67, 83, 95; rule candidate 102; audit M4; CloseTools source
 v1.8.0/v1.8.5. **Workaround** check the active project first; commit; report. **Removes** "Opening and closing a project"
 bullets 1–2; the side-effect diffing in `session/close.md`.
 
@@ -123,8 +126,9 @@ project closed, code per VI, saved in the project's Save version. **Evidence** p
 ## create-override
 **Status** proposed (S6). **Gap** no tool makes an override with Call Parent; AIXML cannot author Call Parent.
 **Proposed** `lvai_create_override(lvclassPath, parentMethod, projectPath)`: library-qualified name derived, Call Parent
-placed, parent's scope kept, verified from the files, pane returned. **Evidence** pilot rules 6, 24, 27. **Workaround**
-`lvai_create_override.xml`. **Removes** "create the override" in `ops/override.md`.
+placed, parent's scope kept, verified from the files, pane returned; a `description` parameter (it keeps NI's help
+text of the parent today). **Evidence** pilot rules 6, 24, 27; a harness run 2026-10 (descriptions replaced in three
+steps). **Workaround** `lvai_create_override.xml`; `pa_replace_description.xml`. **Removes** "create the override" in `ops/override.md`.
 
 ## add-hook
 **Status** proposed (S6); the `close` join shape (OV-7) measured 2026-10-09 (`kit/pa_close_join.xml`); PLI failure cleanup (OV-5) settled as the `createResources` member VI.
@@ -166,7 +170,9 @@ recipe in `ops/class-field.md`.
 whole library. **Proposed** `lvai_add_to_class(lvclassPath, itemPath, virtualFolderName)`, saving only the `.lvclass`.
 **Evidence** rule candidate 106; Q17; a harness run 2026-10-11/12 (11 `.ctl` added by VI Server). **Workaround**
 `kit/pa_class_folder_add_files.xml`, `pa_save_libraries.xml`, `pa_project_vis_modified.xml` (the caller relink is the
-hard part: the tool should load and save the callers). **Removes** those helpers and the notes that cite them.
+hard part: the tool should load and save the callers). Also a member with NO class terminal (a pure function): both
+`lvai_add_class_method` and `lvai_add_to_library` refuse it; the route is the tool's own cached
+`lvai_add_one_to_library.vi` on the `.lvclass`. **Removes** those helpers and the notes that cite them.
 
 ## library-virtual-folder
 **Status** proposed. **Gap** `lvai_add_to_library` refuses a missing virtual folder; no tool creates one. **Proposed**
@@ -232,9 +238,11 @@ tunnel it creates, and the property allowed in AIXML. **Evidence** pilot rules 3
 ## control-property-setters
 **Status** proposed (S7). **Gap** no tool sets mechanical action, visibility, panel-on-call flags, VI description or
 reentrancy; AIXML cannot carry the first two and a convert loses the flags. **Proposed** `lvai_set_vi_properties`,
-`lvai_set_control_properties`, verified by a cold read; or AIXML attributes a convert keeps. **Evidence** pilot rules 40,
-52, 57, 65, 81, 82. **Workaround** `pa_set_mechanical_action`, `pa_switch_and_reset_boolean`, `pa_set_control_visible`,
-`pa_set_panel_on_call`, `pa_read_boolean`, `pa_read_panel_on_call`, `pa_replace_description`, `set_reentrant_flags.py`.
+`lvai_set_control_properties` (plot names included), `lvai_set_vi_descriptions` (whole texts in a batch), verified by
+a cold read; or AIXML attributes a convert keeps. **Evidence** pilot rules 40, 52, 57, 65, 81, 82; a harness run 2026-10 (61
+descriptions in one call; plot names by `{LV.Plot}` `Plot Name`). **Workaround** `pa_set_mechanical_action`, `pa_switch_and_reset_boolean`, `pa_set_control_visible`,
+`pa_set_panel_on_call`, `pa_read_boolean`, `pa_read_panel_on_call`, `pa_replace_description`, `set_reentrant_flags.py`,
+`pa_set_vi_descriptions`, `pa_set_plot_names`.
 **Removes** those helpers; the property steps in `ops/helper-loop.md`.
 
 ## generate-with-events-fixes
@@ -314,17 +322,20 @@ converts, and `lvai_generate_vi` takes that route itself. Not re-run here for th
 rules 8, 50. **Removes** the class-wire bullet once a run confirms it.
 
 ## placeholder-array-of-class
-**Status** proposed. **Gap** `lvai_placeholder_subvi` gives a scalar `path` for an array-of-class terminal. **Proposed**
-an `array{path}` stand-in. **Evidence** pilot rule 53; S4. **Removes** that bullet.
+**Status** proposed. **Gap** `lvai_placeholder_subvi` gives a scalar `path` for an array-of-class terminal, flattens a
+typedef cluster that holds a class into a scalar `path`, and gives members with the same pane ONE shared stub.
+**Proposed** an `array{path}` stand-in; keep the typedef type; one stub per target name. **Evidence** pilot rule 53;
+S4; a harness run 2026-10 (seven hand-made stubs). **Removes** those bullets.
 
 ## swap-subvis-fixes
 **Status** proposed. **Gap** a stub shared by several nodes is swapped on an unpredictable node; a missing-subVI node
 cannot be swapped and the error reads `noActiveProject`; a swap, bind or `lvai_add_class_method` can leave a broken
-wire segment and answer only "state 0". **Proposed** select the node by uid or frame path; repair or name a
-missing-subVI node; run Remove Bad Wires at the end of `lvai_swap_subvis`, `lvai_bind_typedef_constants` and
+wire segment and answer only "state 0"; `constantsJson` finds top-level constants only (1055 for one inside a
+structure). **Proposed** select the node by uid or frame path; repair or name a missing-subVI node; search
+constants at any depth; run Remove Bad Wires at the end of `lvai_swap_subvis`, `lvai_bind_typedef_constants` and
 `lvai_add_class_method` and report the broken-wire list. **Evidence** pilot rules 38, 72, 86; S5; a harness run 2026-10
 (five rebuilds and a restart where one Remove Bad Wires fixed it). **Workaround** export after each swap
-(`aixml_frames.py`); `pa_clean_member.xml`. **Removes** those bullets.
+(`aixml_frames.py`); `pa_clean_member.xml`; `pa_replace_constant_deep.xml`. **Removes** those bullets.
 
 ## describe-class-ancestry
 **Status** proposed. **Gap** `lvai_describe_class` lists rename history as ancestors for a class derived from LabVIEW
@@ -337,7 +348,8 @@ Object. **Proposed** the parent from `Parent Libraries` only. **Evidence** pilot
 ## project-item-tools
 **Status** proposed. **Gap** project, class and library items need byte-exact edits no tool makes (drop a stray item,
 move one into a folder, add a top-level VI, set scope, remove a member and its file); `lvai_create_class` adds the parent
-as a top-level item. **Proposed** `lvai_project_items(op, ...)`, project closed, BOM and line endings kept. **Evidence**
+as a top-level item; no tool creates a `.lvproj` (with virtual folders) or a plain `.lvlib`, although VI Server can
+(`Project.New`, `AddItem` Folder, `Library.Create`, measured in a harness run 2026-10). **Proposed** `lvai_project_items(op, ...)`, project closed, BOM and line endings kept. **Evidence**
 pilot rules 12, 34, 54, 56, 70. **Workaround** `lvproj_drop.py`, `lvproj_move.py`, `lvproj_add_toplevel.py`,
 `set_scope.py`, `remove_members.py`. **Removes** those scripts and the hand-edit cautions.
 
@@ -350,6 +362,20 @@ pilot rules 12, 34, 54, 56, 70. **Workaround** `lvproj_drop.py`, `lvproj_move.py
 **Status** proposed. **Gap** the runner cannot set arrays, refuses empty values, and lists over ~100 paths pass its size
 limit. **Proposed** array, empty and file inputs. **Evidence** pilot rules 47, 58; S1, S3. **Workaround** `;`-strings,
 `*_file` twins. **Removes** the list-input bullet.
+
+## typedef-class-element-default
+**Status** proposed. **Gap** `lvai_create_typedef` cannot put a class element in a cluster (`{protocol: <class>}`) and
+cannot set a default value (a U32 with default 500). **Proposed** a class element by `.lvclass` path, and a `default`
+per element. **Evidence** a harness run 2026-10 (two derived helpers needed). **Workaround** a derived VI Server helper per case.
+**Removes** those helpers.
+
+## clearer-answers
+**Status** proposed. **Gap** answers that point the wrong way: `lvai_add_class_method` reports `ok:false`,
+`pathStandInsLeft` for a path stand-in inside a cluster terminal that a later pane bind resolves;
+`lvai_bind_typedef_constants` with a bare `subViName` answers 1055 "no active project" when the name is not qualified;
+`lvai_exec_state` says "VI has an error of type 8" for a class that implements an interface without overriding one of
+its methods. **Proposed** report the stand-in as pending, say "name not qualified", and name the missing override.
+**Evidence** a harness run 2026-10. **Workaround** the notes in `knowledge/labview-mcp.md`. **Removes** those notes.
 
 ## Where each audit and pilot suggestion went
 - S1 icons (class-library-icons, icon-generator, icon-readback, runner-array-inputs); S2 restart-with-guards,
