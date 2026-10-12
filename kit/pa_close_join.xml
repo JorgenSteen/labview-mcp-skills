@@ -1,4 +1,4 @@
-<VI _name="pa_close_join.vi" description="M-CLOSE helper\3A rewires an Actor Core override that has a helper-loop branch (top level\2C found by VI name)\2C Call Parent and a one-frame Flat Sequence holding the stop hook (found by VI name) into the close shape\3A (1) a NEW close subVI on the top level (path)\2C its class input from the loop's class net\2C its error in from a NEW Merge Errors A (loop error out\2C stop hook error out\3B the latter leaves the frame through a new tunnel)\3B (2) the override's error out indicator from a NEW Merge Errors B (Call Parent error out\2C close error out)\3B Call Parent's whole error-out net is deleted (its old order tunnel then vanishes\2C LabVIEW drops a tunnel with no wire on either side) and rebuilt\3A Merge B first input\2C then a new order tunnel made by wiring Call Parent error out to the stop hook's error in and deleting that inner wire (05 rule 77\3B a tunnel with its outer wire stays). Optionally deletes one more subVI in the frame (remove vi regex) and runs Remove Bad Wires. Merge Errors is created by New VI Object (vi object class GrowableFunction\2C style 2147 = palette id BI2147\3B class Function answers 1057\3B the new node reads Class Name Bundler\2C Style Merge Errors). Inputs are found by Is Source? = F in pane order. Saves VI and class. Project OPEN and ACTIVE.">
+<VI _name="pa_close_join.vi" description="M-CLOSE helper\3A rewires an Actor Core override that has a helper-loop branch (top level\2C found by VI name)\2C Call Parent and a one-frame Flat Sequence holding the stop hook (found by VI name) into the close shape\3A (1) a NEW close subVI on the top level (path)\2C its class input from the loop's class net\2C its error in from a NEW Merge Errors A (loop error out\2C stop hook error out\3B the latter leaves the frame through a new tunnel)\3B (2) the override's error out indicator from a NEW Merge Errors B (Call Parent error out\2C close error out)\3B Call Parent's whole error-out net is deleted (its old order tunnel then vanishes\2C LabVIEW drops a tunnel with no wire on either side) and rebuilt\3A Merge B first input\2C then a new order tunnel made by wiring Call Parent error out to the stop hook's error in and deleting that inner wire (05 rule 77\3B a tunnel with its outer wire stays). Optionally deletes one more subVI in the frame (remove vi regex)\3B that Delete is outside the error chain and reports only to delete node error (1055 there = nothing matched\2C the default)\2C so the steps after it run either way. Then runs Remove Bad Wires. The stop hook's and close's error input is found as error in or error in (no error). Merge Errors is created by New VI Object (vi object class GrowableFunction\2C style 2147 = palette id BI2147\3B class Function answers 1057\3B the new node reads Class Name Bundler\2C Style Merge Errors). Inputs are found by Is Source? = F in pane order. Saves VI and class. Project OPEN and ACTIVE.">
   <Control _name="vi path" type="string" uid="6001" uid_parent="root" value="" outputs="value:6001.value"/>
   <Control _name="class path" type="string" uid="6002" uid_parent="root" value="" outputs="value:6002.value"/>
   <Control _name="close vi path" type="string" uid="6003" uid_parent="root" value="" outputs="value:6003.value"/>
@@ -14,6 +14,7 @@
   <Constant _name="actor out name" type="string" uid="6011" uid_parent="root" value="Actor out" outputs="value:6011.value"/>
   <Constant _name="error out name" type="string" uid="6012" uid_parent="root" value="error out" outputs="value:6012.value"/>
   <Constant _name="error in name" type="string" uid="6013" uid_parent="root" value="error in" outputs="value:6013.value"/>
+  <Constant _name="error in alt name" type="string" uid="6025" uid_parent="root" value="error in (no error)" outputs="value:6025.value"/>
   <Constant _name="node class" type="ref{LV.Node}" uid="6014" uid_parent="root" value="" outputs="value:6014.value"/>
   <Constant _name="subvi class" type="ref{LV.SubVI}" uid="6015" uid_parent="root" value="" outputs="value:6015.value"/>
   <Constant _name="flat sequence class" type="ref{LV.FlatSequence}" uid="6016" uid_parent="root" value="" outputs="value:6016.value"/>
@@ -95,6 +96,7 @@
     <Tunnel _id="In5" inputs="value:6015.value" outputs="value:6205.sc" uid="6205" uid_parent="6200"/>
     <Tunnel _id="In6" inputs="value:6010.value" outputs="value:6206.z" uid="6206" uid_parent="6200"/>
     <Tunnel _id="In7" inputs="value:6013.value" outputs="value:6207.ein" uid="6207" uid_parent="6200"/>
+    <Tunnel _id="In8" inputs="value:6025.value" outputs="value:6208.ein2" uid="6208" uid_parent="6200"/>
     <Node _name="To More Specific Class" inputs="reference:6201.obj,error in:,target class:6205.sc" outputs="specific class reference:6210.sv,error out:6210.err" uid="6210" uid_parent="6200"/>
     <Node _name="Property Node" fields="read+VI Name,read+Terminals[]" type="{LV.SubVI}" inputs="reference:6210.sv,error in (no error):6210.err" outputs="VI Name:6211.vn,Terminals[]:6211.terms,reference out:,error out:" uid="6211" uid_parent="6200"/>
     <Structure _name="For Loop" count="" maxin="" maxout="" uid="6220" uid_parent="6200">
@@ -105,7 +107,9 @@
     <Node _name="Search 1D Array" inputs="1D array:6223.names,element:6204.eon,start index (0):" outputs="index of element:6225.ie" uid="6225" uid_parent="6200"/>
     <Node _name="Index Array" inputs="array:6211.terms,index:6225.ie" outputs="element:6226.et" uid="6226" uid_parent="6200"/>
     <Node _name="Search 1D Array" inputs="1D array:6223.names,element:6207.ein,start index (0):" outputs="index of element:6231.ii" uid="6231" uid_parent="6200"/>
-    <Node _name="Index Array" inputs="array:6211.terms,index:6231.ii" outputs="element:6232.eit" uid="6232" uid_parent="6200"/>
+    <Node _name="Search 1D Array" inputs="1D array:6223.names,element:6208.ein2,start index (0):" outputs="index of element:6233.ii2" uid="6233" uid_parent="6200"/>
+    <Node _name="Max &amp; Min" inputs="x:6231.ii,y:6233.ii2" outputs="max(x\2Cy):6234.iim,min(x\2Cy):" uid="6234" uid_parent="6200"/>
+    <Node _name="Index Array" inputs="array:6211.terms,index:6234.iim" outputs="element:6232.eit" uid="6232" uid_parent="6200"/>
     <Node _name="Match Pattern" inputs="string:6211.vn,regular expression:6202.srx,offset (0):" outputs="before substring:,match substring:,after substring:,offset past match:6227.off" uid="6227" uid_parent="6200"/>
     <Node _name="Greater Or Equal?" inputs="x:6227.off,y:6206.z" outputs="x &gt;= y?:6228.isstop" uid="6228" uid_parent="6200"/>
     <Node _name="Match Pattern" inputs="string:6211.vn,regular expression:6203.rrx,offset (0):" outputs="before substring:,match substring:,after substring:,offset past match:6229.off" uid="6229" uid_parent="6200"/>
@@ -165,7 +169,9 @@
   <Node _name="Search 1D Array" inputs="1D array:6414.names,element:6007.value,start index (0):" outputs="index of element:6415.i" uid="6415" uid_parent="root"/>
   <Node _name="Index Array" inputs="array:6410.cterms,index:6415.i" outputs="element:6416.cclass" uid="6416" uid_parent="root"/>
   <Node _name="Search 1D Array" inputs="1D array:6414.names,element:6013.value,start index (0):" outputs="index of element:6417.i" uid="6417" uid_parent="root"/>
-  <Node _name="Index Array" inputs="array:6410.cterms,index:6417.i" outputs="element:6418.cein" uid="6418" uid_parent="root"/>
+  <Node _name="Search 1D Array" inputs="1D array:6414.names,element:6025.value,start index (0):" outputs="index of element:6425.i" uid="6425" uid_parent="root"/>
+  <Node _name="Max &amp; Min" inputs="x:6417.i,y:6425.i" outputs="max(x\2Cy):6426.im,min(x\2Cy):" uid="6426" uid_parent="root"/>
+  <Node _name="Index Array" inputs="array:6410.cterms,index:6426.im" outputs="element:6418.cein" uid="6418" uid_parent="root"/>
   <Node _name="Search 1D Array" inputs="1D array:6414.names,element:6012.value,start index (0):" outputs="index of element:6419.i" uid="6419" uid_parent="root"/>
   <Node _name="Index Array" inputs="array:6410.cterms,index:6419.i" outputs="element:6420.ceout" uid="6420" uid_parent="root"/>
 
@@ -208,7 +214,7 @@
   <Node _name="Index Array" inputs="array:6241.rems,index:6010.value" outputs="element:6510.rem" uid="6510" uid_parent="root"/>
   <Node _name="Invoke Node" target="Delete" type="{LV.GObject}" inputs="reference:6510.rem,error in (no error):6504.err" outputs="reference out:,error out:6511.err" uid="6511" uid_parent="root"/>
   <Indicator _name="delete node error" type="cluster{bool.status,int32.code,string.source}" uid="6512" uid_parent="root" value="[false,0,]" inputs="value:6511.err"/>
-  <Node _name="Invoke Node" target="BD.Remove Bad Wires" type="{LV.VI}" inputs="reference:6035.vi,error in (no error):6511.err" outputs="reference out:,error out:6513.err" uid="6513" uid_parent="root"/>
+  <Node _name="Invoke Node" target="BD.Remove Bad Wires" type="{LV.VI}" inputs="reference:6035.vi,error in (no error):6504.err" outputs="reference out:,error out:6513.err" uid="6513" uid_parent="root"/>
   <Indicator _name="remove bad wires error" type="cluster{bool.status,int32.code,string.source}" uid="6514" uid_parent="root" value="[false,0,]" inputs="value:6513.err"/>
   <Node _name="Invoke Node" target="Connect Wire" type="{LV.Terminal}" inputs="reference:6443.ain1,error in (no error):6513.err,Wire Source:6250.serr,Auto Wire? (T):6019.value,Wiring Specs:,Auto Route? (F):6019.value" outputs="reference out:,error out:6515.err" uid="6515" uid_parent="root"/>
   <Indicator _name="wire stop to A error" type="cluster{bool.status,int32.code,string.source}" uid="6516" uid_parent="root" value="[false,0,]" inputs="value:6515.err"/>

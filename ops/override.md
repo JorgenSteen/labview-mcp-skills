@@ -114,9 +114,12 @@ patterns matching the loop VI's and the stop hook's VI names, `class terminal na
 delete an older second hook in the frame. One run makes Merge Errors (loop `error out`, stop hook `error out`) →
 `close`, and Merge Errors (Call Parent `error out`, `close` `error out`) → Actor Core `error out`, and rebuilds the
 order tunnel. Read `call parent hits`, `loop hits`, `stop hits`, `indicator hits` = 1, `merge class` = `Bundler`,
-every error 0. Then `pa_save_member` in a separate call. Measured once on an actor with the project active (~25 s to
-generate, < 1 s to run), with `remove vi regex` deleting the old destroy hook; the run with nothing to remove (the
-default regex matches nothing) is the same code path but was not run. 5 of 5 stop runs green afterwards (M-CLOSE M1).
+every error 0, except `delete node error` = 1055 when `remove vi regex` matches nothing (the default). Then
+`pa_save_member` in a separate call. Measured once on an actor with the project active (~25 s to generate, < 1 s to
+run), with `remove vi regex` deleting the old destroy hook. 5 of 5 stop runs green afterwards (M-CLOSE M1). Since
+2026-10-12 that Delete is outside the error chain (before, a no-match 1055 skipped every later step and left the VI
+half rewired and unsaved), and the stop hook's and `close`'s error input is found as `error in` or
+`error in (no error)` (hooks made by `lvai_add_class_method`); that version is validated, not yet run.
 > MCP-candidate: add-hook
 
 **E-after. Handle Error, Call Parent first:** a handler that only logs needs class and error: B-after with
