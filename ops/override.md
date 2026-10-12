@@ -81,6 +81,16 @@ beside everything else on that wire. Only the class terminal is wired. (pilot ru
 `panel name A` = `<C> in`, `hook in A` = `<C> in`, `hook out A` = `<C> out`; the error wire as block B:
 `panel name B` = `error in`, `hook in B` = `error in`, `hook out B` = `error out`. Measured on Actor Core (M-CLOSE M4,
 all 0). The hook needs both class terminals.
+- **A wire with branches** (Actor Core whose class wire also feeds the helper loop, the stop frame or `close`):
+  `pa_insert_series2` reconnects only one far end and drops the other branches. Use `kit/pa_insert_series_branch.xml`
+  instead: the same `vi path`, `hook vi path` and A/B names, plus `far name A` = Call Parent's class input (`Actor in`,
+  the default), `far name B` = `error in`, `far owner class` = `CallParentNode` (a tunnel terminal carries its source's
+  name, so the name alone is not enough). No `class path`: it saves the VI only, then `pa_save_member`. Read
+  `far A found`, `wire A kept branches` (the branches you expect), every error 0. Measured on an Actor Core with three
+  branches (loop, stop frame, `close`), all kept, 2026-10.
+- **Two series hooks before Call Parent:** each insert lands at the panel side, so the SECOND insert ends up FIRST.
+  For hook 1 -> hook 2 -> Call Parent, insert hook 2 first. Afterwards a `<C> in` source search (shape D) matches the
+  first hook's input, so the stop's class wire comes from that hook's output (harmless, but surprising).
 
 **B-after. Series after Call Parent (roles swapped):** the same helper, with `panel name A` = `<C> out`,
 `hook in A` = `<C> out`, `hook out A` = `<C> in`; block B `panel name B` = `error out`, `hook in B` = `error out`,
