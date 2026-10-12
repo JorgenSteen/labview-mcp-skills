@@ -75,20 +75,28 @@ or when a concern is off, follow the surrounding code instead.
 4. **Generate**, project closed: `lvai_generate_vi_with_events(aiXmlFilePath, viPath = <member path>)`. `ok:false` and
    state 0 are expected until step 9. It refuses two event structures in one document. Whether it keeps an event
    structure nested in a case frame inside the loop is unmeasured. > MCP-candidate: generate-with-events-fixes
-5. **Left side of the registration**, project open and active (the VI is not a member yet; the `.lvproj` lists it
-   loose until step 9): `lvai_wire_dynamic_events(viPath, finishUserEvents: false)`. Expected: `sourceFrom diagram`,
-   `wireEndsAfter 2`, Error 91 / `helperDidNotAnswer`. The default `finishUserEvents` closes and saves the active
-   project. Inside the case frame: unmeasured. (pilot rule 60) > MCP-candidate: wire-dynamic-events-fix
-6. **Right side**, project open and active: `kit/pa_wire_dyn_right.xml` (`VI Path`, capitals as written): `event
-   structure found`, `dyn out found`, `unregister found` T, `wire ends after` 2, `wire broken` F. **Gap:** as written it
-   looks for the event structure one level inside a top-level loop or case, and for Unregister on the top-level
-   diagram. Unregister is still on the top-level diagram, but the event structure is now two levels down (loop → case No
-   Error frame), so it will not find it. Extend its search one level and measure that on a throwaway first.
+5. **Both sides of the registration**, project open and active (the VI is not a member yet; the `.lvproj` lists it
+   loose until step 9): `kit/pa_wire_dyn_deep.xml` (`VI Path`, capitals as written). It finds the event structure up
+   to three levels down (loop → case frame → event structure, the error-case shape), wires Register's refnum output to
+   the dynamic terminal and the right-side terminal to Unregister on the top-level diagram. Read `event structure
+   found`, `left terminal found`, `right terminal found`, `register found`, `unregister found` T, `left wire ends` and
+   `right wire ends` 2, `left wire broken` and `right wire broken` F, error 0. Measured 2026-10 on the error-case shape.
+   `lvai_wire_dynamic_events` searches two levels only: here it answers Error 91 / `helperDidNotAnswer` and changes
+   nothing. The new right-side tunnel has no value in the Error frame and breaks the VI until step 7.
    > MCP-candidate: wire-dynamic-events-fix
+6. **One-level shapes only** (event structure directly in the top-level loop, no error case): left side
+   `lvai_wire_dynamic_events(viPath, finishUserEvents: false)` (expected `sourceFrom diagram`, `wireEndsAfter 2`,
+   Error 91 / `helperDidNotAnswer`; the default `finishUserEvents` closes and saves the active project), right side
+   `kit/pa_wire_dyn_right.xml` (`VI Path`): `event structure found`, `dyn out found`, `unregister found` T, `wire ends
+   after` 2, `wire broken` F. (pilot rule 60)
 7. **User-event specs**, project closed: `pylv_extract` → `python <skill>/kit/set_user_event_specs.py <bundle> <base>
    <diagramIdx>:<element label>:<dynIndex> ...` → `pylv_rebuild`. `diagramIdx` = the frame's position in the document
    (Timeout included), `dynIndex` = the source's 1-based position on Register. Run `--check` before (current rows) and
    after. Needed for one event too. Measured rows: `0:error:2 2:stop:1`, `1:stop_event:1`. (pilot rules 39, 60)
+   In the same round trip, after step 5: `python <skill>/kit/set_use_default.py <bundle> <base> --check` must list
+   only the new refnum tunnel (it flags EVERY case output tunnel left unwired in a frame, which in hand-built code can
+   hide a real missing wire); then run it without `--check`. It sets "Use Default if Unwired", which AIXML refuses
+   ("Invalid property"). Measured 2026-10: cold state 1 with the flag, 0 without. > MCP-candidate: wire-dynamic-events-fix
 8. **Event data**, project closed, only for a frame that reads its payload: `lvai_set_event_data_fields(viPath,
    fields="<dataNodeUid> <placeholderUid>:4")`. `ok:false` before membership is expected.
 9. **Membership:** `lvai_add_class_method` with the **existing VI only** (`methodsJson`

@@ -214,9 +214,12 @@ differences. **Evidence** pilot rules 58, 80. **Workaround** `icon_get_vi_icons_
 ## wire-dynamic-events-fix
 **Status** proposed (S7). **Gap** no AIXML element for the dynamic event terminal; the tool branches an authored tunnel,
 wires the left side only, refuses several user events, skips its finish on the diagram route, saves the project by
-default. **Proposed** an AIXML element for both sides; until then `rightSideTo: "Unregister For Events"`, several user
-events (`dynIndex` = position on Register), the finish on the diagram route, no project save. **Evidence** pilot rules
-39, 60. **Workaround** `pa_wire_dyn_right.xml`, `set_user_event_specs.py`. **Removes** `ops/helper-loop.md` build steps 3–5.
+default; searches two levels only (the error-case shape is three: Error 91, no change); the case tunnel it leaves has
+no value in the other frames, and AIXML refuses "Use Default if Unwired". **Proposed** an AIXML element for both
+sides; until then `rightSideTo: "Unregister For Events"`, several user events (`dynIndex` = position on Register),
+the finish on the diagram route, no project save, the event structure found at any depth, Use Default set on the
+tunnel it creates, and the property allowed in AIXML. **Evidence** pilot rules 39, 60; a harness run 2026-10.
+**Workaround** `pa_wire_dyn_deep.xml`, `pa_wire_dyn_right.xml`, `set_use_default.py`, `set_user_event_specs.py`. **Removes** `ops/helper-loop.md` build steps 3–5.
 
 ## user-event-cluster
 **Status** proposed (S7). **Gap** an events typedef, its field and accessor take several calls. **Proposed**

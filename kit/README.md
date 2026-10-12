@@ -90,7 +90,9 @@ kit's `project.example.json` is superseded by `conventions/templates/project.jso
 
 | File | Kind | What it does | Used by | MCP candidate |
 |---|---|---|---|---|
-| `pa_wire_dyn_right.xml` | helper XML | Wires the right side of the dynamic-event registration (event structure terminal to Unregister). Project open and active. | knowledge/labview-mcp.md; ops/helper-loop.md (planned) | wire-dynamic-events-fix |
+| `pa_wire_dyn_right.xml` | helper XML | Wires the right side of the dynamic-event registration (event structure terminal to Unregister); event structure ONE level inside a top-level loop or case. Project open and active. | knowledge/labview-mcp.md; ops/helper-loop.md | wire-dynamic-events-fix |
+| `pa_wire_dyn_deep.xml` | helper XML | Wires BOTH sides of the dynamic-event registration (Register refnum to the dynamic terminal, right terminal to Unregister) with the event structure up to three levels down (loop, case frame, event structure). Leaves the new case tunnel without a value: `set_use_default.py` next. Project open and active. | ops/helper-loop.md; knowledge/labview-mcp.md | wire-dynamic-events-fix |
+| `set_use_default.py` | python | Sets "Use Default if Unwired" (objFlags +0x200000) on case output tunnels left unwired in a frame, in a `pylv_extract` bundle; `--check` lists them. Touches every such tunnel. | ops/helper-loop.md; knowledge/labview-mcp.md | wire-dynamic-events-fix |
 | `set_user_event_specs.py` | python | Writes user-event specs with an explicit `dynIndex` into a `pylv_extract` bundle before `pylv_rebuild`. | knowledge/labview-mcp.md | wire-dynamic-events-fix |
 | `set_reentrant_flags.py` | python | Sets shared-clone reentrancy on a `pylv_extract` bundle (a static hook inside a dispatch recursion). | knowledge/labview-mcp.md | control-property-setters |
 | `pa_set_mechanical_action.xml`, `pa_switch_and_reset_boolean.xml` | helper XML | Mechanical action of a Boolean (project closed); or the same plus a reset local in its Value Change frame (project open and active). | knowledge/labview-mcp.md; ops/helper-loop.md (planned) | control-property-setters |

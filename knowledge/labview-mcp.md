@@ -49,7 +49,7 @@ not repeated here.
 | front-panel property setters and cold read-backs, VI description edit; `pylv_extract`/`pylv_rebuild` with kit bundle scripts; `lvai_generate_vi_with_events`; `lvai_set_event_data_fields` | **closed** |
 | byte-exact kit edits of `.lvclass`/`.lvlib`/`.lvproj`; file deletes; any git restore, checkout, revert or reset | **closed** |
 | AF override and hook helpers, `pa_save_member`, `pa_clean_member`, `pa_rename_member`; `lvai_swap_subvis` (`Replace` is a silent no-op outside the IDE's own instance) | **open and active** |
-| `lvai_wire_dynamic_events`, `pa_wire_dyn_right`, `pa_set_panel_on_call`, `pa_switch_and_reset_boolean`, `pa_array_element_replace`; `lvai_add_class_field`, `lvai_bind_class_fields`, `lvai_add_class_method` on an existing member, `lvpdc_export`/`lvpdc_import` | **open and active** |
+| `lvai_wire_dynamic_events`, `pa_wire_dyn_right`, `pa_wire_dyn_deep`, `pa_set_panel_on_call`, `pa_switch_and_reset_boolean`, `pa_array_element_replace`; `lvai_add_class_field`, `lvai_bind_class_fields`, `lvai_add_class_method` on an existing member, `lvpdc_export`/`lvpdc_import` | **open and active** |
 | `pa_set_class_description`, `pa_class_folder_add_files`, `pa_class_folder_create_and_move`, `pa_class_folder_move`, `pa_save_libraries`, `pa_project_vis_modified` | **open and active** |
 | `lvai_create_accessors` | opens `projectPath` itself (since 1.8.5) |
 | `lvai_create_typedef` | closed with no `projectPath` (stays closed), or `projectPath` = the active project |
@@ -331,6 +331,11 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
   plain tunnel (the wrong shape). Author no refnum tunnel, wire the left side with `finishUserEvents: false` (the
   diagram route) and the right side with `pa_wire_dyn_right.xml`. [1.8.5] (pilot rule 60)
   > MCP-candidate: wire-dynamic-events-fix
+- It searches two levels: an event structure in a case frame inside the loop (three levels) gets Error 91 /
+  `helperDidNotAnswer` and no change. `kit/pa_wire_dyn_deep.xml` wires both sides at three levels. The right-side
+  case tunnel it creates has no value in the other frames and breaks the VI; "Use Default if Unwired" is refused by
+  AIXML ("Invalid property"), so `kit/set_use_default.py` sets it in the pylv round trip (state 1 with it, 0 without).
+  [1.8.5, measured 2026-10] > MCP-candidate: wire-dynamic-events-fix
 - Its finish step refuses more than one user event, is skipped on the diagram route (Error 91 / `helperDidNotAnswer`,
   `wireEndsAfter 2`: expected), and with the default `finishUserEvents` closes and saves the active project. After a
   load every user-event spec has `dynIndex` N+1. Write the specs with `set_user_event_specs.py` between `pylv_extract`
