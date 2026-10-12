@@ -51,6 +51,10 @@ a concern is off, the brief names the surrounding code to follow instead of conv
     in a launch message. The main session commits it with the result or before the launch. A subagent that writes a
     brief for review does not commit it.
 
+Later briefs of a planned run can be written while the previous agent runs: paths, names, build order, rules,
+traps already known and the report format are static. Only UPDATES waits for the previous report (its commits, the
+measured save version, the traps it found). It keeps the manager's context small.
+
 ## Hard rules block (copy into every brief that makes LabVIEW calls)
 ```
 ## Hard rules
@@ -84,10 +88,6 @@ although their brief said it. > MCP-candidate: call-lock
 
 **Commit messages** follow `convention: hygiene.commit-messages`. The user's global git rule forbids AI attribution
 lines: add a trailer only when `project.json` sets `commit_attribution`, and then exactly that line.
-
-Later briefs of a planned run can be written while the previous agent runs: paths, names, build order, rules,
-traps already known and the report format are static. Only UPDATES waits for the previous report (its commits, the
-measured save version, the traps it found). It keeps the manager's context small.
 
 ## Passing on a user's go-ahead
 Some steps need the user's go-ahead: closing or restarting a LabVIEW this session did not start (`session/restart.md`),
