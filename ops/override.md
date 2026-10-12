@@ -99,6 +99,15 @@ Init with both blocks (M-CLOSE M3, all 0, the hook's error 5000 came out of Laun
 (pilot). **Stop Core** has no error terminals: block A only, leave `panel name B` empty. Unmeasured on Stop Core (the
 measured Stop Core hook sat before Call Parent, the old order). A second B-after hook on the same override lands
 between the first and the indicators: unmeasured.
+- **Typing, in a DYNAMIC override of a plain class:** the hook's class input AND output are typed as the PARENT
+  class; it casts to the child inside as needed. Call Parent's class output carries the run-time-type guarantee, and
+  a static subVI keeps it only with the same class in and out. Measured cold (a harness run, 2026-10): child in/child
+  out → the override and every caller of the method state 0; parent in/child out (To More Specific Class) → 0;
+  parent in/parent out → 1. `lvai_exec_state` says only "VI is not executable".
+- **A hook that WRITES a child field** (cast inside, then `Write <field>`) ends with `Preserve Run-Time Class`
+  (object in = the written object, target = the hook's input) on its parent-typed output. Returning the written
+  object without it: state 0 on the override; passing the input wire straight out: state 1, but the write is lost.
+  Read-only and close hooks pass the input wire straight through. (A harness run, 2026-10.)
 - **Stop Core release errors** (`convention: errors.release-errors`): the release hook's `error out` has nowhere to
   go on Stop Core's pane. Feed it to the project's log VI, or to `Clear Errors.vi` when ignored on purpose, with
   `kit/af_add_hook_call_node.xml`: `source terminal name` = `error out`, `hook terminal name` = `error in`, `hook vi
@@ -199,6 +208,9 @@ side effects: <files re-saved, project items>   LabVIEW calls <n>   issues: <exa
 - `vi name in memory` must be library-qualified for a class in a library. (pilot rule 6)
 - `af_add_hook_call` taps the panel terminal: after a series hook it would run first; use `af_add_hook_call_node`.
 - `pa_insert_series2` after Call Parent swaps the roles: `hook in` is the `<C> out`/`error out` side.
+- A child-typed hook after Call Parent in a dynamic plain-class override reads state 0 with only "VI is not
+  executable", and breaks every caller of the method too: type the hook's class terminals as the parent (B-after,
+  "Typing"); a hook that writes a field ends with `Preserve Run-Time Class`.
 - A hook's required inputs must all be fed by the helper's one wire per side; one unwired input breaks the override
   and only a cold `lvai_exec_state` shows it. (pilot rule 23)
 - `pa_close_join` deletes Call Parent's whole error-out net and rebuilds it. LabVIEW deletes a flat-sequence tunnel
