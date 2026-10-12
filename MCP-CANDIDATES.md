@@ -294,8 +294,10 @@ to test frameworks that may be missing. **Proposed** agents read a shipped trap 
 ## vi-server-catalogue
 **Status** proposed. **Gap** `lvai_vi_server_reference` lacks `BD.CleanUp` and the Project and Library classes (Save,
 Close, `SetSaveVersion`), `{LV.LVClassLibrary}` `Description` and `{LV.ProjectItem}` (`AddItem`, `Move`, `Name`);
-`lvai_aixml_reference` lacks `ref{UDP}`. **Proposed** add them. **Evidence** pilot rules 46,
-51; agent V. **Removes** those notes.
+`lvai_aixml_reference` lacks `ref{UDP}`. **Proposed** add them, generated from LabVIEW's `resource\lvserver.rsc`, which
+holds every name; and `lvai_validate_aixml` must answer an error, not crash, on an invented name (an invented
+`{LV.Application}` method crashed LabVIEW 2026 Q3 in the validator, 2026-10). **Evidence** pilot rules 46, 51; agent
+V; a harness run 2026-10. **Removes** those notes and the "never probe" warning.
 
 ## convert-target-folder
 **Status** proposed; partly covered (`lvai_generate_vi`, `lvai_convert_vis_to_aixml` create it in 1.8.5). **Gap**

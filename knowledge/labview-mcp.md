@@ -367,7 +367,12 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
 ### lvai_vi_server_reference, lvai_aixml_reference
 - `BD.CleanUp` (`{LV.VI}` Invoke: Clean Up Diagram) is missing from the catalogue, and so are the Project and Library
   classes (Save, Close, `SetSaveVersion`). Find spellings in NI's exports (`examples\Application Control\VI
-  Scripting\`) or probe a name with `lvai_validate_aixml`; never guess. [1.8.0–1.8.5] (pilot rules 14, 46)
+  Scripting\`) or in LabVIEW's `resource\lvserver.rsc` (class and member names as plain text; search it with grep);
+  never guess. [1.8.0–1.8.5] (pilot rules 14, 46)
+- **Never probe an unknown name with `lvai_validate_aixml`.** An invented method on `{LV.Application}` crashed LabVIEW
+  2026 Q3 inside the validator (DWarn in `invoke.cpp`, 2026-10). Validate only names found in one of the sources
+  above. A real name can still be refused by the AIXML catalogue ("Invalid property", e.g. "Use Default if
+  Unwired"): that is a refusal, not a crash, and the pylv route is next.
   > MCP-candidate: vi-server-catalogue
 
 ### No tool yet (kit routes only)
