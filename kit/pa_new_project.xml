@@ -1,0 +1,50 @@
+<VI _name="pa_new_project.vi" description="Creates a new LabVIEW project with virtual folders under My Computer and saves it\3A {LV.Application} Project.New (output Project\3ANew) -&gt; {LV.Project} My Computer -&gt; {LV.TargetItem} AddItem (Type Folder\2C EMPTY Path) per name in folder names (\3B-separated) -&gt; {LV.Project} Save (Path) -&gt; Close. Spellings from NI's example Add Files to Project.vi. No project needs to be open\3B report\3A one line per folder\2C code TAB name. Measured in an evaluation\2C 2026-10.">
+  <Control _name="new lvproj path" type="path" uid="5000" uid_parent="root" value="" outputs="value:5000.value"/>
+  <Control _name="folder names" type="string" uid="5001" uid_parent="root" value="" outputs="value:5001.value"/>
+  <Constant _name="Folder Type" type="string" uid="5010" uid_parent="root" value="Folder" outputs="value:5010.value"/>
+  <Constant _name="Empty Path" type="path" uid="5011" uid_parent="root" value="" outputs="value:5011.value"/>
+  <Constant _name="sep" type="string" uid="5012" uid_parent="root" value="\3B" outputs="value:5012.value"/>
+  <Constant _name="tab" type="string" uid="5013" uid_parent="root" value="\09" outputs="value:5013.value"/>
+  <Constant _name="lf" type="string" uid="5014" uid_parent="root" value="\0A" outputs="value:5014.value"/>
+  <Constant _name="empty" type="string" uid="5015" uid_parent="root" value="" outputs="value:5015.value"/>
+  <Node _name="Invoke Node" target="Project.New" type="{LV.Application}" inputs="reference:,error in (no error):" outputs="reference out:,error out:5100.err,Project\3ANew:5100.proj" uid="5100" uid_parent="root"/>
+  <Indicator _name="new project error" type="cluster{bool.status,int32.code,string.source}" uid="5101" uid_parent="root" value="[false,0,]" inputs="value:5100.err"/>
+  <Node _name="Property Node" fields="read+My Computer" type="{LV.Project}" inputs="reference:5100.proj,error in (no error):5100.err" outputs="My Computer:5110.mc,reference out:5110.proj,error out:5110.err" uid="5110" uid_parent="root"/>
+  <Structure _name="While Loop" count="" uid="5200" uid_parent="root">
+    <ShiftReg uid="5210" uid_parent="5200">
+      <Left inputs="value:5001.value" outputs="value:5211.rest" uid="5211" uid_parent="5210"/>
+      <Right inputs="value:5220.after" outputs="value:5212.restout" uid="5212" uid_parent="5210"/>
+    </ShiftReg>
+    <ShiftReg uid="5213" uid_parent="5200">
+      <Left inputs="value:5015.value" outputs="value:5214.rep" uid="5214" uid_parent="5213"/>
+      <Right inputs="value:5240.rep" outputs="value:5215.report" uid="5215" uid_parent="5213"/>
+    </ShiftReg>
+    <ShiftReg uid="5216" uid_parent="5200">
+      <Left inputs="value:5110.err" outputs="value:5217.err" uid="5217" uid_parent="5216"/>
+      <Right inputs="value:5235.err" outputs="value:5218.errout" uid="5218" uid_parent="5216"/>
+    </ShiftReg>
+    <Tunnel _id="In1" inputs="value:5012.value" outputs="value:5201.sep" uid="5201" uid_parent="5200"/>
+    <Tunnel _id="In2" inputs="value:5013.value" outputs="value:5202.tab" uid="5202" uid_parent="5200"/>
+    <Tunnel _id="In3" inputs="value:5014.value" outputs="value:5203.lf" uid="5203" uid_parent="5200"/>
+    <Tunnel _id="In4" inputs="value:5110.mc" outputs="value:5204.mc" uid="5204" uid_parent="5200"/>
+    <Tunnel _id="In5" inputs="value:5010.value" outputs="value:5205.type" uid="5205" uid_parent="5200"/>
+    <Tunnel _id="In6" inputs="value:5011.value" outputs="value:5206.path" uid="5206" uid_parent="5200"/>
+    <Node _name="Match Pattern" inputs="string:5211.rest,regular expression:5201.sep,offset (0):" outputs="before substring:5220.name,match substring:,after substring:5220.after,offset past match:" uid="5220" uid_parent="5200"/>
+    <Node _name="Invoke Node" target="AddItem" type="{LV.TargetItem}" inputs="reference:5204.mc,error in (no error):5217.err,Name:5220.name,Path:5206.path,Type:5205.type" outputs="reference out:,error out:5230.err,AddItem:5230.item" uid="5230" uid_parent="5200"/>
+    <Node _name="Close Reference" inputs="reference:5230.item,error in (no error):5230.err" outputs="error out:5235.err" uid="5235" uid_parent="5200"/>
+    <Node _name="Unbundle By Name" fields="code" inputs="input cluster:5230.err" outputs="code:5231.code" uid="5231" uid_parent="5200"/>
+    <Node _name="Number To Decimal String" inputs="number:5231.code" outputs="decimal integer string:5232.c" uid="5232" uid_parent="5200"/>
+    <Node _name="Concatenate Strings" inputs="string:5214.rep,string:5232.c,string:5202.tab,string:5220.name,string:5203.lf" outputs="concatenated string:5240.rep" uid="5240" uid_parent="5200"/>
+    <Node _name="Empty String/Path?" inputs="string/path:5220.after" outputs="empty?:5260.e" uid="5260" uid_parent="5200"/>
+    <Condition inputs="value:5260.e" uid="5261" uid_parent="5200" value="stop"/>
+  </Structure>
+  <Indicator _name="report" type="string" uid="5300" uid_parent="root" value="" inputs="value:5215.report"/>
+  <Node _name="Close Reference" inputs="reference:5110.mc,error in (no error):5218.errout" outputs="error out:5310.err" uid="5310" uid_parent="root"/>
+  <Indicator _name="add folders error" type="cluster{bool.status,int32.code,string.source}" uid="5311" uid_parent="root" value="[false,0,]" inputs="value:5310.err"/>
+  <Node _name="Invoke Node" target="Save" type="{LV.Project}" inputs="reference:5110.proj,error in (no error):5310.err,Path:5000.value" outputs="reference out:5400.proj,error out:5400.err" uid="5400" uid_parent="root"/>
+  <Indicator _name="save error" type="cluster{bool.status,int32.code,string.source}" uid="5401" uid_parent="root" value="[false,0,]" inputs="value:5400.err"/>
+  <Node _name="Invoke Node" target="Close" type="{LV.Project}" inputs="reference:5400.proj,error in (no error):5400.err" outputs="reference out:5410.proj,error out:5410.err" uid="5410" uid_parent="root"/>
+  <Indicator _name="error out" type="cluster{bool.status,int32.code,string.source}" uid="5411" uid_parent="root" value="[false,0,]" inputs="value:5410.err"/>
+  <Node _name="Close Reference" inputs="reference:5410.proj,error in (no error):" outputs="error out:5420.err" uid="5420" uid_parent="root"/>
+  <Indicator _name="close reference error" type="cluster{bool.status,int32.code,string.source}" uid="5421" uid_parent="root" value="[false,0,]" inputs="value:5420.err"/>
+</VI>

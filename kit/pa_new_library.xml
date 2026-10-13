@@ -1,0 +1,14 @@
+<VI _name="pa_new_library.vi" description="Creates an EMPTY plain library in the ACTIVE project's application instance and saves it\3A Project\3AActive Project -&gt; Application -&gt; Library.Create -&gt; {LV.Library} Save (Path) -&gt; Edit LVLibs.lvlib\3ASave All This Library.vi. The close does not list an empty library\3A add it with pa_project_add_file. Project OPEN and ACTIVE. Measured in an evaluation\2C 2026-10.">
+  <Control _name="library path" type="path" uid="6201" uid_parent="root" value="" outputs="value:6201.value"/>
+  <Node _name="Property Node" fields="read+Project\3AActive Project" type="{LV.Application}" inputs="error in (no error):" outputs="Project\3AActive Project:6210.proj,reference out:,error out:6210.err" uid="6210" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Application" type="{LV.Project}" inputs="reference:6210.proj,error in (no error):6210.err" outputs="Application:6215.app,reference out:,error out:6215.err" uid="6215" uid_parent="root"/>
+  <Node _name="Invoke Node" target="Library.Create" type="{LV.Application}" inputs="reference:6215.app,error in (no error):6215.err,Create.Default Palette:" outputs="Create Library:6220.lib,reference out:,error out:6220.err" uid="6220" uid_parent="root"/>
+  <Indicator _name="create error" type="cluster{bool.status,int32.code,string.source}" uid="6221" uid_parent="root" value="[false,0,]" inputs="value:6220.err"/>
+  <Node _name="Invoke Node" target="Save" type="{LV.Library}" inputs="reference:6220.lib,error in (no error):6220.err,Path:6201.value" outputs="reference out:6240.ref,error out:6240.err" uid="6240" uid_parent="root"/>
+  <Indicator _name="save error" type="cluster{bool.status,int32.code,string.source}" uid="6241" uid_parent="root" value="[false,0,]" inputs="value:6240.err"/>
+  <Call target="Edit LVLibs.lvlib\3ASave All This Library.vi" inputs="Library in:6240.ref,Save Only Modified VIs and Libraries? (F):,error in (no error):6240.err" outputs="Library out:6260.lib,error out:6260.err" uid="6260" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Path" type="{LV.Library}" inputs="reference:6260.lib,error in (no error):6260.err" outputs="Path:6270.path,reference out:6270.ref,error out:6270.err" uid="6270" uid_parent="root"/>
+  <Node _name="Close Reference" inputs="reference:6270.ref,error in (no error):6270.err" outputs="error out:6280.err" uid="6280" uid_parent="root"/>
+  <Indicator _name="library saved path" type="path" uid="6290" uid_parent="root" value="" inputs="value:6270.path"/>
+  <Indicator _name="error out" type="cluster{bool.status,int32.code,string.source}" uid="6291" uid_parent="root" value="[false,0,]" inputs="value:6280.err"/>
+</VI>

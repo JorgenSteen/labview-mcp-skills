@@ -1,0 +1,11 @@
+<VI _name="pa_project_add_file.vi" description="Adds one existing file (e.g. a new empty .lvlib) to the ACTIVE project directly under My Computer\3A Project\3AActive Project -&gt; {LV.Project} My Computer -&gt; {LV.TargetItem} AddFile (Path). Spellings from NI's example Add Files to Project.vi. The close saves the project\3B move the item into its folder with lvproj_move.py afterwards. Project OPEN and ACTIVE. Measured in an evaluation\2C 2026-10.">
+  <Control _name="file to add" type="path" uid="7001" uid_parent="root" value="" outputs="value:7001.value"/>
+  <Node _name="Property Node" fields="read+Project\3AActive Project" type="{LV.Application}" inputs="error in (no error):" outputs="Project\3AActive Project:7010.proj,reference out:,error out:7010.err" uid="7010" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+My Computer" type="{LV.Project}" inputs="reference:7010.proj,error in (no error):7010.err" outputs="My Computer:7020.mc,reference out:,error out:7020.err" uid="7020" uid_parent="root"/>
+  <Indicator _name="my computer error" type="cluster{bool.status,int32.code,string.source}" uid="7021" uid_parent="root" value="[false,0,]" inputs="value:7020.err"/>
+  <Node _name="Invoke Node" target="AddFile" type="{LV.TargetItem}" inputs="reference:7020.mc,error in (no error):7020.err,Path:7001.value" outputs="reference out:,error out:7030.err,AddFile:7030.item" uid="7030" uid_parent="root"/>
+  <Indicator _name="add file error" type="cluster{bool.status,int32.code,string.source}" uid="7031" uid_parent="root" value="[false,0,]" inputs="value:7030.err"/>
+  <Node _name="Close Reference" inputs="reference:7030.item,error in (no error):7030.err" outputs="error out:7040.err" uid="7040" uid_parent="root"/>
+  <Node _name="Close Reference" inputs="reference:7020.mc,error in (no error):7040.err" outputs="error out:7050.err" uid="7050" uid_parent="root"/>
+  <Indicator _name="error out" type="cluster{bool.status,int32.code,string.source}" uid="7091" uid_parent="root" value="[false,0,]" inputs="value:7050.err"/>
+</VI>

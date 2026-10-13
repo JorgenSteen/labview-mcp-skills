@@ -1,0 +1,108 @@
+<VI _name="example_launcher_last_ack.vi" description="EXAMPLE (copy and edit)\3A actor stop proof\2C modelled on NI's Test Launch For Nested Actor Without Caller.vi. N times in one call\3A obtains a proof-owned message queue\2C launches the actor with Launch Actor.vi (the queue's enqueuer as its caller)\2C waits run ms\2C optionally sends Normal Stop\2C waits for the actor's Last Ack (ack timeout ms\3B on timeout an Emergency Stop)\2C reads the Last Ack's error\2C sends a second Normal Stop (expected 1556)\2C releases the queue. Per launch\3A launch\2C stop\2C Last Ack\2C cast and second-stop codes\2C timed out\2C stop-to-ack ms. 'actor seed' and 'last ack seed' are path stand-ins\3A replace them with the actor class and AF's Last Ack.lvclass before the run. Measured in an evaluation\2C 2026-10.">
+  <Control _name="N" type="int32" uid="5001" uid_parent="root" value="5" outputs="value:5001.value"/>
+  <Control _name="run ms" type="int32" uid="5002" uid_parent="root" value="1000" outputs="value:5002.value"/>
+  <Control _name="ack timeout ms" type="int32" uid="5005" uid_parent="root" value="5000" outputs="value:5005.value"/>
+  <Control _name="send stop" type="bool" uid="5006" uid_parent="root" value="true" outputs="value:5006.value"/>
+  <Constant _name="actor seed" type="path" uid="5003" uid_parent="root" value="" outputs="value:5003.value"/>
+  <Constant _name="last ack seed" type="path" uid="5004" uid_parent="root" value="" outputs="value:5004.value"/>
+  <Structure _name="For Loop" count="5100.value" maxin="5001.value" maxout="" uid="5100" uid_parent="root">
+    <Tunnel _id="In1" inputs="value:5003.value" outputs="value:5150.seed" uid="5150" uid_parent="5100"/>
+    <Tunnel _id="In2" inputs="value:5002.value" outputs="value:5151.ms" uid="5151" uid_parent="5100"/>
+    <Tunnel _id="In3" inputs="value:5006.value" outputs="value:5152.send" uid="5152" uid_parent="5100"/>
+    <Tunnel _id="In4" inputs="value:5005.value" outputs="value:5153.to" uid="5153" uid_parent="5100"/>
+    <Tunnel _id="In5" inputs="value:5004.value" outputs="value:5154.ackseed" uid="5154" uid_parent="5100"/>
+    <Call target="Actor Framework.lvlib\3AMessage Queue.lvclass\3AObtain Message Queue.vi" inputs="error in (no error):" outputs="Message Queue:5110.mq,error out:5110.err" uid="5110" uid_parent="5100"/>
+    <Call target="Actor Framework.lvlib\3AMessage Queue.lvclass\3ARead Dequeuer.vi" inputs="Message Queue:5110.mq" outputs="Message Dequeuer:5111.deq" uid="5111" uid_parent="5100"/>
+    <Call target="Actor Framework.lvlib\3AMessage Queue.lvclass\3ARead Enqueuer.vi" inputs="Message Queue:5110.mq" outputs="Message Enqueuer:5112.enq" uid="5112" uid_parent="5100"/>
+    <Call target="Actor Framework.lvlib\3AActor.lvclass\3ALaunch Actor.vi" inputs="Actor:5150.seed,error in (no error):5110.err,Actor-to-Caller Enqueuer:5112.enq,Open Actor Core front panel? (F):,Debug Alias:" outputs="error out:5114.err,Caller-To-Actor Enqueuer:5114.c2a" uid="5114" uid_parent="5100"/>
+    <Structure _name="Flat Sequence Frame" uid="5120" uid_parent="5100">
+      <Tunnel _id="In1" inputs="value:5114.err" outputs="value:5121.err" uid="5121" uid_parent="5120"/>
+      <Tunnel _id="In2" inputs="value:5151.ms" outputs="value:5122.ms" uid="5122" uid_parent="5120"/>
+      <Node _name="Wait (ms)" inputs="milliseconds to wait:5122.ms" outputs="millisecond timer value:" uid="5123" uid_parent="5120"/>
+      <Tunnel _id="Out1" inputs="value:5121.err" outputs="value:5124.err" uid="5124" uid_parent="5120"/>
+    </Structure>
+    <Structure _name="Case Structure" selectin="5152.send" uid="5130" uid_parent="5100">
+      <Tunnel _id="In1" inputs="value:5124.err" uid="5125" uid_parent="5130"/>
+      <Tunnel _id="In2" inputs="value:5114.c2a" uid="5126" uid_parent="5130"/>
+      <CaseFrame selector="True" selectout="" uid="5131" uid_parent="5130">
+        <Tunnel _id="In1" outputs="value:5132.err" uid="5132" uid_parent="5131"/>
+        <Tunnel _id="In2" outputs="value:5133.enq" uid="5133" uid_parent="5131"/>
+        <Call target="Actor Framework.lvlib\3AStop Msg.lvclass\3ASend Normal Stop.vi" inputs="error in (no error):,Message Enqueuer:5133.enq" outputs="error out:5134.err" uid="5134" uid_parent="5131"/>
+        <Structure _name="Flat Sequence Frame" uid="5135" uid_parent="5131">
+          <Tunnel _id="In1" inputs="value:5134.err" outputs="value:" uid="5138" uid_parent="5135"/>
+          <Node _name="Tick Count (ms)" outputs="millisecond timer value:5136.t" uid="5136" uid_parent="5135"/>
+          <Tunnel _id="Out1" inputs="value:5136.t" outputs="value:5137.t" uid="5137" uid_parent="5135"/>
+        </Structure>
+        <Tunnel _id="Out1" inputs="value:5134.err" uid="5139" uid_parent="5131"/>
+        <Tunnel _id="Out2" inputs="value:5132.err" uid="5127" uid_parent="5131"/>
+        <Tunnel _id="Out3" inputs="value:5137.t" uid="5128" uid_parent="5131"/>
+      </CaseFrame>
+      <CaseFrame selector="False" selectout="" uid="5140" uid_parent="5130">
+        <Tunnel _id="In1" outputs="value:5141.err" uid="5141" uid_parent="5140"/>
+        <Tunnel _id="In2" outputs="value:" uid="5148" uid_parent="5140"/>
+        <Constant _name="no stop sent" type="cluster{bool.status,int32.code,string.source}" uid="5142" uid_parent="5140" value="[false,0,]" outputs="value:5142.value"/>
+        <Node _name="Tick Count (ms)" outputs="millisecond timer value:5143.t" uid="5143" uid_parent="5140"/>
+        <Tunnel _id="Out1" inputs="value:5142.value" uid="5144" uid_parent="5140"/>
+        <Tunnel _id="Out2" inputs="value:5141.err" uid="5149" uid_parent="5140"/>
+        <Tunnel _id="Out3" inputs="value:5143.t" uid="5155" uid_parent="5140"/>
+      </CaseFrame>
+      <Tunnel _id="Out1" outputs="value:5145.stoperr" uid="5145" uid_parent="5130"/>
+      <Tunnel _id="Out2" outputs="value:5146.err" uid="5146" uid_parent="5130"/>
+      <Tunnel _id="Out3" outputs="value:5147.t0" uid="5147" uid_parent="5130"/>
+    </Structure>
+    <Call target="Actor Framework.lvlib\3AMessage Dequeuer.lvclass\3ADequeue.vi" inputs="Message Dequeuer in:5111.deq,timeout in ms (-1):5153.to,error in (no error):5146.err" outputs="priority:,Message Dequeuer out:,Message:5160.msg,timed out?:5160.to,error out:5160.err" uid="5160" uid_parent="5100"/>
+    <Structure _name="Flat Sequence Frame" uid="5161" uid_parent="5100">
+      <Tunnel _id="In1" inputs="value:5160.err" outputs="value:" uid="5167" uid_parent="5161"/>
+      <Node _name="Tick Count (ms)" outputs="millisecond timer value:5162.t" uid="5162" uid_parent="5161"/>
+      <Tunnel _id="Out1" inputs="value:5162.t" outputs="value:5163.t1" uid="5163" uid_parent="5161"/>
+    </Structure>
+    <Node _name="Subtract" inputs="x:5163.t1,y:5147.t0" outputs="x-y:5164.dt" uid="5164" uid_parent="5100"/>
+    <Node _name="To More Specific Class" inputs="reference:5160.msg,error in:5160.err,target class:5154.ackseed" outputs="specific class reference:5165.ack,error out:5165.err" uid="5165" uid_parent="5100"/>
+    <Call target="Actor Framework.lvlib\3ALast Ack.lvclass\3ARead Error Report.vi" inputs="Last Ack:5165.ack" outputs="error report:5166.rep" uid="5166" uid_parent="5100"/>
+    <Structure _name="Case Structure" selectin="5160.to" uid="5170" uid_parent="5100">
+      <Tunnel _id="In1" inputs="value:5114.c2a" uid="5171" uid_parent="5170"/>
+      <CaseFrame selector="True" selectout="" uid="5172" uid_parent="5170">
+        <Tunnel _id="In1" outputs="value:5173.enq" uid="5173" uid_parent="5172"/>
+        <Call target="Actor Framework.lvlib\3AStop Msg.lvclass\3ASend Emergency Stop.vi" inputs="Message Enqueuer:5173.enq,error in (no error):" outputs="error out:5174.err" uid="5174" uid_parent="5172"/>
+        <Tunnel _id="Out1" inputs="value:5174.err" uid="5175" uid_parent="5172"/>
+      </CaseFrame>
+      <CaseFrame selector="False" selectout="" uid="5176" uid_parent="5170">
+        <Tunnel _id="In1" outputs="value:" uid="5177" uid_parent="5176"/>
+        <Constant _name="no emergency" type="cluster{bool.status,int32.code,string.source}" uid="5178" uid_parent="5176" value="[false,0,]" outputs="value:5178.value"/>
+        <Tunnel _id="Out1" inputs="value:5178.value" uid="5179" uid_parent="5176"/>
+      </CaseFrame>
+      <Tunnel _id="Out1" outputs="value:5185.emerr" uid="5185" uid_parent="5170"/>
+    </Structure>
+    <Structure _name="Flat Sequence Frame" uid="5180" uid_parent="5100">
+      <Tunnel _id="In1" inputs="value:5166.rep" outputs="value:" uid="5181" uid_parent="5180"/>
+      <Tunnel _id="In2" inputs="value:5114.c2a" outputs="value:5182.enq" uid="5182" uid_parent="5180"/>
+      <Tunnel _id="In3" inputs="value:5185.emerr" outputs="value:" uid="5186" uid_parent="5180"/>
+      <Call target="Actor Framework.lvlib\3AStop Msg.lvclass\3ASend Normal Stop.vi" inputs="error in (no error):,Message Enqueuer:5182.enq" outputs="error out:5183.err" uid="5183" uid_parent="5180"/>
+      <Tunnel _id="Out1" inputs="value:5183.err" outputs="value:5184.err2" uid="5184" uid_parent="5180"/>
+    </Structure>
+    <Call target="Actor Framework.lvlib\3AMessage Queue.lvclass\3ARelease Message Queue.vi" inputs="Message Queue:5110.mq,error in (no error):5184.err2" outputs="remaining elements:,error out:5190.err" uid="5190" uid_parent="5100"/>
+    <Node _name="Unbundle By Name" fields="code" inputs="input cluster:5114.err" outputs="code:5191.c" uid="5191" uid_parent="5100"/>
+    <Node _name="Unbundle By Name" fields="code" inputs="input cluster:5145.stoperr" outputs="code:5192.c" uid="5192" uid_parent="5100"/>
+    <Node _name="Unbundle By Name" fields="code,source" inputs="input cluster:5166.rep" outputs="code:5193.c,source:5193.s" uid="5193" uid_parent="5100"/>
+    <Node _name="Unbundle By Name" fields="code" inputs="input cluster:5184.err2" outputs="code:5194.c" uid="5194" uid_parent="5100"/>
+    <Node _name="Unbundle By Name" fields="code" inputs="input cluster:5165.err" outputs="code:5195.c" uid="5195" uid_parent="5100"/>
+    <Tunnel _id="Out1" mode="index" inputs="value:5191.c" outputs="value:5201.a" uid="5201" uid_parent="5100"/>
+    <Tunnel _id="Out2" mode="index" inputs="value:5192.c" outputs="value:5202.a" uid="5202" uid_parent="5100"/>
+    <Tunnel _id="Out3" mode="index" inputs="value:5160.to" outputs="value:5203.a" uid="5203" uid_parent="5100"/>
+    <Tunnel _id="Out4" mode="index" inputs="value:5193.c" outputs="value:5204.a" uid="5204" uid_parent="5100"/>
+    <Tunnel _id="Out5" mode="index" inputs="value:5193.s" outputs="value:5205.a" uid="5205" uid_parent="5100"/>
+    <Tunnel _id="Out6" mode="index" inputs="value:5164.dt" outputs="value:5206.a" uid="5206" uid_parent="5100"/>
+    <Tunnel _id="Out7" mode="index" inputs="value:5194.c" outputs="value:5207.a" uid="5207" uid_parent="5100"/>
+    <Tunnel _id="Out8" mode="index" inputs="value:5195.c" outputs="value:5208.a" uid="5208" uid_parent="5100"/>
+    <Tunnel _id="Out9" inputs="value:5190.err" outputs="value:5209.err" uid="5209" uid_parent="5100"/>
+  </Structure>
+  <Indicator _name="launch codes" type="array{int32}" uid="5301" uid_parent="root" value="[]" inputs="value:5201.a"/>
+  <Indicator _name="stop codes" type="array{int32}" uid="5302" uid_parent="root" value="[]" inputs="value:5202.a"/>
+  <Indicator _name="ack timed out" type="array{bool}" uid="5303" uid_parent="root" value="[]" inputs="value:5203.a"/>
+  <Indicator _name="last ack codes" type="array{int32}" uid="5304" uid_parent="root" value="[]" inputs="value:5204.a"/>
+  <Indicator _name="last ack sources" type="array{string}" uid="5305" uid_parent="root" value="[]" inputs="value:5205.a"/>
+  <Indicator _name="stop to ack ms" type="array{uint32}" uid="5306" uid_parent="root" value="[]" inputs="value:5206.a"/>
+  <Indicator _name="second stop codes" type="array{int32}" uid="5307" uid_parent="root" value="[]" inputs="value:5207.a"/>
+  <Indicator _name="cast codes" type="array{int32}" uid="5308" uid_parent="root" value="[]" inputs="value:5208.a"/>
+  <Indicator _name="error out" type="cluster{bool.status,int32.code,string.source}" uid="5309" uid_parent="root" value="[false,0,]" inputs="value:5209.err"/>
+</VI>

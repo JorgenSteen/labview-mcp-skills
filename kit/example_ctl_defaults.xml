@@ -1,0 +1,42 @@
+<VI _name="example_ctl_defaults.vi" description="EXAMPLE (copy and edit)\3A sets the default value of a standalone typedef .ctl. Opens the .ctl in the DEFAULT application instance (project CLOSED\2C the .ctl not yet a class or library member)\2C writes {LV.Control} Value of its top control = 'wanted' when apply is T\2C then {LV.VI} Default Vals.Make Curr Default and Save.Instrument\3B always reads {LV.Control} Default Value back through Variant To Data. Measured on cluster{uint32.intervalMs\2Cbool.enabled}\3A change the type of 'wanted' and 'type template'\2C the Unbundle fields and the two read-back indicators to your typedef. Measured in an evaluation\2C 2026-10.">
+  <Control _name="ctl path" type="string" uid="4100" uid_parent="root" value="" outputs="value:4100.value"/>
+  <Control _name="apply" type="bool" uid="4101" uid_parent="root" value="false" outputs="value:4101.value"/>
+  <Constant _name="wanted" type="cluster{uint32.intervalMs,bool.enabled}" uid="4102" uid_parent="root" value="[100,true]" outputs="value:4102.value"/>
+  <Constant _name="type template" type="cluster{uint32.intervalMs,bool.enabled}" uid="4103" uid_parent="root" value="[0,false]" outputs="value:4103.value"/>
+  <Node _name="String To Path" inputs="string:4100.value" outputs="path:4110.path" uid="4110" uid_parent="root"/>
+  <Node _name="Open VI Reference" inputs="vi path:4110.path,error in (no error):" outputs="vi reference:4120.vi,error out:4120.err" uid="4120" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Front Panel" type="{LV.VI}" inputs="reference:4120.vi,error in (no error):4120.err" outputs="Front Panel:4121.fp,reference out:,error out:4121.err" uid="4121" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Controls[]" type="{LV.Panel}" inputs="reference:4121.fp,error in (no error):4121.err" outputs="Controls[]:4122.ctls,reference out:,error out:4122.err" uid="4122" uid_parent="root"/>
+  <Node _name="Index Array" inputs="array:4122.ctls,index:" outputs="element:4123.top" uid="4123" uid_parent="root"/>
+  <Structure _name="Case Structure" selectin="4101.value" uid="4300" uid_parent="root">
+    <Tunnel _id="In1" inputs="value:4123.top" uid="4301" uid_parent="4300"/>
+    <Tunnel _id="In2" inputs="value:4122.err" uid="4302" uid_parent="4300"/>
+    <Tunnel _id="In3" inputs="value:4120.vi" uid="4303" uid_parent="4300"/>
+    <Tunnel _id="In4" inputs="value:4102.value" uid="4304" uid_parent="4300"/>
+    <CaseFrame selector="True" selectout="" uid="4310" uid_parent="4300">
+      <Tunnel _id="In1" outputs="value:4311.top" uid="4311" uid_parent="4310"/>
+      <Tunnel _id="In2" outputs="value:4312.err" uid="4312" uid_parent="4310"/>
+      <Tunnel _id="In3" outputs="value:4313.vi" uid="4313" uid_parent="4310"/>
+      <Tunnel _id="In4" outputs="value:4314.val" uid="4314" uid_parent="4310"/>
+      <Node _name="Property Node" fields="write+Value" type="{LV.Control}" inputs="reference:4311.top,error in (no error):4312.err,Value:4314.val" outputs="reference out:,error out:4315.err" uid="4315" uid_parent="4310"/>
+      <Node _name="Invoke Node" target="Default Vals.Make Curr Default" type="{LV.VI}" inputs="reference:4313.vi,error in (no error):4315.err" outputs="reference out:,error out:4316.err" uid="4316" uid_parent="4310"/>
+      <Node _name="Invoke Node" target="Save.Instrument" type="{LV.VI}" inputs="reference:4313.vi,error in (no error):4316.err,Path to saved file:,Save a Copy:,Without Diagram:" outputs="reference out:,error out:4317.err" uid="4317" uid_parent="4310"/>
+      <Tunnel _id="Out1" inputs="value:4317.err" uid="4318" uid_parent="4310"/>
+    </CaseFrame>
+    <CaseFrame selector="False" selectout="" uid="4320" uid_parent="4300">
+      <Tunnel _id="In1" outputs="value:" uid="4321" uid_parent="4320"/>
+      <Tunnel _id="In2" outputs="value:4322.err" uid="4322" uid_parent="4320"/>
+      <Tunnel _id="In3" outputs="value:" uid="4323" uid_parent="4320"/>
+      <Tunnel _id="In4" outputs="value:" uid="4324" uid_parent="4320"/>
+      <Tunnel _id="Out1" inputs="value:4322.err" uid="4325" uid_parent="4320"/>
+    </CaseFrame>
+    <Tunnel _id="Out1" outputs="value:4330.err" uid="4330" uid_parent="4300"/>
+  </Structure>
+  <Node _name="Property Node" fields="read+Default Value" type="{LV.Control}" inputs="reference:4123.top,error in (no error):4330.err" outputs="Default Value:4400.var,reference out:,error out:4400.err" uid="4400" uid_parent="root"/>
+  <Node _name="Variant To Data" inputs="Variant:4400.var,error in:4400.err,type:4103.value" outputs="data:4410.data,error out:4410.err" uid="4410" uid_parent="root"/>
+  <Node _name="Unbundle By Name" fields="intervalMs,enabled" inputs="input cluster:4410.data" outputs="intervalMs:4420.ms,enabled:4420.en" uid="4420" uid_parent="root"/>
+  <Node _name="Close Reference" inputs="reference:4120.vi,error in (no error):4410.err" outputs="error out:4430.err" uid="4430" uid_parent="root"/>
+  <Indicator _name="default intervalMs" type="uint32" uid="4500" uid_parent="root" value="0" inputs="value:4420.ms"/>
+  <Indicator _name="default enabled" type="bool" uid="4501" uid_parent="root" value="false" inputs="value:4420.en"/>
+  <Indicator _name="error out" type="cluster{bool.status,int32.code,string.source}" uid="4502" uid_parent="root" value="[false,0,]" inputs="value:4430.err"/>
+</VI>

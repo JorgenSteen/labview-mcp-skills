@@ -86,7 +86,11 @@ source trees are fine; make them absolute and long-form before any call.
         on the proof queue for the Last Ack and returns per launch: launch, stop and Last Ack codes, the stop-to-ack
         time, and a second Normal Stop's code (1556 = the actor had stopped). N launches in one call (a loop in the
         launcher) give the repeats, and prove a reset, in one `lvai_run_vi_and_read_values` call. Measured: N 5, run
-        1000 ms and 0 ms, Last Ack 0 each time, no hang (evaluation 2026-10).
+        1000 ms and 0 ms, Last Ack 0 each time, no hang (evaluation 2026-10). Copy
+        `kit/example_launcher_last_ack.xml`; its `actor seed` and `last ack seed` path stand-ins become the actor class
+        and AF's `Last Ack.lvclass`: `lvai_validate_aixml` refuses them (the stand-in false positive in
+        `knowledge/labview-mcp.md`), so convert with `validateFirst: false`, then swap both top-level constants with
+        `lvai_swap_subvis` `constantsJson`.
       - **Interactive run:** start the never-returning VI with `<skill>/kit/pa_run_vi_async.xml` (it cannot set
         controls: the VI runs with its defaults); read the running loop VI with `pa_read_control.xml` /
         `pa_read_control_u32.xml` (state 3, panel open); press its stop with `pa_press_control_signal.xml`

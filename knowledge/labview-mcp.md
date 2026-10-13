@@ -442,13 +442,14 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
     `{LV.Project}` read `My Computer` → `{LV.TargetItem}` Invoke `AddItem` (inputs `Name`, `Path`, `Type` = `Folder`;
     `Path` must be an EMPTY path) per virtual folder → `{LV.Project}` Invoke `Save` (input `Path`) → `Close`. NI's
     example `Manipulating Projects\Add Files to Project.vi` carries the spellings. `lvai_describe_project` does not
-    list virtual folders: check them in the `.lvproj` XML.
+    list virtual folders: check them in the `.lvproj` XML. Helper: `kit/pa_new_project.xml`.
   - Plain `.lvlib`, project open and active: `{LV.Application}` Invoke `Library.Create` (output `Create Library`) →
     `AddItem` (Type `LVClass` or `VI`) per item → `{LV.Library}` Invoke `Save` (input `Path`) or `Edit
     LVLibs.lvlib:Save All This Library.vi` (the kit's `lvai_create_actor_library.xml` is the model). A loose VI must
     be a project item first (`lvproj_add_toplevel.py`, project closed), or the close writes no library and drops the
-    entry. The close does NOT list a new library that is empty: add it with `{LV.TargetItem}` Invoke `AddFile` (input
-    `Path`) on `My Computer`, project open and active, then close and `lvproj_move.py` it into its folder. A library
+    entry. An empty library: `kit/pa_new_library.xml`. The close does NOT list a new library that is empty: add it
+    with `{LV.TargetItem}` Invoke `AddFile` (input `Path`) on `My Computer` (`kit/pa_project_add_file.xml`), project
+    open and active, then close and `lvproj_move.py` it into its folder. A library
     holding a class may come back at top level plus a stray class item: `lvproj_drop.py` and `lvproj_move.py`, project
     closed. (measured in an evaluation, 2026-10) > MCP-candidate: project-item-tools
 

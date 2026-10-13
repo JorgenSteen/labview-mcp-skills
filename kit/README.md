@@ -69,6 +69,7 @@ kit's `project.example.json` is superseded by `conventions/templates/project.jso
 | `pa_remove_series_block.xml` | helper XML | Takes one wire pair of a series subVI node out and bridges it: every lookup first, then deletes the in- and out-wire (and the node when `delete node` T), wires the source to every kept branch and far end, reads the wire back, saves the VI (then `pa_save_member`). Run once per pair. Project open and active. | ops/override.md (section 5); knowledge/labview-mcp.md | add-hook |
 | `pa_clean_member.xml` | helper XML | Remove Bad Wires + save of a member. | ops/sweep.md; knowledge/labview-mcp.md | add-hook |
 | `pa_save_member.xml` | helper XML | Saves a member edited in memory plus its class, in a separate call. | knowledge/labview-mcp.md | add-hook |
+| `pa_frame_hook_sink.xml` | helper XML | In an override with one one-frame Flat Sequence: finds a subVI node INSIDE the frame by VI-name regex and wires one of its terminals into a new subVI dropped in the same frame (an appended hook's `error out` into `Clear Errors`, input `error in (no error)`). `apply` F = dry run; saves the VI and the class. Project open and active. | ops/override.md | add-hook |
 | `lvai_create_message_class.xml` | helper XML | Drives NI's Message Maker directly; for an interface method, then `repair_r1.py`. | knowledge/labview-mcp.md | message-interface-method |
 | `repair_r1.py` | python | Repairs an interface message from the Message Maker helper (`Parent Libraries` block, `Send <method>.vi` name), byte-exact; project closed. | knowledge/labview-mcp.md | message-interface-method |
 | `lvai_create_actor_library.xml` | helper XML | Creates an AF library as NI's AddActor provider does and moves an existing class into it. | knowledge/labview-mcp.md; ops/override.md (planned) | - |
@@ -86,6 +87,10 @@ kit's `project.example.json` is superseded by `conventions/templates/project.jso
 | `lvproj_drop.py` | python | Removes `.lvproj` item lines containing a substring, byte-exact (BOM and CRLF or LF kept); writes nothing on no match or when the substring hits a structural line. Project closed. | ops/class-field.md; knowledge/labview-mcp.md | project-item-tools |
 | `lvproj_move.py` | python | Moves a one-line `.lvproj` item into a sibling virtual folder (`--create` makes it); byte-exact; project closed. | knowledge/labview-mcp.md | project-item-tools |
 | `lvproj_add_toplevel.py` | python | Adds one-line VI items directly under My Computer; refuses a name or URL already listed; byte-exact. | knowledge/labview-mcp.md | project-item-tools |
+| `pa_new_project.xml` | helper XML | Creates and saves a new `.lvproj` with virtual folders under My Computer (`new lvproj path`, `folder names` `;`-separated). No project needs to be open. | knowledge/labview-mcp.md | project-item-tools |
+| `pa_new_library.xml` | helper XML | Creates and saves an empty plain `.lvlib` (`library path`). Project open and active; then `pa_project_add_file.xml`, or the close drops it. | knowledge/labview-mcp.md | project-item-tools |
+| `pa_project_add_file.xml` | helper XML | Adds one existing file directly under My Computer (`{LV.TargetItem}` `AddFile`); the close saves the project. Project open and active. | knowledge/labview-mcp.md | project-item-tools |
+| `pa_class_folder_add_existing.xml` | helper XML | Adds existing files into an EXISTING virtual folder of a class (where `pa_class_folder_add_files.xml` answers 56001), then Save All of the class; same inputs. Project open and active. | ops/class-field.md | add-to-class |
 | `make_batch_json.py` | python | Builds `methodsJson` for `lvai_add_class_method` or `editsJson` for `lvai_swap_subvis` from a CSV/JSON table; warns on a shared stub. Read-only. | ops/helper-loop.md; ops/class-field.md (planned) | - |
 | `make_probe.py` | python | Copies an AIXML under a throwaway VI name, so a first trial convert cannot burn the real name. | knowledge/labview-mcp.md | - |
 | `patch_ctl.py` | python | Turns a generated VI bundle into a typedef `.ctl` (flag patch). | knowledge/labview-mcp.md | - |
@@ -148,6 +153,8 @@ kit's `project.example.json` is superseded by `conventions/templates/project.jso
 | `example_launch_nested.xml` | example | A launch method for a nested actor. | ops/override.md (planned) | - |
 | `example_interface_override_forward.xml` | example | Interface override forwarding to the caller. | ops/override.md (planned) | - |
 | `example_launcher_ui_stop.xml` | example | Headless launcher that presses the UI's Stop. | ops/run-checks.md (planned) | - |
+| `example_launcher_last_ack.xml` | example | Actor stop proof: N launches with a proof-owned queue, Normal Stop, the Last Ack's code per launch, a second stop (1556). The two top-level path stand-ins become the actor class and `Last Ack.lvclass` (validate refuses them as they are: convert with `validateFirst: false`, then `constantsJson`). | ops/run-checks.md | - |
+| `example_ctl_defaults.xml` | example | Sets and reads back a standalone typedef's default value (project closed); retype `wanted` and `type template` to your typedef. | ops/class-field.md | - |
 | `example_to_json.xml`, `example_notifier_typedef.xml` | example | A to_json method; a notifier typedef. | ops/helper-loop.md (planned) | - |
 
 The examples use the pilot's `PA-` names and `LVMCP Stub …` names: replace the stub names with the ones

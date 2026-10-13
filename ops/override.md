@@ -166,7 +166,8 @@ hook's class input, `prev order terminal name` = the stop hook's error output, `
 error input (read with `lvai_vi_terminals`). Then `pa_save_member`. It works before or after D-close (run after it,
 measured in an evaluation, 2026-10). The appended hook's `error out` is left unwired: end it in `Clear Errors` INSIDE the frame
 (`convention: errors.ignored-errors`); `af_add_hook_call_node.xml` cannot do that (it searches top-level nodes only),
-so this needs a frame-aware helper. `Clear Errors`' input is named `error in (no error)`; `lvai_vi_terminals` cannot
+so use `kit/pa_frame_hook_sink.xml` (`node vi regex` = the hook, `sink vi path` = `Clear Errors.vi`'s path in
+vi.lib, dry run first, then `apply` T). `Clear Errors`' input is named `error in (no error)`; `lvai_vi_terminals` cannot
 read it (it lives in an `.llb`). Measured on Actor Core: frame found, hook wired, state 1 (measured in an evaluation, 2026-10).
 
 **E-after. Handle Error, Call Parent first:** a handler that only logs needs class and error: B-after with
