@@ -17,7 +17,7 @@ icons (`ops/icons.md`); the sweep itself (`ops/sweep.md`).
 - **Level:** it writes, so level 3 or 4 (`SKILL.md`). Read the project's `hygiene.md` if it exists.
 - **The list:** only the VIs this task generated or regenerated, written down before step 1 (the step that made
   them knows them; `git diff --name-only <start commit>` helps, but a VI merely re-saved by another op is not on
-  it). Never a folder by default.
+  it). Never a folder by default. Overrides edited by script (not generated) are on it only when the user asks.
 - **The neighbours' style first, where the convention asks for it.** The toolchain has no measured route to lay out
   a diagram in a given style; how close it can get is an open measurement. Say so to the user, and run this op only
   where Clean Up Diagram is the chosen fallback.

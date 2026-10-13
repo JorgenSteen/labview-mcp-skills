@@ -52,7 +52,7 @@ not repeated here.
 | `lvai_wire_dynamic_events`, `pa_wire_dyn_right`, `pa_wire_dyn_deep`, `pa_set_panel_on_call`, `pa_switch_and_reset_boolean`, `pa_array_element_replace`; `lvai_add_class_field`, `lvai_bind_class_fields`, `lvai_add_class_method` on an existing member, `lvpdc_export`/`lvpdc_import` | **open and active** |
 | `pa_set_class_description`, `pa_class_folder_add_files`, `pa_class_folder_create_and_move`, `pa_class_folder_move`, `pa_save_libraries`, `pa_project_vis_modified` | **open and active** |
 | `pa_insert_series_branch`, `pa_remove_series_block`, `pa_wire_nodes`, `pa_reg_to_control`, `pa_reg_indicator`, `pa_replace_constant_deep`, `pa_save_orphan` | **open and active** |
-| `lvai_create_accessors` | opens `projectPath` itself (since 1.8.5) |
+| `lvai_create_accessors` | **open and active** (`projectPath` is the project to tidy; the tool's own text requires an active project; it opened a closed one anyway in an evaluation, 2026-10) |
 | `lvai_create_typedef` | closed with no `projectPath` (stays closed), or `projectPath` = the active project |
 | converting a VI that calls library or class members | open, one member opened through it |
 | test VIs and behaviour runs | as `checks.json` says; closed by default |
@@ -85,6 +85,9 @@ VI run while a project is open is adopted into that project. > MCP-candidate: pr
 - **`LVAutoSave` files while a project is open mean unsaved edits in memory**; the tool's close discards them with no
   dialog (18 files to 0). If this session did not make those edits, the user is probably working in LabVIEW: ask
   before the close (`SKILL.md`, "Save what you made; ask about the rest"). [1.8.5] (audit rule candidate 111)
+- **The close discards an unsaved member edit:** a member VI left dirty by a failed in-place edit (nothing saved) was
+  not saved by `lvai_close_active_project`; the file stayed unchanged. After a failed, unsaved edit, closing the
+  project is a clean undo. (evaluation 2026-10)
 - Calls that close and save the active project as a side effect: `lvai_create_typedef` with another project's
   `projectPath`, `lvai_generate_vi` with `panePattern`, `lvai_wire_dynamic_events` with its default `finishUserEvents`.
   [1.8.0–1.8.5] (pilot rules 54, 67)
@@ -101,8 +104,9 @@ VI run while a project is open is adopted into that project. > MCP-candidate: pr
   LabVIEW call just to check). (pilot rule 11)
 - Run helpers with `lvai_run_vi_and_read_values`, `inputsJson` = the control labels. **Absolute, long-form paths**
   only: no `%TEMP%`, no 8.3 short names (`C:\Users\ABCDEF~1.XYZ\...`). **Omit an input rather than pass `""`**: the
-  runner refuses an empty value. A `project path` input omitted = the default instance (project closed); any text = the
-  active project's instance. (pilot rule 47)
+  runner refuses an empty value. The runner's own rule, for a control labelled exactly `project path`: omitted = the
+  default instance (project closed); any text = the active project's instance. Give a helper's own input for a
+  project file another label (an evaluation, 2026-10, used `new lvproj path`). (pilot rule 47)
 - The runner cannot set arrays: a list input is one `;`-separated string. From ~100 paths the string and its answer
   pass the size limit: use the `*_file` twins with a list file (`sweep_paths.py --out`). The icon apply helper splits
   with Spreadsheet String To Array, so a trailing `;` there is an empty path (error 7); the loop helpers accept it.
@@ -156,7 +160,8 @@ newer IDE is fine; upgrading the files is not (the user's decision). Route:
      `<Property Name="NI.LV.All.SaveVersion" Type="Str">20.0</Property>`; the same property in a `.lvlib`/`.lvclass`
      ("Default" = inherit); or a `.lvversion` file (one line, `20.0`) covering every VI loaded from its folder down,
      which can sit outside the repo, above the checkout. LabVIEW writes the property itself when it closes an older
-     source-only project (a side effect to report).
+     source-only project (a side effect to report), and on the first save and close of a new project, with the IDE
+     version (26.0 in an evaluation, 2026-10): no script is needed when the IDE version is the save version.
    - To set it: write the property line into the **closed** `.lvproj`, byte-exact, before `NI.LV.All.SourceOnly`. VI
      Server `SetSaveVersion` (input `Version`) exists, is not probed through labview-mcp, and loads every item, which
      then prompts to save on close (a modal). If the skill cannot set it, ask the user to set it first.
@@ -258,8 +263,9 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
   Repair: `lvai_close_vi`, re-run `lvai_add_class_method` from the AIXML, swap. [1.8.5] (pilot rule 86)
   > MCP-candidate: swap-subvis-fixes
 - `constantsJson` finds TOP-LEVEL constants only: a class constant inside a case frame needs a deep replace
-  (`kit/pa_replace_constant_deep.xml`). With `class` = a `.ctl` path it turns a bare cluster constant into that typedef's
-  constant, which `lvai_bind_typedef_constants` cannot (it needs a subVI terminal). [1.9.5, a harness run 2026-10]
+  (`kit/pa_replace_constant_deep.xml`, input `class path`). With the swap's `class` = a `.ctl` path it turns a bare cluster constant into that typedef's
+  constant, which `lvai_bind_typedef_constants` cannot (it needs a subVI terminal). Depth: measured 2 levels (While >
+  Case), written for 3 (evaluation 2026-10). [1.9.5, a harness run 2026-10]
   > MCP-candidate: swap-subvis-fixes
 - The placeholder for a typedef cluster that holds a class flattens it to a scalar `path`, and members with the same
   pane get ONE shared stub, so a swap cannot tell them apart: make one stub per target by hand. [1.9.5, a harness run 2026-10]
@@ -469,7 +475,8 @@ They hold for any VI Server or AIXML route, the kit's included.
   Label) answered 1060 in every owner/class tried; style 21960 (Label (modern)) works but draws a framed label.
   (a harness run 2026-10) > MCP-candidate: control-property-setters
 - **A class save may double the line breaks in `NI.LVClass.Geneology`** (`\r\n` → `\r\n\r\n`): harmless diff noise; do
-  not hand-fix it. (a harness run 2026-10)
+  not hand-fix it. (a harness run 2026-10) A class's first save after `lvai_create_class` rewrites the whole
+  `.lvclass` (line endings, plus Geneology): a 45-line diff for one property (evaluation 2026-10).
 - **Reentrancy:** the VI Server write `Execution:Reentrancy Type` + `Save.Instrument` answered no error and changed
   nothing. Set `IsReentrant` + `PooledReentrancy` in a pylv bundle (`set_reentrant_flags.py`, project closed). To read it: `Execution:Reentrancy Type` = 0 also for a shared-clone VI; read `Execution:Is Reentrant` with it.
   (pilot rule 52)
@@ -523,7 +530,8 @@ They hold for any VI Server or AIXML route, the kit's included.
   every lookup before any delete, and a node's wires deleted before the node (both orders the other way round
   raced: a lost lookup, a loose wire); `python <skill>/kit/vi_nets.py` before and after, the diff showing only the
   intended wires; `pa_clean_member.xml` if a loose end remains; cold state 1. Wiring two nodes by label (primitives
-  included), with that dry run: `kit/pa_wire_by_label.xml`. **An existing loop that should use a new field**
+  included), with that dry run: `kit/pa_wire_by_label.xml`; it reads no wire back, so check the wire with
+  `kit/vi_nets.py` (1 wire, 2 ends; evaluation 2026-10). **An existing loop that should use a new field**
   (e.g. a constant interval replaced by a setting): a small reader member (class in, the field out) added by
   `lvai_add_class_method`, then an in-place edit that places it, wires the class and the value, and chains its
   `error in`/`error out` into the loop's error chain (an unwired error there was a review finding: a failed read gave

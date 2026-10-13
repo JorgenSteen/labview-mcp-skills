@@ -14,8 +14,10 @@ local mode, or when the hygiene concern is off, run what `checks.json` lists and
 ## Before you start
 
 - **It runs code,** with whatever side effects the code has; each entry states them (`side_effects`). Any level.
-- **`checks.json`** (template `<skill>/conventions/templates/checks.json`). None yet: offer to create it from the
-  template with the tests the user names; write it only on a yes.
+- **`checks.json`** (template `<skill>/conventions/templates/checks.json`). It is created when the first test or
+  behaviour run is defined for the project (a test written, an actor's stop proof kept for reuse), not by setup.
+  None yet: offer to create it from the template with the tests the user names; write it only on a yes. Without
+  the yes, run the checks the task needs and report them; nothing is written (evaluation 2026-10).
 - **Which entries:** after a class edit, only the entries whose `class_under_test` is that class; otherwise every
   entry, or those the user names.
 - **LabVIEW is running** (`session/start.md`); no other LabVIEW agent; the project state as each entry says
@@ -78,6 +80,13 @@ source trees are fine; make them absolute and long-form before any call.
       - **Headless run:** a launcher VI that runs N ms itself and returns readings (`lvai_run_vi_and_read_values`):
         line counts, the last line, error lines. **Error run:** the same with the input that forces the failure;
         expect the error line and text, and no data lines.
+      - **Actor stop proof:** a launcher VI that returns the Last Ack. It launches the actor with AF's public
+        `Launch Actor.vi`, with a proof-owned message queue as the caller (the tree proof of
+        `knowledge/actor-framework.md`, "Observing and testing actors"), waits its run time, sends Normal Stop, waits
+        on the proof queue for the Last Ack and returns per launch: launch, stop and Last Ack codes, the stop-to-ack
+        time, and a second Normal Stop's code (1556 = the actor had stopped). N launches in one call (a loop in the
+        launcher) give the repeats, and prove a reset, in one `lvai_run_vi_and_read_values` call. Measured: N 5, run
+        1000 ms and 0 ms, Last Ack 0 each time, no hang (evaluation 2026-10).
       - **Interactive run:** start the never-returning VI with `<skill>/kit/pa_run_vi_async.xml` (it cannot set
         controls: the VI runs with its defaults); read the running loop VI with `pa_read_control.xml` /
         `pa_read_control_u32.xml` (state 3, panel open); press its stop with `pa_press_control_signal.xml`
@@ -124,6 +133,9 @@ evidence <file>   commit <hash>   git <clean | leftovers>   side effects <files 
   rerun (a harness run, 2026-10).
 - **A private VI cannot be run top-level** (error 1390): a forced-error run of a private member needs a public
   wrapper, or a test inside the class (a harness run, 2026-10).
+- **An actor cannot be run with a non-default private field value:** the accessors are private and a class constant
+  carries only default data, so a launcher has no route to set it (evaluation 2026-10). Say so in the report; a
+  test-only public accessor is proposed only when the user asks for such a run.
 
 - `lvai_run_vi_as_top_level` blocks on a VI that never returns; on a launcher it may answer an error code although
   the tree started. Confirm by reading the running loop VI, not the code.

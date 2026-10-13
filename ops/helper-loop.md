@@ -184,8 +184,7 @@ or when a concern is off, follow the surrounding code instead.
     - Actor Core, in this order: the loop as shape A from `<C> in` (or C after a series hook); the `stop` hook as
       shape D (`source terminal name` = `<C> in` finds the loop's node on that wire); then shape D-close with
       `close vi path` = `close`, `loop vi regex` = the loop VI's name, `stop vi regex` = the stop hook's name. The
-      current D-close version is validated, not run: read its answers as `ops/override.md` lists them and name it
-      under "unmeasured steps met" in the report.
+      current D-close version is measured (evaluation 2026-10): read its answers as `ops/override.md` lists them.
     - Then `init` in series before Call Parent (class and error): `kit/pa_insert_series_branch.xml` (shape B on a wire
       with branches, `ops/override.md`): `wire A kept branches` = the loop, the stop frame and `close`. Then
       `kit/pa_wire_nodes.xml`: `source vi regex` = `init`'s name, `source terminal name` = `event registration
@@ -217,8 +216,12 @@ or when a concern is off, follow the surrounding code instead.
 - Run (`ops/run-checks.md`) with timestamped lines, each writer its own file (`knowledge/actor-framework.md`,
   "Observing and testing actors"): the stop line, the loop's exit, then `close` after both. Measured: `close` 20–112 ms
   after the later of the two, error 0, 5 of 5, one of them with a launcher that exits at once and a stop ~16 s later
-  (M-CLOSE M1). Actor Core and the loop read 1 cold after the run.
-- Variant 2: test the `stop` reset by calling the loop VI twice from one caller (two tool runs unload it in between).
+  (M-CLOSE M1). Actor Core and the loop read 1 cold after the run. Per-writer lines that the members do not write
+  themselves: instrument only throwaway copies or the launcher (e.g. the launcher's stop-to-ack time), never leave
+  probes in members (evaluation 2026-10).
+- Variant 2: test the `stop` reset by N launches of the actor from one caller (the loop VI is private and needs
+  `init`'s refnum, so it cannot be called directly; two tool runs unload it in between). Measured: 5 launches in one
+  launcher call, 10 ticks each (evaluation 2026-10).
 - Variant 2: make the producer fail on purpose: `lvai_swap_subvis` its work subVI onto a throwaway VI with the same
   pane that returns a custom error, run, then swap back (commit before, check the swap-back with a cold read). The
   actor must stop by itself, the caller gets the Last Ack, no hang, and a later Normal Stop answers 1556 (the queue is

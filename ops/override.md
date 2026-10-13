@@ -24,6 +24,12 @@ mode, or when a concern is off, follow the surrounding code instead.
   teardown) unless the task is to change them. Touch only the override and the hooks the task names.
 - **Hook VIs exist first.** Each hook is a class member before it is hooked, with the panes `af-shapes.hook-vis`
   allows. Overrides come last in the build order (`knowledge/labview-mcp.md`, "Evidence, git, build order").
+  **A plain hook member** (class in, `error in`/`error out`, no calls into other new members) that does not exist
+  yet: author it in AIXML with the class as a `path` stand-in, then `lvai_add_class_method` with `methodsJson`
+  entries `aixml` + `vi` and `classTerminals` (`["<C> in"]`, or with `<C> out` when it goes in series), no
+  `dispatchTerminals` (static); virtual folder `Methods` (`kit/pa_class_folder_move.xml`); scope private with
+  `kit/set_scope.py` (project closed). Members that call other new members: `ops/helper-loop.md` step 2. Measured
+  on a teardown hook: added, retyped, state 1 (evaluation 2026-10).
 - **Project state:** every helper here needs the project open and active; `lvai_exec_state` and the byte-exact
   scripts need it closed (`knowledge/labview-mcp.md`, "Project open or closed, per kind of call").
 - **Helpers:** generate and run them as `knowledge/labview-mcp.md`, "Helper VIs (the kit)" says. Every error output of
@@ -145,7 +151,8 @@ every error 0, except `delete node error` = 1055 when `remove vi regex` matches 
 run), with `remove vi regex` deleting the old destroy hook. 5 of 5 stop runs green afterwards (M-CLOSE M1). Since
 2026-10-12 that Delete is outside the error chain (before, a no-match 1055 skipped every later step and left the VI
 half rewired and unsaved), and the stop hook's and `close`'s error input is found as `error in` or
-`error in (no error)` (hooks made by `lvai_add_class_method`); that version is validated, not yet run.
+`error in (no error)` (hooks made by `lvai_add_class_method`). That version is measured: all hits 1, `merge class`
+`Bundler`, `delete node error` 1055 with the default regex, runs green afterwards (evaluation 2026-10).
 > MCP-candidate: add-hook
 
 **D-append. A further hook in the stop frame of Actor Core:** after Call Parent returns, the actor's message loop has

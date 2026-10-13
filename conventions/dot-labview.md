@@ -17,6 +17,15 @@ reads this folder; it carries no project names.
 ```
 
 Templates are in `<skill>/conventions/templates/`. Setup (`conventions/setup.md`) creates the folder.
+`checks.json` is the exception: it is created when the first test or behaviour run is defined, with the user's yes
+(`ops/run-checks.md`).
+
+## What git ignores
+
+A project close writes the `.lvlps` file and the `.<project>.UserState\` folder beside the `.lvproj`
+(`knowledge/labview-mcp.md`, "Opening and closing a project"). Both go into the repo's `.gitignore` (`*.lvlps`,
+`.*.UserState/`; the user's rule, 2026-10-13). Setup adds them when it writes `project.json`; an evaluation (2026-10)
+found them left untracked with no rule.
 
 ## project.json (facts)
 

@@ -69,18 +69,25 @@ field: an accessor made earlier keeps the bare type for ever. (pilot rule 2)
      `element path` = the `.lvclass`; `is typedef after` true), placeholder `string.<name>`, commit, then a separate
      bind with no `force`. Never inside `lvai_create_class`: that crashed LabVIEW. (pilot rule 51)
    - Keep `nextFromField` from the add's answer: it is the field index for step 4.
-   - Close the project (`knowledge/labview-mcp.md`, "Opening and closing a project"), commit. **Sweep point 2.**
+   - `lvai_bind_class_fields` leaves the project OPEN on purpose (its answer: closing and then cycling the project
+     killed LabVIEW). Follow the tool's answer: do not close right after the bind unless the next step needs it
+     closed. Commit. **Sweep point 2** is a cold sweep and needs it closed: close it once for the sweep
+     (`knowledge/labview-mcp.md`, "Opening and closing a project"), never close and reopen in a cycle (a single close
+     after the bind did not crash, evaluation 2026-10).
    > MCP-candidate: typed-add-class-field
 4. **Accessors, only when a member uses them** (`convention: layout.accessors-on-demand`,
    `layout.accessors-for-own-data`). A new member of the class reads and writes the field through its accessor, so
    the accessor is made when the first such member is built, in the direction it uses:
    `lvai_create_accessors(lvclassPath, fromField=<index>, fieldCount=1, budgetSeconds=1, accessUi="Read"|"Write",
-   dynamicDispatch=false, virtualFolderName=<the class's accessor folder>, projectPath)` (it opens the project
-   itself). When the user asks for the accessors outright, both directions are wanted: two calls, Read then Write.
+   dynamicDispatch=false, virtualFolderName=<the class's accessor folder>, projectPath)`. `projectPath` is the
+   project to tidy; the tool needs it open and active first (`lvai_open_file`), as its own text says (it opened a
+   closed one anyway in an evaluation, 2026-10, answering `projectOpened`). When the user asks for the accessors
+   outright, both directions are wanted: two calls, Read then Write.
    `<index>` = the field's 0-based position in the private data, which is the `nextFromField` the add answered (e.g.
    a class with fields `events` and `settings` added last: `settings` is 1). Then:
    - the answer must list one VI; if the wizard made both, remove the unused one (`remove_members.py` below, project
-     closed). Whether `accessUi` gives one direction is unmeasured. > MCP-candidate: accessor-options
+     closed). `accessUi` gives one direction (measured: `Read` made one VI, evaluation 2026-10).
+     > MCP-candidate: accessor-options
    - **Names** stay the wizard's (`convention: naming.accessor-names`). A custom accessor that groups fields is a
      method (`lvai_add_class_method`), named per `naming.method-case`.
    - **Dispatch:** static. A private dynamic-dispatch VI is broken ("error of type 2000000"). (pilot rule 30)
@@ -89,6 +96,9 @@ field: an accessor made earlier keeps the bare type for ever. (pilot rule 2)
    - The value terminal is named after the `.ctl` (typedef field) or the class's qualified name (class field), not
      after the field: read it with `lvai_vi_terminals` before a caller uses it. (pilot rule 48)
    - Icons and diagram for the new accessor: `ops/icons.md`, `ops/cleanup.md` (only VIs this task made).
+   - **Descriptions** per `convention: hygiene.descriptions`: the wizard writes only a generic text into an accessor,
+     and a new typedef has none (evaluation 2026-10). Write both with `kit/pa_set_vi_descriptions.xml` (project
+     closed; one record per file). On a `.ctl` the helper is unmeasured: read the description back.
 
 ## B. Change a field
 

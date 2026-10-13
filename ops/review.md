@@ -19,7 +19,8 @@ A finding without evidence is not a finding.
 - **Setup level:** 1 for a few actors, 2 for a whole tree (offer at the end to keep what was learned, `SKILL.md`).
 - **Inputs:** `.labview/conventions/*.md` (the rule text; never restated here), `.labview/decisions.md` and
   `.labview/analysis/` (the areas and their observed shapes). No decisions and no analysis on an existing project:
-  ask the user once which choices were deliberate, and record their words and the date in the report.
+  ask the user once which choices were deliberate, and record their words and the date in the report. Code built
+  under the project's conventions in an earlier session counts as new code for severity (evaluation 2026-10).
 - **Mode:** design (requirements, architecture and diagram docs; no LabVIEW) or build (the files).
 - `git status --short` before; it must be identical after. Scratch output (nets, exports) goes outside the repo.
 
@@ -36,6 +37,11 @@ A finding without evidence is not a finding.
    dynamic event terminal an export hides. Only what nets do not carry needs an export (frame names, Timeout values,
    panes, properties): `lvai_convert_vi_to_aixml` into a scratch folder, project closed, after
    `python <skill>/kit/lv_loadability.py` says the VI loads. An AIXML source beside a VI may be older than the VI.
+   Constants (paths, Timeout values, typedef defaults) are not in `vi_nets` dumps: read them from an AIXML export
+   and check its date against the VI's; an older one is unverified. `vi_nets` cannot see Conditional Disable
+   structures either: `hygiene.conditional-disable` needs an export. (evaluation 2026-10)
+   `lv_loadability.py` needs `--vilib` on a station with several LabVIEW installs; its `--links` on a `.lvlib`
+   prints only the path (links are listed for VIs). (evaluation 2026-10)
    > MCP-candidate: nets-dump > MCP-candidate: af-describe-actor
 4. **Concern table:** one row per concern (helper loop, stop, close/destroy, events, errors, launch, messaging), one
    column per actor, each cell the shape found with its evidence. It feeds the consistency rows.
@@ -53,7 +59,7 @@ A finding without evidence is not a finding.
 | a teardown hook in Actor Core's stop frame (D-append) that needs the helper loop to have exited | Actor Core: what runs in the D frame vs inside `close` | it runs before the loop exits: wrong order, two writers at once (measured) |
 | Register For Events inside the loop VI (not in an `init` before Call Parent) | Actor Core nets: what runs before Call Parent; loop VI: a Register node | a Call Parent that returns at once lets the stop come before the registration: the tree hangs (measured, `knowledge/actor-framework.md`) |
 | a launch in Pre Launch Init | PLI nets: Launch Root/Nested Actor | hangs |
-| private dynamic-dispatch member; static VI inside a dynamic recursion cycle | `.lvclass` scope and `IsStaticMethod` | broken VI |
+| private dynamic-dispatch member; static VI inside a dynamic recursion cycle | `.lvclass` scope; dispatch from `lvai_describe_class` or the pane (the `.lvclass` has no `IsStaticMethod` property, evaluation 2026-10) | broken VI |
 | a handler before Call Parent that is meant to keep the actor running | Handle Error nets | the parent still returns `stop actor?` = T |
 | side work chained on Handle Error's `error in` | Handle Error nets | skipped at every normal stop (error 43) |
 | 0 ms Timeout with non-blocking work | event structure Timeout value (export) | busy loop |
@@ -119,4 +125,5 @@ unverified: <row> <what would settle it>
 - A raw grep of a `.vi` hits inherited help text and cached typedef owners: use link info or qualified names, and
   confirm with nets (115 false hits in one audit).
 - pylabview cannot read every VI (14 of 1411 in the audit): list them as unverified.
-- The class description is in the XML (`NI.Lib.Description`): readable offline, not unverified.
+- The class description is in the XML (`NI.Lib.Description`): readable offline, not unverified. VI descriptions are
+  readable offline too, from the pylabview extraction `vi_nets.py` leaves in its work folder (evaluation 2026-10).

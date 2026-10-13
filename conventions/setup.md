@@ -51,7 +51,12 @@ without LabVIEW:
 - `source_root` and `git`: from the tree.
 - `conventions_mode`: `full`.
 
-Write `project.json` and commit it.
+Write `project.json` and commit it. In a git repo, add the files a project close writes to the repo's `.gitignore`
+in the same commit, if they are not in it yet: `*.lvlps` and `.*.UserState/` (`dot-labview.md`, "What git
+ignores"; the user's rule, 2026-10-13).
+
+`checks.json` is not written here: it is created when the first test or behaviour run is defined, with the user's
+yes (`ops/run-checks.md`, "Before you start").
 
 ## 3. Existing project: observe, then fill the gaps
 
@@ -79,6 +84,11 @@ concern, show the default file's rules in short form. The user accepts them, cha
 `decisions.md`), or switches the concern off. For icons, also settle the per-class banner abbreviations and
 colours, and the class glyphs, in `icon-spec.json` (`ops/icons.md`, "Icon standard").
 
+Default rules that need a value only the user has are asked even when the user "accepts the defaults":
+`errors.log-local` (which log mechanism) and `errors.custom-error-codes` (the project's code range). "Accept the
+defaults" cannot settle them (evaluation 2026-10). An answer not given yet stays in the file as "not named yet" and is
+asked again with the first actor (`ops/helper-loop.md`, "Before you start").
+
 **Configuration is always a question in planning** (the user's rule, 2026-10-09), for a new project and for a new
 actor or subsystem that has settings: "How will configuration be handled?" Offer `defaults/configuration.md` as the
 suggestion (INI files per topic, a parent config class with one child per file, metadata, who reads what), but do not
@@ -91,8 +101,9 @@ follows it.
    `.labview/conventions/<concern>.md`, then replace or annotate each rule with the settled version and its
    `source`. Rules the user removed are deleted, not left in commented out. Drop the "Default template"
    note at the top, and add `written: <date>`. Rules marked "Not settled by the user; setup asks" are always
-   asked.
-2. `decisions.md`: one entry per `decided` rule (template `conventions/templates/decisions.md`).
+   asked. A concern switched off still gets its file: the default text unchanged, with `status: off`.
+2. `decisions.md`: one entry per `decided` rule, per concern switched off, and per answer that differs from the
+   default (template `conventions/templates/decisions.md`; evaluation 2026-10).
 3. Commit the `.labview/` changes alone, with a message such as `docs(labview): set up naming and layout
    conventions`.
 4. Report to the user:
