@@ -41,14 +41,19 @@ field: an accessor made earlier keeps the bare type for ever. (pilot rule 2)
    `projectPath`, the file flat in the class folder (`convention: layout.flat-files`). `verifiedFromFile` must say
    typedef and `needsLabviewSave false`. Spellings and the `overwrite` trap: `knowledge/labview-mcp.md`,
    "lvai_create_typedef, lvai_resave_ctl, lvai_describe_ctl".
+   - **Default values** (e.g. U32 100, Boolean T): set them NOW, before the class membership and the bind, because a
+     new field instance takes the typedef's default when it is made. A VI Server helper on the `.ctl`, project
+     closed: `{LV.VI}` `Front Panel` → `{LV.Panel}` `Controls[]` → `{LV.Control}` write `Value` → `{LV.VI}` Invoke
+     `Default Vals.Make Curr Default` → `Save.Instrument`; read `Default Value` back (measured in an evaluation, 2026-10).
    - **Owner** per `convention: layout.typedef-placement`. No labview-mcp tool adds a `.ctl` to a class: add it right after it is created,
      before anything uses it, with `kit/pa_class_folder_add_files.xml` (`class path`, `folder` = `TypeDefs`,
      `item paths` = the `.ctl`, `item type` = `VI`, which is right for a `.ctl` (measured); project open and active);
      added later it is renamed and its callers relink (`knowledge/labview-mcp.md`, "LabVIEW scripting quirks",
      "Class description, typedef membership, virtual folders"). Never fall back to the class or library root.
-     The helper always CREATES the folder; when the class already has `TypeDefs`, what `AddItem` (Type `Folder`) does
-     with an existing name is unmeasured: try it on a throwaway class first and report (a refusal, a second folder, or
-     the existing one reused). LabVIEW makes the added typedef public: set it private with `kit/set_scope.py`
+     The helper always CREATES the folder: when the class already has `TypeDefs`, `AddItem` (Type `Folder`) with the
+     existing name is REFUSED with 56001 (nothing added, nothing saved; measured in an evaluation, 2026-10). Then add into the existing
+     folder: `{LV.Library}` Invoke `Get All Descendents` (Type `Folder`) → the item whose `{LV.ProjectItem}` `Name`
+     is `TypeDefs` → `{LV.ProjectItem}` Invoke `AddItem` (Name, Path, Type `VI`) on it, then Save All of the class. LabVIEW makes the added typedef public: set it private with `kit/set_scope.py`
      (project closed, `convention: layout.scope`), unless a file outside the class uses it, which then keeps it public.
      > MCP-candidate: add-to-class
    - Where the area keeps typedefs in its library: `lvai_add_to_library` into that folder (it refuses a missing

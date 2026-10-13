@@ -148,16 +148,19 @@ half rewired and unsaved), and the stop hook's and `close`'s error input is foun
 `error in (no error)` (hooks made by `lvai_add_class_method`); that version is validated, not yet run.
 > MCP-candidate: add-hook
 
-**D-append. A further teardown hook after Call Parent in Actor Core (unmeasured on Actor Core):** after Call Parent
-returns, the actor has stopped, so only teardown belongs there; Actor Core has no `<C> out` after Call Parent (`Actor
+**D-append. A further hook in the stop frame of Actor Core:** after Call Parent returns, the actor's message loop has
+ended, but a helper loop has NOT: the D frame runs right after the stop is sent, before the loop exits (the appended hook ran 2-100 ms before the loop's last line, 7 of 7, measured in an evaluation, 2026-10). So D-append is for work that must
+follow the stop but not the loop. **Work that must follow the loop's exit belongs in `close`** (D-close runs it after
+both the loop and the stop): extend the `close` member instead. Actor Core has no `<C> out` after Call Parent (`Actor
 out` is typed `Actor`), so B-after does not apply. The hook goes into D's frame after the stop hook:
 `kit/pa_append_seq_hook.xml`: `vi path` = Actor Core, `class path`, `hook vi path`, `source terminal name` = the class
 wire from BEFORE Call Parent as D uses it (`<C> out` of the series hook, or `<C> in`), `hook terminal name` = the
 hook's class input, `prev order terminal name` = the stop hook's error output, `hook order terminal name` = the hook's
-error input (both read with `lvai_vi_terminals`). Then `pa_save_member`. Do it before D-close; the appended hook's
-`error out` is left unwired by the helper: end it in `Clear Errors` with `kit/af_add_hook_call_node.xml`
-(`convention: errors.ignored-errors`) or merge it by hand. The helper was measured in the pilot on another override;
-on Actor Core this route is written from its description (2026-10-12) and not run yet.
+error input (read with `lvai_vi_terminals`). Then `pa_save_member`. It works before or after D-close (run after it,
+measured in an evaluation, 2026-10). The appended hook's `error out` is left unwired: end it in `Clear Errors` INSIDE the frame
+(`convention: errors.ignored-errors`); `af_add_hook_call_node.xml` cannot do that (it searches top-level nodes only),
+so this needs a frame-aware helper. `Clear Errors`' input is named `error in (no error)`; `lvai_vi_terminals` cannot
+read it (it lives in an `.llb`). Measured on Actor Core: frame found, hook wired, state 1 (measured in an evaluation, 2026-10).
 
 **E-after. Handle Error, Call Parent first:** a handler that only logs needs class and error: B-after with
 `panel name B` = `error out` as above (the parent has already cleared 43, so the log sees real errors only;
@@ -206,7 +209,10 @@ helpers do not make; Call Parent's `error out` must reach the override's `error 
   `pa_save_member`. Measured 2026-10 on an Actor Core (a kept frame tunnel, Call Parent as the far end), no `git
   checkout` needed. Prefer it to the restore-bare-and-rehook route below.
 - **Putting a hook back:** before Call Parent, shape B (`pa_insert_series_branch` on a wire with branches); after
-  Call Parent in Actor Core only as teardown, shape D-append (unmeasured there).
+  Call Parent in Actor Core, shape D-append or, after the loop's exit, inside `close`.
+- **A hook with a third output wire** (e.g. `init`'s registration refnum into the loop): `pa_remove_series_block`
+  handles the class and error pairs only. The third wire is left one-ended (cold state 0): run `pa_clean_member` after
+  the removal, and after the put-back re-wire it with `kit/pa_wire_nodes.xml` (measured in an evaluation, 2026-10).
 - **Regenerated, the override holds only a branch hook (A):** commit; `kit/pa_delete_subvi.xml` (`vi path`,
   `class path`, `terminal name` = `<C> in`); `kit/pa_clean_member.xml` on that override (the loose end also breaks a
   sibling override; cleaning the edited one fixes both); re-run `lvai_add_class_method`, re-swap its stubs, restore

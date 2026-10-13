@@ -92,8 +92,11 @@ VI run while a project is open is adopted into that project. > MCP-candidate: pr
   another application instance. It gives no per-VI result for `viPath`. [1.8.5] (pilot rule 87)
 
 ### Helper VIs (the kit)
-- Generate kit helpers (`<skill>/kit/*.xml`) into `%TEMP%\LabVIEWMCP\helpers\<name>.vi` with `lvai_generate_vi`
-  (`measurePane: false`); a helper elsewhere is adopted into the open project and survives the close sweep. A cached
+- Generate kit helpers (`<skill>/kit/*.xml`) with `lvai_generate_vi` (`measurePane: false`) into the project's
+  proof folder when `project.json` names one (`proof_folder`), otherwise `%TEMP%\LabVIEWMCP\helpers\<name>.vi`
+  (the user's rule, 2026-10-13). Generate while NO project is active: a helper generated or exported while a project
+  is active is adopted into it (a foreign project's window turned `*` in an evaluation, 2026-10), and survives the
+  close sweep. A cached
   helper is current when its answer carries every output its `.xml` names; otherwise regenerate it and run again (no
   LabVIEW call just to check). (pilot rule 11)
 - Run helpers with `lvai_run_vi_and_read_values`, `inputsJson` = the control labels. **Absolute, long-form paths**
@@ -290,7 +293,8 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
 
 ### lvai_create_typedef, lvai_resave_ctl, lvai_describe_ctl
 - No class element in a cluster and no default value: a cluster `{protocol: <class>}` or a U32 with default 500 needs
-  a derived VI Server helper after the create. [1.9.5, a harness run 2026-10]
+  a derived VI Server helper after the create (defaults: `ops/class-field.md`, step 2, before the membership and the
+  bind). [1.9.5, a harness run 2026-10]
   > MCP-candidate: typedef-class-element-default
 - A `projectPath` other than the active project closes and saves the active project (a pilot project re-saved, 5 stray
   entries swept): pass the active project, or none. [1.8.5] (pilot rule 67) > MCP-candidate: close-project-guard
@@ -428,14 +432,19 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
   > MCP-candidate: add-to-class; > MCP-candidate: move-to-folder
 - **A new project or a plain library** (no tool; `lvai_lvproj_reference` calls `.lvproj` generation unsupported).
   Measured VI Server spellings (a harness run, 2026-10), in a helper VI:
-  - `.lvproj`: `{LV.Application}` `Project.New` → `{LV.Project}` `My Computer` → `AddItem` with Type `Folder` per
-    virtual folder (an empty `Path` is required) → `Save` with Path → `Close`. `lvai_describe_project` does not list
-    virtual folders: check them in the `.lvproj` XML.
-  - Plain `.lvlib`, project open and active: `Library.Create` → `AddItem` (Type `LVClass` or `VI`) per item → `Edit
+  - `.lvproj` (no project needs to be open): `{LV.Application}` Invoke `Project.New` (outputs `Project\3ANew`) →
+    `{LV.Project}` read `My Computer` → `{LV.TargetItem}` Invoke `AddItem` (inputs `Name`, `Path`, `Type` = `Folder`;
+    `Path` must be an EMPTY path) per virtual folder → `{LV.Project}` Invoke `Save` (input `Path`) → `Close`. NI's
+    example `Manipulating Projects\Add Files to Project.vi` carries the spellings. `lvai_describe_project` does not
+    list virtual folders: check them in the `.lvproj` XML.
+  - Plain `.lvlib`, project open and active: `{LV.Application}` Invoke `Library.Create` (output `Create Library`) →
+    `AddItem` (Type `LVClass` or `VI`) per item → `{LV.Library}` Invoke `Save` (input `Path`) or `Edit
     LVLibs.lvlib:Save All This Library.vi` (the kit's `lvai_create_actor_library.xml` is the model). A loose VI must
     be a project item first (`lvproj_add_toplevel.py`, project closed), or the close writes no library and drops the
-    entry. Afterwards the close lists the library at top level plus a stray class item: `lvproj_drop.py` and
-    `lvproj_move.py` into the folder, project closed. > MCP-candidate: project-item-tools
+    entry. The close does NOT list a new library that is empty: add it with `{LV.TargetItem}` Invoke `AddFile` (input
+    `Path`) on `My Computer`, project open and active, then close and `lvproj_move.py` it into its folder. A library
+    holding a class may come back at top level plus a stray class item: `lvproj_drop.py` and `lvproj_move.py`, project
+    closed. (measured in an evaluation, 2026-10) > MCP-candidate: project-item-tools
 
 ## LabVIEW scripting quirks
 
@@ -514,7 +523,11 @@ They hold for any VI Server or AIXML route, the kit's included.
   every lookup before any delete, and a node's wires deleted before the node (both orders the other way round
   raced: a lost lookup, a loose wire); `python <skill>/kit/vi_nets.py` before and after, the diff showing only the
   intended wires; `pa_clean_member.xml` if a loose end remains; cold state 1. Wiring two nodes by label (primitives
-  included), with that dry run: `kit/pa_wire_by_label.xml`.
+  included), with that dry run: `kit/pa_wire_by_label.xml`. **An existing loop that should use a new field**
+  (e.g. a constant interval replaced by a setting): a small reader member (class in, the field out) added by
+  `lvai_add_class_method`, then an in-place edit that places it, wires the class and the value, and chains its
+  `error in`/`error out` into the loop's error chain (an unwired error there was a review finding: a failed read gave
+  a 0 ms wait and a spinning producer, measured in an evaluation, 2026-10).
 - **Deleting a node from a branched wire** leaves a loose end: the VI reads state 0 ("VI has an error of type
   1000088"), and so does a sibling override of the same class; Remove Bad Wires on the edited VI fixes both. The kit's
   delete by terminal name deletes every top-level subVI node with that terminal. (pilot rules 78, 89)

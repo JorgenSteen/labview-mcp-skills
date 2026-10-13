@@ -20,13 +20,19 @@ or when a concern is off, follow the surrounding code instead.
   `af-shapes.registration`, `af-shapes.stop-mechanism`, `af-shapes.stop-site`, `af-shapes.close-vi`,
   `af-shapes.timed-work`, `af-shapes.events-typedef`, `af-shapes.global-events`, `af-shapes.resources`,
   `naming.role-names`, `naming.method-case`, `layout.class-folders`, `layout.scope`, `layout.accessors-on-demand`,
-  `errors.loop-errors`, `errors.ignored-errors`.
+  `errors.loop-errors`, `errors.ignored-errors`, `errors.log-local`.
+- **Ask before the build** (the main session, before any brief): the actor's name with its `<ABBR>` and `<name>` parts
+  per `naming.class-library-names` (a subagent never invents or changes a name); for the first actor of a project,
+  the log mechanism (`errors.log-local`: where the loop and `close` log an error); whether the actor has pre-launch
+  settings (`af-shapes.prelaunch-settings`; none = no `prelaunchSettings` field and no `writePrelaunchSettings`).
 - **Maintenance scope.** An existing actor keeps its loop, stop and teardown shape (for example a Stop Core that
   generates and destroys) unless the task is to change it. A second loop in that actor follows its first loop.
-- **The actor class exists.** A new one comes from labview-mcp's class-generator agent, briefed per
-  `session/brief.md` with the parent `vi.lib\ActorFramework\Actor\Actor.lvclass`, the `events` and
-  `prelaunchSettings` fields, "make only the accessors `Read events`, `Write events`, static, private" (or none yet),
-  and the folder, naming and scope rules from that file's table; check it afterwards as that file says.
+- **The actor class exists, in its own library** (`convention: layout.library-per-actor`). A new class comes from
+  labview-mcp's class-generator agent, briefed per `session/brief.md` with the parent
+  `vi.lib\ActorFramework\Actor\Actor.lvclass`, NO fields (step 1 makes `events`; `prelaunchSettings` only when the
+  actor has settings), no accessors, and the folder, naming and scope rules from that file's table; check it
+  afterwards as that file says. Then the library around it: `knowledge/labview-mcp.md`, "A new project or a plain
+  library" (do it before the members, so the class is not re-saved later; measured in an evaluation, 2026-10).
 - **The kind of loop** (`convention: af-shapes.stop-mechanism`): every loop VI has at least one loop on an async stop
   (a user event by default). Variant 1 is that event loop alone; variant 2 adds other loops (timed producer, polling)
   in the same VI, stopped by the local `stop` the event loop sets; each of them calls the actor's `stop` member when
@@ -51,13 +57,20 @@ or when a concern is off, follow the surrounding code instead.
    - `init`: `Read events` on a fresh error chain → `Unbundle By Name` → `Register For Events` on a fresh "no error"
      constant, its refnum output left unwired (step 11 puts it on the pane); `error out` = Merge Errors (`error in`,
      `Read events`' error, Register's error); for a root that launches nested actors, the launches too (as subVIs).
-   - `stop`: `Read events` → Generate the stop event. `close`: per `af-shapes.close-vi`.
+   - `stop`: `Read events` → Generate the stop event. `close`: per `af-shapes.close-vi`; work that must follow the
+     loop's exit (a final log line) goes here, not into the D frame.
+   - Their virtual folder: `Methods` (`convention: layout.class-folders`). A member with NO class terminal (a pure
+     function such as a `tick`) joins the class with `kit/pa_class_folder_add_files.xml` into `Methods`
+     (measured in an evaluation, 2026-10).
    Author each in AIXML with the class as a `path` stand-in and the accessors as `lvai_placeholder_subvi` stubs.
    **Class terminals per member:** a member that goes in series on the class wire or writes a field returns the
    object: `createResources`, `createEvents` and `init` declare `<C> in` AND `<C> out` in their AIXML and get
    `classTerminals` = `["<C> in", "<C> out"]`; `stop` and `close` take `<C> in` only (`["<C> in"]`).
-   Then **one** `lvai_add_class_method` call for all of them (`methodsJson` entries with `aixml`, `vi` and their
-   `classTerminals`, no `dispatchTerminals` = static; `projectPath`), and **one** `lvai_swap_subvis`
+   Then `lvai_add_class_method` (`methodsJson` entries with `aixml`, `vi` and their `classTerminals`, no
+   `dispatchTerminals` = static; `projectPath`) in batches by call order: members that call no other new member
+   first (`createEvents`, `close`, `stop`, `init`), then the ones that call them (`createResources`), so a stub never
+   stands in for a member that exists already (one call for all failed, measured in an evaluation, 2026-10). A refnum-cluster constant in
+   AIXML needs `value="[]"`. Then one `lvai_swap_subvis`
    with `editsJson` for every stub (`kit/make_batch_json.py` builds it; it warns on a shared stub). Measured: two
    members, two stubs each, one call each (M-CLOSE M1). Scope private with `kit/set_scope.py` (project closed). Commit.
    **The loop VI does not destroy the events:** it does Unregister only, and `close` destroys. The measured proof's
@@ -135,8 +148,9 @@ or when a concern is off, follow the surrounding code instead.
    puts it on the pane. Read `register count` 1, `new wire ends` 2, `new wire broken` F, `on pane` T, every error 0.
    `Read events` stays when its error feeds the loop; Unregister's `error in` is then unwired (no error). Re-check
    step 7 offline afterwards: the spec rows and the use-default flag are unchanged (measured). It runs no Remove Bad
-   Wires on purpose (that would remove the inner refnum chain before the new wire exists). Measured on a throwaway,
-   then on a member, 2026-10: state 1.
+   Wires on purpose (that would remove the inner refnum chain before the new wire exists). It leaves `Read events` with
+   a dangling output when Unbundle was its only consumer: after step 9, run `kit/pa_clean_member.xml` on the loop VI
+   (cold state 0 → 1, measured in an evaluation, 2026-10); the dead `Read events` node stays until removed by hand or by a later edit.
 8. **Event data**, project closed, only for a frame that reads its payload: `lvai_set_event_data_fields(viPath,
    fields="<dataNodeUid> <placeholderUid>:4")`. Both uids are the ones the step-3 AIXML wrote: the frame's Event Data
    Node, and a labelled constant `Payload Placeholder` wired into the primitive or subVI input that consumes the field

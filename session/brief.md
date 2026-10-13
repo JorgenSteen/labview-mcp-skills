@@ -23,6 +23,9 @@ a concern is off, the brief names the surrounding code to follow instead of conv
 - **The setup level** (`SKILL.md`) and **the conventions** the step touches are settled before the brief is written.
   The agent gets either the convention file paths with the rule ids that apply, or (local mode) the files whose
   pattern it follows.
+- **Names are settled** before the brief: every new actor, class, library and member name the step needs, agreed
+  with the user per the naming conventions. An agent never invents or changes a name; a name that breaks a rule is a
+  question for the user before the launch, not for the agent.
 - **The scope** is concrete: "only the VIs this task adds or regenerates", never a whole tree by default (`SKILL.md`,
   "Scope (maintenance)").
 - **No other LabVIEW agent runs.** One LabVIEW agent at a time; docs-only agents may run beside it
