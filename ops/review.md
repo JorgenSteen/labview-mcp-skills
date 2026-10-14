@@ -69,7 +69,7 @@ A finding without evidence is not a finding.
 
 | convention ids | where to look |
 |---|---|
-| `af-shapes.helper-loop-vi`, `.helper-loop-error-case`, `.registration`, `.stop-mechanism` | Actor Core: `init` before Call Parent, its refnum into the loop VI; `init` nets: Register; loop VI nets: the refnum control, the error case, the dynamic terminal, Unregister, locals, the `stop` call after each non-event loop |
+| `af-shapes.helper-loop-vi`, `.helper-loop-error-case`, `.registration`, `.stop-mechanism` | Actor Core: `init` before Call Parent, its refnum into the loop VI; `init` nets: Register; loop VI nets: the refnum control, the error case (the refnum wired through its Error frame, no use-default tunnel feeding Unregister), the dynamic terminal, Unregister (fed from the loop's output tunnel, never from the control; its error not hidden by the Merge order), locals, the `stop` call after each non-event loop |
 | `af-shapes.stop-site`, `.close-vi`, `.resources` | Actor Core after Call Parent, `close`, Stop Core, PLI |
 | `af-shapes.events-typedef`, `.global-events`, `.prelaunch-settings` | private data (decoded), TypeDefs, accessors, PLI |
 | `af-shapes.handle-error-order`, `.handle-last-ack`, `.hook-vis` | Handle Error, HLAC, hook panes (hooks may take `stop actor?`, `Last Ack`) |

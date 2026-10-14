@@ -113,7 +113,8 @@ source: default
 The error case is INSIDE the loop. The registration refnum comes in from `init` and Unregister For Events sits after
 the loop, outside the error case, and runs regardless of an incoming error (`registration`). The loop carries the error in a shift register; inside the loop, a case structure on
 that error:
-- **Error case:** the loop stops at this iteration and passes the error on.
+- **Error case:** the loop stops at this iteration and passes the error on; the registration refnum is wired
+  through (`registration`).
 - **No Error case:** the loop's work (the event structure, or the timed or polling work).
 After the loop: Unregister → Merge Errors → `error out`.
 Why: the registration always exists, so the stop always reaches the loop, and an error ends the loop on its next
@@ -126,14 +127,21 @@ Each actor with a helper loop has a private, static `init` member that Actor Cor
 that launches nested actors, those launches), with the registration refnum out on its pane. The loop VI takes the
 refnum as an input: it enters the event structure's dynamic event terminal (left edge), the terminal's right-side
 output is wired out of the loop into Unregister For Events, which sits right after the loop, outside the error case,
-and runs regardless of an incoming error. There is no separate tunnel for the refnum, and no wire around the event
-structure. New code never registers in Pre Launch Init.
+and runs regardless of an incoming error. In the Error case the refnum is wired straight through (case input tunnel
+to case output tunnel), so the output tunnel carries the live refnum from every frame. Unregister takes the refnum
+only from the loop's output tunnel, so it runs after the loop by data flow. There is no separate tunnel for the
+refnum, and no wire around the event structure. New code never registers in Pre Launch Init.
 Why: user events are not latched. With Register inside the loop VI, a Call Parent that returns at once (an error
 wired into it, e.g. a failed nested launch) lets the stop hook generate the stop before the loop has registered; the
 stop is lost, the loop never exits, `close` never runs, no Last Ack is sent and the tree hangs until LabVIEW
 restarts. Measured in a harness run (2026-10): that failure hung the tree with Register in the loop VI, and passed
-with `init` (Last Ack in 70 ms with the real error; early stop 5 of 5, no hang, on two actors).
-Instead of: Register For Events inside the loop VI right before the loop.
+with `init` (Last Ack in 70 ms with the real error; early stop 5 of 5, no hang, on two actors). The refnum through
+the Error case: with a use-default tunnel there, an Error-case exit hands Unregister a null refnum (1055, nothing
+unregistered, and the Merge order hides the 1055); wired through, Unregister gets the live refnum. Unregister fed
+straight from the refnum control runs as soon as the loop VI starts and unregisters before the loop waits: no stop
+event arrives and every stop hangs the actor. Both measured in an evaluation, 2026-10.
+Instead of: Register For Events inside the loop VI right before the loop; a use-default refnum tunnel in the Error
+case; Unregister fed from the refnum control.
 source: default
 
 ## stop-mechanism

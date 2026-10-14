@@ -120,7 +120,8 @@ or when a concern is off, follow the surrounding code instead.
    found`, `left terminal found`, `right terminal found`, `register found`, `unregister found` T, `left wire ends` and
    `right wire ends` 2, `left wire broken` and `right wire broken` F, error 0. Measured 2026-10 on the error-case shape.
    `lvai_wire_dynamic_events` searches two levels only: here it answers Error 91 / `helperDidNotAnswer` and changes
-   nothing. The new right-side tunnel has no value in the Error frame and breaks the VI until step 7.
+   nothing. The new right-side tunnel has no value in the Error frame and breaks the VI until step 7; step 7c then
+   wires the refnum through that frame.
    > MCP-candidate: wire-dynamic-events-fix
 6. **Skip on the error-case shape.** For a one-level shape only (event structure directly in the top-level loop, no
    error case, e.g. existing code): left side
@@ -151,6 +152,16 @@ or when a concern is off, follow the surrounding code instead.
    Wires on purpose (that would remove the inner refnum chain before the new wire exists). It leaves `Read events` with
    a dangling output when Unbundle was its only consumer: after step 9, run `kit/pa_clean_member.xml` on the loop VI
    (cold state 0 → 1, measured in an evaluation, 2026-10); the dead `Read events` node stays until removed by hand or by a later edit.
+7c. **Refnum through the Error frame** (`convention: af-shapes.registration`), project CLOSED, after 7b and its
+   `pa_clean_member` (so after step 9): `kit/pa_reg_through_error_frame.xml` (`vi path`, `variant` 1, `refnum label`
+   = the control's label from 7b), `apply` F first. Read `control hits` 1, `unregister hits` 1, `case out inner count`
+   and `case in inner count` 2, `error frame index` = the Error frame, `variant 1 ready` T, every lookup error 0; then
+   `apply` T: `v1 wire ends` 2, `v1 wire broken` F, `v1 save error` 0. `vi_nets.py` before and after: exactly one
+   new wire, inside the Error frame, between the two case tunnels. Cold state 1. The use-default flag from step 7
+   stays set and is now unused (no route clears it; harmless). Never run `variant` 2: it is the measured failure
+   (Unregister fed from the control hangs every stop). Without this step an Error-frame exit hands Unregister a null
+   refnum (1055, hidden by the Merge order). Measured in an evaluation, 2026-10: normal stop 5/5, early stop 5/5,
+   forced Error-frame exit clean.
 8. **Event data**, project closed, only for a frame that reads its payload: `lvai_set_event_data_fields(viPath,
    fields="<dataNodeUid> <placeholderUid>:4")`. Both uids are the ones the step-3 AIXML wrote: the frame's Event Data
    Node, and a labelled constant `Payload Placeholder` wired into the primitive or subVI input that consumes the field
@@ -203,7 +214,8 @@ or when a concern is off, follow the surrounding code instead.
 - Export the loop VI (`lvai_convert_vi_to_aixml`; create the folder first): no Register node; the `event registration
   refnum` control on the pane feeding a loop `<Tunnel>` whose inside net has no consumer in the export (the dynamic
   terminal has no AIXML element), the case structure with both frames inside the loop, Unregister after it fed by a
-  loop output tunnel, no refnum `<Tunnel>` on the event structure; variant 2 lists its locals (init write, event-loop
+  loop output tunnel (never by the control), the refnum wired through the Error frame (step 7c; `vi_nets.py` shows
+  the wire), no refnum `<Tunnel>` on the event structure; variant 2 lists its locals (init write, event-loop
   write, producer read). `python <skill>/kit/vi_nets.py <vi>` shows the dynamic terminal's wire offline.
 - Export Actor Core: `init` (`<C> in`, `error in`) → Call Parent (`Actor in` = `init`'s `<C> out`, `error in` =
   `init`'s error); the loop takes `<C> in` from the panel and the refnum from `init`; then the D-close shape
@@ -225,7 +237,14 @@ or when a concern is off, follow the surrounding code instead.
 - Variant 2: make the producer fail on purpose: `lvai_swap_subvis` its work subVI onto a throwaway VI with the same
   pane that returns a custom error, run, then swap back (commit before, check the swap-back with a cold read). The
   actor must stop by itself, the caller gets the Last Ack, no hang, and a later Normal Stop answers 1556 (the queue is
-  gone).
+  gone). This does NOT reach the event loop's Error frame: the producer's error sends the stop event, and the event
+  loop leaves through No Error.
+- **Error-frame exit** (when the step-7c shape must be proven, e.g. on existing code): commit, then set the loop VI's
+  `error in` DEFAULT to an error (Actor Core leaves that input unwired, so the error enters the event loop's shift
+  register and the Error frame runs on the first iteration), and swap two Merge Errors inputs so Unregister's error
+  comes first. Run once: the Last Ack must carry the forced error, not 1055 from Unregister. Then restore the loop VI
+  from git with the project closed and read it cold. A temporary edit of the member itself, because a throwaway copy
+  of a private loop VI cannot call its private and protected callees. Measured in an evaluation, 2026-10.
 - Then `ops/cleanup.md` and `ops/icons.md` for the VIs this task made.
 
 ## Report
@@ -235,7 +254,7 @@ or when a concern is off, follow the surrounding code instead.
 loop <class>:<vi> variant <1|2>  events <elements>  member private static  folder Helpers <created|moved>
 members: createResources createEvents init stop close <senders>  add_class_method 1 call  swaps 1 call  error case <frames>
 build: generate ok  dyn deep left <ends>/<broken> right <ends>/<broken>  specs <rows>  use-default <tunnels>  data fields <ok|n/a>
-reg input: term <n> on pane <T>  init indicator: term <n> on pane <T>  init->loop wire <ends>/<broken>
+reg input: term <n> on pane <T>  init indicator: term <n> on pane <T>  init->loop wire <ends>/<broken>  error-frame refnum <ends>/<broken>
 panel on call <r/r|n/a>  Stop action <1|n/a>  stop action <0|1> hidden <yes|n/a>  export <ok>  locals <n|n/a>
 hooks: PLI createResources F; Actor Core init B (kept branches <n>), loop A|C, stop D, close D-close   sweep <ok>/<n>, control 0 7, membership ok
 run: stop <tick> loop exit <tick> close <tick> err <code>  early stop <n>/5  producer failure <stopped|hung|n/a>
@@ -246,11 +265,16 @@ side effects: <...>   commits <hashes>   LabVIEW calls <n>   issues: <exact erro
 ## Traps
 
 - An authored refnum tunnel makes `lvai_wire_dynamic_events` branch a plain tunnel, the wrong shape. (pilot rule 60)
+- Unregister must follow the loop by data flow (its refnum from the loop's output tunnel). Fed from the refnum control
+  it runs as soon as the loop VI starts, the stop event never arrives, and every stop hangs the actor until LabVIEW is
+  killed (measured in an evaluation, 2026-10).
+- Merge Errors with the loop's error first hides an error from Unregister (a null refnum answers 1055): a clean run
+  does not prove the registration is released.
 - `lvai_add_class_method` with `aixml` and `vi` re-converts the VI: dynamic wiring, specs and data fields are lost.
 - `pylv-set-event-spec.py` of labview-mcp documents a `[dynIndex]` it does not take: use the kit script.
 - A plain AIXML convert of the loop VI loses every event frame; regenerating the loop repeats steps 3–10.
 - A loop branched beside Call Parent never sees its actor stop through a failed `Send`: its only exits are the stop
   event or the local `stop`. A hung loop cannot be aborted by VI Server; only a LabVIEW restart frees it.
 - The vi-generator agent is not the route for the loop VI: it is a member that calls protected AF VIs, and the agent
-  knows neither steps 5–7b nor that `lvai_wire_dynamic_events`'s default closes and saves the project. It fits a plain
+  knows neither steps 5–7c nor that `lvai_wire_dynamic_events`'s default closes and saves the project. It fits a plain
   function VI the loop calls (brief per `session/brief.md`).

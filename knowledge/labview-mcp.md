@@ -236,6 +236,8 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
   constants then need swaps); labview-mcp 1.8.5 documents this and does it inside `lvai_generate_vi`: re-check before
   using stubs. A probe convert under another `_name` is adopted into the `.lvproj` (drop it with `lvproj_drop.py`).
   [1.7.2; 1.8.0] (pilot rules 8, 50) > MCP-candidate: generate-calls-loaded-members
+- `lvai_validate_aixml` answers only "Error 42 ... Generic error" for an AIXML file holding XML comments
+  (`<!-- -->`): author none (evaluation 2026-10).
 - `lvai_validate_aixml` refuses `To More Generic/Specific Class` on path stand-ins ("Polymorphic terminal cannot accept
   this data type"), a false positive: convert with `validateFirst: false`, let `lvai_exec_state` decide. Since 1.8.5 the
   convert repairs reserved-range uids (< 4200) and refuses invalid XML characters (`notWellFormedXml`). (pilot rule 56)
@@ -552,7 +554,12 @@ They hold for any VI Server or AIXML route, the kit's included.
   `Is Source?` = F, in pane order. [LabVIEW 2026 Q3] (skillsaudit M-CLOSE, 2026-10-09)
 - **A flat-sequence tunnel with no wire on either side is deleted by LabVIEW.** A helper that deletes a net and then
   wires to "the old tunnel" fails with 1055: rebuild the tunnel by wiring through it again. [LabVIEW 2026 Q3]
-  (skillsaudit M-CLOSE, 2026-10-09)
+  (skillsaudit M-CLOSE, 2026-10-09). Case (`SelectorTunnel`) and loop (`LoopTunnel`) tunnels go the same way: a
+  Delete after their last wire answers 1055 (evaluation 2026-10).
+- **Tunnel scripting:** `{LV.Tunnel}` `Inside Terminals[]` gives one terminal per frame (a case output tunnel's
+  unwired inner terminal names the frame that gives it no value); a tunnel terminal's `Owner` is the tunnel; class
+  names `SelectorTunnel`, `LoopTunnel` (from `resource\lvserver.rsc`; measured in an evaluation, 2026-10,
+  `kit/pa_reg_through_error_frame.xml`).
 - **The `close` join is scripted by `<skill>/kit/pa_close_join.xml`** (measured 2026-10-09, one run with the project
   active, then `pa_save_member`; ~25 s generate + < 1 s run). `ops/override.md` (shape D-close) has the route. > MCP-candidate: add-hook
 

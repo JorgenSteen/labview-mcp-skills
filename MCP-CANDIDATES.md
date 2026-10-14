@@ -231,7 +231,8 @@ sides; until then `rightSideTo: "Unregister For Events"`, several user events (`
 the finish on the diagram route, no project save, the event structure found at any depth, Use Default set on the
 tunnel it creates, and the property allowed in AIXML. **Evidence** pilot rules 39, 60; a harness run 2026-10.
 **Workaround** `pa_wire_dyn_deep.xml`, `pa_wire_dyn_right.xml`, `set_use_default.py`, `set_user_event_specs.py`,
-`pa_reg_to_control.xml`, `pa_reg_indicator.xml`. **Removes** `ops/helper-loop.md` build steps 5–7b.
+`pa_reg_to_control.xml`, `pa_reg_indicator.xml`, `pa_reg_through_error_frame.xml`. **Removes** `ops/helper-loop.md`
+build steps 5–7c.
 
 ## user-event-cluster
 **Status** proposed (S7). **Gap** an events typedef, its field and accessor take several calls. **Proposed**
