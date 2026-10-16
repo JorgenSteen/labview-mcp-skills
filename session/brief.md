@@ -37,7 +37,7 @@ a concern is off, the brief names the surrounding code to follow instead of conv
 2. **UPDATES** (when earlier reports exist): what they found that changes this step, and any go-ahead of the user
    (below). "Read first; it overrides the rest of the brief."
 3. **Goal** in one or two sentences, and what is out of scope ("never open or touch `<path>`").
-4. **Paths:** repo, project file, target classes and VIs, proof folder, scratch folder, log files. All absolute.
+4. **Paths:** repo, project file, target classes and VIs, proof folder, scratch folder (`<repo>/mcp_temp/`, `labview-temp-folder/SKILL.md`), log files. All absolute.
 5. **Conventions:** the level, then per concern the convention file and the rule ids that apply, or "local mode:
    follow `<neighbour files>`". labview-mcp's own agents get the rules written out (see below).
 6. **Route:** "follow `<skill>/ops/<file>` literally" (the agent may read only that file and what it names), or the

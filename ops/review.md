@@ -22,7 +22,8 @@ A finding without evidence is not a finding.
   ask the user once which choices were deliberate, and record their words and the date in the report. Code built
   under the project's conventions in an earlier session counts as new code for severity (evaluation 2026-10).
 - **Mode:** design (requirements, architecture and diagram docs; no LabVIEW) or build (the files).
-- `git status --short` before; it must be identical after. Scratch output (nets, exports) goes outside the repo.
+- `git status --short` before; it must be identical after. Scratch output (nets, exports) goes to `<repo>/mcp_temp/`,
+  which git ignores.
 
 ## Steps
 

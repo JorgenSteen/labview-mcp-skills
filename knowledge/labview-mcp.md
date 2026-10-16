@@ -96,8 +96,8 @@ VI run while a project is open is adopted into that project. > MCP-candidate: pr
 
 ### Helper VIs (the kit)
 - Generate kit helpers (`<skill>/kit/*.xml`) with `lvai_generate_vi` (`measurePane: false`) into the project's
-  proof folder when `project.json` names one (`proof_folder`), otherwise `%TEMP%\LabVIEWMCP\helpers\<name>.vi`
-  (the user's rule, 2026-10-13). Generate while NO project is active: a helper generated or exported while a project
+  proof folder when `project.json` names one (`proof_folder`), otherwise `<repo>\mcp_temp\helpers\<name>.vi`
+  (the user's rule, 2026-10-16; it replaces `%TEMP%\LabVIEWMCP\helpers` from 2026-10-13). Generate while NO project is active: a helper generated or exported while a project
   is active is adopted into it (a foreign project's window turned `*` in an evaluation, 2026-10), and survives the
   close sweep. A cached
   helper is current when its answer carries every output its `.xml` names; otherwise regenerate it and run again (no
@@ -413,7 +413,8 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
   `lvai_set_vi_icon` with each member's composite PNG (looks the same, no `NI_Library` layer). [1.8.0–1.8.5] (pilot
   rule 59)
 - `Save VI Icon to File` writes nothing and returns no error into a missing folder or for a path over MAX_PATH (~260
-  characters): use a short folder (`%TEMP%\LabVIEWMCP\rb`), count the files. [1.8.5] (pilot rule 80)
+  characters): use a short folder (`<repo>\mcp_temp\rb`), count the files. If the repo sits so deep that the
+  paths still pass ~260 characters, say so to the user rather than writing outside `mcp_temp`. [1.8.5] (pilot rule 80)
   > MCP-candidate: icon-readback
 
 ### lvai_vi_server_reference, lvai_aixml_reference

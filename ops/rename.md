@@ -54,8 +54,8 @@ instead.
    - **Children** (for a dynamic member or a class): the `.lvclass` files whose `Parent Libraries` name the class.
    - **String references** (qualified-name constants, path constants) are not visible in a `.vi`, because the
      diagram is compressed. Grep the AIXML sources (`.xml`) and the docs. Without sources, export only the callers
-     and the class's own members, and only those that load (step 2), with `lvai_convert_vi_to_aixml` into a scratch
-     folder outside the repo; never export a whole tree. Report the rest as "string references outside the callers:
+     and the class's own members, and only those that load (step 2), with `lvai_convert_vi_to_aixml` into
+     `<repo>/mcp_temp/`; never export a whole tree. Report the rest as "string references outside the callers:
      not checked".
 2. **Every user must load.** Run `python <skill>/kit/lv_loadability.py` on the class and on every user found
    (`knowledge/labview-mcp.md`, "A failed, hung or blocked call"). A user with an unresolved dependency cannot be

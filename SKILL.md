@@ -76,6 +76,10 @@ These protect the files and the toolchain. They are not conventions and cannot b
 
 ## Rules that always apply
 
+- **Scratch folder: `<repo>/mcp_temp/`.** Every temporary file of LabVIEW work (AIXML exports, renders, extractions,
+  backups, helper VIs, logs) goes there, and the folder ignores itself in git. This wins over any other scratch
+  location, in these files, in other skills and in the labview-mcp agents; give it to every subagent as its scratch
+  folder. Setup and rules: `labview-temp-folder/SKILL.md`.
 - **Scope (maintenance).** Conventions apply to new code. On existing code, change only what the task needs. Files
   and parts the task does not touch stay as they are, even where they break the conventions, unless the user asks.
   Findings in untouched parts are reported, not fixed. A VI that was not runnable may be edited; it must end no worse
@@ -115,6 +119,7 @@ These protect the files and the toolchain. They are not conventions and cannot b
 | Rename a class member, class, library or typedef (always through LabVIEW) | `ops/rename.md` |
 | Icons: standard, apply, read back | `ops/icons.md` |
 | Clean Up Diagram on generated VIs | `ops/cleanup.md` |
+| Where scratch output goes; create `mcp_temp/` | `labview-temp-folder/SKILL.md` |
 | Cold sweep: every VI runnable, membership consistent | `ops/sweep.md` |
 | Run the project's test VIs and behaviour runs | `ops/run-checks.md` |
 | Review an AF design or a built actor against the conventions | `ops/review.md` |

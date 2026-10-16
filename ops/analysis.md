@@ -15,8 +15,8 @@ here: the analysis records what the code does, whatever the convention files say
 ## Before you start
 
 - **Level 2** (`SKILL.md`): read only. Nothing in the product tree is written until the user says yes at the end.
-  Work files (extractions, CSVs, nets) go to a scratch folder outside the repo. `git status --short` before and
-  after must be identical.
+  Work files (extractions, CSVs, nets) go to `<repo>/mcp_temp/` (`labview-temp-folder/SKILL.md`), which git
+  ignores. `git status --short` before and after must be identical.
 - **Offline first.** Every item below can be read from the files with no LabVIEW call, except the parts marked
   "needs LabVIEW". Loading foreign code is what hangs the service (`knowledge/labview-mcp.md`, "A failed, hung or
   blocked call"); a cold sweep of an unloadable library cost about 30 s per VI in the audit.
