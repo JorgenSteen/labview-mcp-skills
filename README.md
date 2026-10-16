@@ -5,7 +5,8 @@
 > Several of its routes are marked unmeasured. Expect to adjust it as it meets real projects.
 
 The `labview` Claude Code skill: LabVIEW and Actor Framework development with the labview-mcp tools. Claude does not
-load this README; `SKILL.md` is the skill's entry point (the router). This repository holds only this skill.
+load this README; `SKILL.md` is the skill's entry point (the router). The repository also holds one small companion
+skill, `labview-temp-folder` (in its own folder), which sends all LabVIEW scratch output to `<repo>/mcp_temp/`.
 
 ## Install
 
@@ -15,7 +16,13 @@ Link the repository root as a global skill (Windows, from a shell with rights to
 mklink /J "%USERPROFILE%\.claude\skills\labview" "<path to this repository>"
 ```
 
-Claude Code then lists one skill, `labview`, in every session, and loads its files only for LabVIEW work. A
+Link the companion skill the same way, as its own folder (a skill nested inside `labview` is not found):
+
+```
+mklink /J "%USERPROFILE%\.claude\skills\labview-temp-folder" "<path to this repository>\labview-temp-folder"
+```
+
+Claude Code then lists the skill `labview` in every session, and loads its files only for LabVIEW work. A
 repository with its own repo-local `lv-*` skills (the pilot project) keeps them until it is moved to this skill;
 while both exist, the repo-local ones win inside that repository.
 
@@ -30,6 +37,7 @@ while both exist, the repo-local ones win inside that repository.
 | `session/` | start, brief, restart, close |
 | `kit/` | helper VIs (AIXML) and scripts the procedures run (`kit/README.md`) |
 | `MCP-CANDIDATES.md` | every labview-mcp gap the skill works around, written to be contributed upstream |
+| `labview-temp-folder/` | the companion skill: LabVIEW scratch output goes to `<repo>/mcp_temp/`, which ignores itself |
 
 ## How it works, in short
 
