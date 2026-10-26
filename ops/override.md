@@ -66,7 +66,7 @@ M3/M4 (2026-10-09), in the pilot, and by labview-mcp on five lifecycle overrides
 
 | Override | Hook work | Shape |
 |---|---|---|
-| Pre Launch Init | `createResources`, the one creating hook: it reads the pre-launch settings (`af-shapes.prelaunch-settings`), creates the resources (`af-shapes.resources`) and cleans up after its own failure (`af-shapes.pli-failure-cleanup`) | F = B-after on class and error (hook measured; the member's case structure unmeasured) |
+| Pre Launch Init | `createResources`, the one creating hook: it reads the pre-launch settings (`af-shapes.prelaunch-settings`), creates the resources (`af-shapes.resources`) and cleans up after its own failure (`af-shapes.pli-failure-cleanup`) | F = B-after on class and error (hook and cleanup shape measured, 2026-10-10) |
 | Pre Launch Init | start the children (`af-shapes.launch-owner`): send the launch message to self; the launch itself runs in that message's `Do.vi` | B-after on class and error, so a failed send fails the launch (measured 2026-10-10; body: `kit/example_pli_deferred_start.xml` plus a `<C> out` and its error wired out). Not A: a branch drops the send's error. Beside `createResources`: a second B-after hook is unmeasured, ask |
 | Actor Core | the helper loop beside Call Parent | A, or C after a series hook |
 | Actor Core | a body that returns a changed object to Call Parent | B |
