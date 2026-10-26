@@ -133,6 +133,21 @@ probe VI run while a project is open is adopted into that project. > MCP-candida
   close sweep. A cached
   helper is current when its answer carries every output its `.xml` names; otherwise regenerate it and run again (no
   LabVIEW call just to check). (pilot rule 11)
+- **Automatic error handling blocks the service.** A helper VI with automatic error handling ON and an error output
+  left unwired (`error out:`) raises LabVIEW's modal "Error <n> occurred at <node> in <VI>" [Continue] [Stop] dialog,
+  plus "Resetting VI: <VI>", the moment that node errors; the call times out and every later call waits behind the
+  dialog until a person answers it or LabVIEW is killed. Which VIs have it ON depends on who wrote them (measured
+  2026-10-26, LabVIEW 2026 Q3, both arms): a VI converted by NI's converter (`backend: "grpc"`) has it ON; a VI composed
+  on `pylabview` has it OFF. Two steps for every helper:
+  1. **Before generating:** `python <skill>/kit/check_error_outputs.py <helper.xml>` lists every unwired error output
+     (exit 1 when any). In a helper you derive yourself, wire each one into the error chain or an indicator. The kit's
+     own helpers have 86 such outputs in 21 files today; step 2 covers them.
+  2. **After generating, before the first run** (always on `grpc`; on `pylabview` only when unsure):
+     `<skill>/kit/pa_auto_error_off.xml` with `vi path` = the generated helper, project closed: it writes `{LV.VI}`
+     `Automatic Error Handling` = F (name from LabVIEW's `resource\lvserver.rsc`), saves the VI and reads it back
+     (`automatic error handling` false, `error out` 0). Measured: the same NI-converted VI ran without a dialog with it
+     off, and raised the dialog with it on. Regenerating the helper writes the VI again: repeat step 2.
+  > MCP-candidate: helper-auto-error
 - Run helpers with `lvai_run_vi_and_read_values`, `inputsJson` = the control labels. **Absolute, long-form paths**
   only: no `%TEMP%`, no 8.3 short names (`C:\Users\ABCDEF~1.XYZ\...`). **Omit an input rather than pass `""`**: the
   runner refuses an empty value. The runner's own rule, for a control labelled exactly `project path`: omitted = the

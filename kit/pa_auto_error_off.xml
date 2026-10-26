@@ -1,0 +1,12 @@
+<VI _name="pa_auto_error_off.vi" description="Kit helper\3A switches LabVIEW's automatic error handling OFF on one VI (normally a helper this session just generated)\2C so an error on an unwired error output no longer raises the modal error dialog that blocks the labview-mcp service. Open VI Reference by path (default instance\2C project closed) -&gt; {LV.VI} write Automatic Error Handling = F -&gt; Save.Instrument -&gt; read it back -&gt; Close Reference. Every error output is wired into the chain. Name from LabVIEW's resource\5Clvserver.rsc.">
+  <Control _name="vi path" type="string" uid="4100" uid_parent="root" value="" outputs="value:4100.value"/>
+  <Constant _name="off" type="bool" uid="4101" uid_parent="root" value="false" outputs="value:4101.value"/>
+  <Node _name="String To Path" inputs="string:4100.value" outputs="path:4220.path" uid="4220" uid_parent="root"/>
+  <Node _name="Open VI Reference" inputs="application reference (local):,vi path:4220.path,error in (no error):" outputs="vi reference:4225.vi,error out:4225.err" uid="4225" uid_parent="root"/>
+  <Node _name="Property Node" fields="write+Automatic Error Handling" type="{LV.VI}" inputs="reference:4225.vi,error in (no error):4225.err,Automatic Error Handling:4101.value" outputs="reference out:4230.vi,error out:4230.err" uid="4230" uid_parent="root"/>
+  <Node _name="Invoke Node" target="Save.Instrument" type="{LV.VI}" inputs="reference:4230.vi,error in (no error):4230.err,Path to saved file:,Save a Copy:,Without Diagram:" outputs="reference out:4240.vi,error out:4240.err" uid="4240" uid_parent="root"/>
+  <Node _name="Property Node" fields="read+Automatic Error Handling" type="{LV.VI}" inputs="reference:4240.vi,error in (no error):4240.err" outputs="Automatic Error Handling:4245.auto,reference out:4245.vi,error out:4245.err" uid="4245" uid_parent="root"/>
+  <Indicator _name="automatic error handling" type="bool" uid="4246" uid_parent="root" value="true" inputs="value:4245.auto"/>
+  <Node _name="Close Reference" inputs="reference:4245.vi,error in (no error):4245.err" outputs="error out:4250.err" uid="4250" uid_parent="root"/>
+  <Indicator _name="error out" type="cluster{bool.status,int32.code,string.source}" uid="4260" uid_parent="root" value="[false,0,]" inputs="value:4250.err"/>
+</VI>

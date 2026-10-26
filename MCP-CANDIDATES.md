@@ -383,6 +383,16 @@ per element. **Evidence** a harness run 2026-10 (two derived helpers needed). **
 its methods. **Proposed** report the stand-in as pending, say "name not qualified", and name the missing override.
 **Evidence** a harness run 2026-10. **Workaround** the notes in `knowledge/labview-mcp.md`. **Removes** those notes.
 
+## helper-auto-error
+**Status** proposed (2026-10-26). **Gap** a VI that NI's converter writes (`grpc`) has automatic error handling ON, so
+any unwired error output in a helper raises LabVIEW's modal error dialog and blocks the service until a person answers
+or LabVIEW is killed (an agent's derived helper did, 2026-10-26; reproduced on purpose the same day). The `pylabview`
+composer already writes it OFF. **Proposed** `lvai_generate_vi` / `lvai_convert_aixml_to_vi` switch `{LV.VI}`
+`Automatic Error Handling` off on the VI they write (or an option `autoErrorHandling: false`, default for helpers), and
+`lvai_check_aixml` warns on an unwired `error out`. **Evidence** skillseval G3 measurement (both arms). **Workaround**
+`kit/check_error_outputs.py`, `kit/pa_auto_error_off.xml`. **Removes** step 2 of "Automatic error handling blocks the
+service" in `knowledge/labview-mcp.md`.
+
 ## Where each audit and pilot suggestion went
 - S1 icons (class-library-icons, icon-generator, icon-readback, runner-array-inputs); S2 restart-with-guards,
   memory-inspection; S3 cleanup-diagram, vi-server-catalogue; S4 typed-add-class-field, remove-class-field,

@@ -75,6 +75,10 @@ Operating rules: <skill abs path>/knowledge/labview-mcp.md, "Operating rules". T
   the active one: lvai_open_file with projectPath <abs .lvproj> (check activeProjectPath in the answer). If
   another project would be closed, stop and report. Pass projectPath to the close anyway.
 - No hand edits of .vi .ctl .lvclass .lvlib .lvproj: only the kit's byte-exact scripts, with the project closed.
+- Every helper VI (kit or derived): <skill abs path>/kit/check_error_outputs.py on its .xml before generating
+  (wire every error output of a helper you derive), and <skill abs path>/kit/pa_auto_error_off.xml on the generated
+  VI before its first run. An unwired error output with automatic error handling on raises a modal dialog that
+  blocks every call.
 - Before your first write, run lvai_labview_state: unsaved windows (* in the title) or LVAutoSave
   files you did not make mean the user is working in LabVIEW. Stop and ask; never close, save or kill them.
 - Keep "commit, then close" short: leave the project closed between stretches of work, so a usage cut-off finds it
