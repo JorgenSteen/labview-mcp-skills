@@ -36,7 +36,8 @@ mode, or when a concern is off, follow the surrounding code instead.
 - **Tools first, kit for the rest.** The override and the shapes A, B, B-after, C and E-after are labview-mcp tools
   (`lvai_create_override`, `lvai_af_add_hook`, `lvai_af_remove_hook`; their shapes, panes and refusals are in
   labview-mcp's `docs/af-override-tools.md`). The kit covers what they refuse or do not offer: a series insert on a
-  wire with branches, D, D-close, D-append, a hook fed from a node's error output. Kit helpers: generate and run them
+  wire with branches, D, D-close, D-append, a hook fed from a node's error output, Handle Error's third wire
+  (`stop actor?`). Kit helpers: generate and run them
   as `knowledge/labview-mcp.md`, "Helper VIs (the kit)" says. Every error output of a helper must read 0. The inputs
   below are the helpers' control labels.
 - **Commits:** one before and one after each override and each hook. Keep the commit right after step 1 (the bare
@@ -66,7 +67,7 @@ M3/M4 (2026-10-09), in the pilot, and by labview-mcp on five lifecycle overrides
 | Override | Hook work | Shape |
 |---|---|---|
 | Pre Launch Init | `createResources`, the one creating hook: it reads the pre-launch settings (`af-shapes.prelaunch-settings`), creates the resources (`af-shapes.resources`) and cleans up after its own failure (`af-shapes.pli-failure-cleanup`) | F = B-after on class and error (hook measured; the member's case structure unmeasured) |
-| Pre Launch Init | start the children (`af-shapes.launch-owner`): send the launch message to self | A (`kit/example_pli_deferred_start.xml`) |
+| Pre Launch Init | start the children (`af-shapes.launch-owner`): send the launch message to self; the launch itself runs in that message's `Do.vi` | B-after on class and error, so a failed send fails the launch (measured 2026-10-10; body: `kit/example_pli_deferred_start.xml` plus a `<C> out` and its error wired out). Not A: a branch drops the send's error. Beside `createResources`: a second B-after hook is unmeasured, ask |
 | Actor Core | the helper loop beside Call Parent | A, or C after a series hook |
 | Actor Core | a body that returns a changed object to Call Parent | B |
 | Actor Core | the stop after Call Parent, then `close` (`af-shapes.stop-site`, `af-shapes.close-vi`) | D, then D-close |
@@ -180,24 +181,36 @@ vi.lib, dry run first, then `apply` T). `Clear Errors`' input is named `error in
 read it (it lives in an `.llb`). Measured on Actor Core: frame found, hook wired, state 1 (measured in an evaluation, 2026-10).
 
 **E-after. Handle Error, Call Parent first:** a handler that only logs needs class and error: `shape:
-"seriesAfter"` (the parent has already cleared 43, so the log sees real errors only; `stop actor?` passes from Call
-Parent untouched). labview-mcp measured it on Handle Error (the hook ran after Call Parent at the stop). A handler
-that may overrule `stop actor?` (only per a plan, `convention: errors.plan-required`) needs a third wire, which
-neither the tool nor a kit helper makes: **unmeasured**, ask before building. The old shape (handler before Call
-Parent) was measured (M-CLOSE M4) and stays only in existing code; the tool refuses it unless
-`allowHandleErrorBeforeCallParent`. > MCP-candidate: add-hook
+"seriesAfter"` (the parent has already cleared 43, so the log sees real errors only, 1608 of an Emergency Stop
+included; `stop actor?` passes from Call Parent untouched). labview-mcp measured it on Handle Error (the hook ran after
+Call Parent at the stop).
+- **A handler that may overrule `stop actor?`** (only per a plan, `convention: errors.plan-required`) is a second body
+  after the first, on the third wire: `stop actor?` and `error out`. `lvai_af_add_hook` cannot wire `stop actor?`; use
+  `kit/pa_insert_series2.xml` after the log hook, roles swapped as after Call Parent: `vi path`, `class path`, `hook vi
+  path`, `panel name A` = `stop actor?`, `hook in A` = `stop out`, `hook out A` = `stop in`; block B `panel name B` =
+  `error out`, `hook in B` = `error out`, `hook out B` = `error in` (names as the body's pane has them); then
+  `pa_save_member`. The body needs no class terminal (`error in`, `stop in` → `error out`, `stop out`). Measured
+  2026-10-10 (an AF measurement series): the override read Call Parent → class/error body → `stop actor?`/error body
+  → indicators, and the body kept the actor running on 5003 while the control stopped
+  (`knowledge/actor-framework.md`, "Which order can keep an actor running"). **The parent answers T at a Normal Stop
+  too:** the body overrules only the codes the plan names, or the actor ignores its own Normal Stop.
+- The old shape (handler before Call Parent) was measured (M-CLOSE M4) and stays only in existing code; the tool
+  refuses it unless `allowHandleErrorBeforeCallParent`. > MCP-candidate: add-hook
 
 **F. PLI failure cleanup** (`af-shapes.pli-failure-cleanup`, the user's choice 2026-10-09): the case structure lives
 in the member VI `createResources`, never on the override's diagram (the kit cannot wrap existing nodes, and an
 override is never regenerated from AIXML). Write `createResources` as AIXML (creates → Merge Errors → a case structure
 on the merged error: Error case calls the release VIs, No Error case empty → `error out`; AIXML supports error-cluster
 selectors) and generate it as a class member; then hook it into Pre Launch Init as shape B-after (`seriesAfter`, class
-and error), the one hook there. Hook placement is measured (B-after, M-CLOSE M3); the generated case structure in `createResources` is
-**unmeasured**: sweep it cold and run a forced-failure launch (as M-CLOSE M3) before calling it done.
-> MCP-candidate: add-hook
+and error), the one hook there. Measured: hook placement (B-after, M-CLOSE M3), and the cleanup shape on 2026-10-10
+(an AF measurement series: a forced error after a create made Launch return it, the Error frame's release answered 0
+and a chained status read proved the refnum gone, no Stop Core, 2 of 2; `knowledge/actor-framework.md`, "PLI's own
+cleanup works"). Still sweep each new `createResources` cold and run one forced-failure launch, because its creates
+and releases are the project's own. Order a check after a release by its error wire.
 
-**H. Handle Last Ack Core:** pane read offline from production code: `error in (no error)` 4, `Last Ack` 6, `<C> in` 7, `<C> out`
-3, `error out` 0; confirm it with `lvai_connector_pane` first. A hook that takes `Last Ack` needs a wire the kit
+**H. Handle Last Ack Core:** pane read offline from production code and with `lvai_connector_pane` from NI's VI
+(2026-10-10, pattern 4812): `error in (no error)` 4, `Last Ack` 6, `<C> in` 7, `<C> out` 3, `error out` 0; confirm it
+on your LabVIEW. A hook that takes `Last Ack` needs a wire the kit
 helpers do not make; Call Parent's `error out` must reach the override's `error out`. **Unmeasured.**
 
 ## 4. Checks
@@ -254,7 +267,7 @@ helpers do not make; Call Parent's `error out` must reach the override's `error 
 ```
 override <class>:<method> created yes/no (errors 0)  protected  dynamic  member  folder <name> (created|moved)
 hooks: <hook> shape <A|B|B-after|C|D|D-close|E-after> by <lvai_af_add_hook|kit helper>  errors 0  hits <...>  saved by <tool|helper|pa_save_member>
-unmeasured shapes used: <none|F|H|E-after 3 wires>  user asked: <yes/no>
+unmeasured shapes used: <none|H|second B-after on PLI>  user asked: <yes/no>
 changed: <method> route <swap|lvai_af_remove_hook|pa_remove_series_block|restore-bare-and-rehook>  pa_clean_member <n/a|run>
 sweep <ok>/<n> (siblings incl.), control 0 7, membership ok  export <ok>  run order <as expected>  commits <hashes>
 side effects: <files re-saved, project items>   LabVIEW calls <n>   issues: <exact error text or none>
@@ -275,6 +288,9 @@ side effects: <files re-saved, project items>   LabVIEW calls <n>   issues: <exa
   `Function` answers 1057 (`knowledge/labview-mcp.md`, "LabVIEW scripting quirks").
 - A shape-D frame built by an older route may keep a class tunnel with no consumer after `pa_close_join` removed its
   second hook (seen in M-CLOSE M1). It is harmless; the export shows it.
+- Never `lvai_graft_diagram` into an override, not even in place with a copy: with the project open it raised a
+  modal dialog and then crashed LabVIEW, and a finished graft would delete Call Parent
+  (`knowledge/actor-framework.md`, "Never graft a diagram into an override"). Bodies go in by hooks.
 - Handle Error runs at every normal stop with 43 on `error in`: a hook chained on the incoming error before Call
   Parent never does its own work. (pilot rule 88)
 - Nothing that a hook after Call Parent needs may be released in Stop Core: Stop Core runs inside Call Parent, before

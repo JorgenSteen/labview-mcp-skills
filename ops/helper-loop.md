@@ -37,7 +37,8 @@ or when a concern is off, follow the surrounding code instead.
   (a user event by default). Variant 1 is that event loop alone; variant 2 adds other loops (timed producer, polling)
   in the same VI, stopped by the local `stop` the event loop sets; each of them calls the actor's `stop` member when
   it ends, so the event loop ends too. A polling-only loop VI therefore gets an event loop
-  too. A notifier or queue instead of the user event is allowed by the convention but not measured here.
+  too. A notifier instead of the user event is allowed by the convention and measured as a stop signal (about one
+  loop period, `knowledge/actor-framework.md`), not built by this route; a queue is not measured here.
 - **Build order, project state, commits:** `knowledge/labview-mcp.md`, "Evidence, git, build order" and "Project open
   or closed, per kind of call". Commit before each structural step (typedef, field, each member, the loop, each hook).
 

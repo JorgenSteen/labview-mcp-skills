@@ -57,6 +57,6 @@ the Stop Core lifecycle facts and the kit's `pa_close_join.xml` were measured th
 ## Open work
 
 - `kit/README.md`, "Kit TODO": `make_icons.py` (RT-style banner, class glyph), `check_membership.py` and others.
-- Unmeasured shapes, marked in the ops files: `createResources`' case structure, E-after with three terminals,
-  Handle Last Ack Core, class/library/typedef renames.
+- Unmeasured shapes, marked in the ops files: a second B-after hook on Pre Launch Init, Handle Last Ack Core with a
+  body, class/library/typedef renames.
 - `MCP-CANDIDATES.md`: check against the newest labview-mcp release, then contribute with the user's go-ahead.

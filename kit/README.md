@@ -56,6 +56,7 @@ kit's `project.example.json` is superseded by `conventions/templates/project.jso
 |---|---|---|---|---|
 | `af_add_hook_call_node.xml` | helper XML | A hook fed from a node's terminal, any terminal (e.g. a release hook's `error out` into a log VI); `lvai_af_add_hook` `branchFromNode` taps only a series hook's class output. | ops/override.md | add-hook |
 | `pa_insert_series_branch.xml` | helper XML | In-series hook in front of ONE far terminal (`far name A/B`, owner class `far owner class`, default `CallParentNode`), every other branch of the wire kept on the panel terminal. Saves the VI only (then `pa_save_member`). Project open and active. | ops/override.md | add-hook |
+| `pa_insert_series2.xml` | helper XML | In-series hook on one or two NAMED panel wires (block A, block B); after Call Parent the roles swap (`hook in` = the side facing the indicator). The route for the measured third wire on Handle Error (`stop actor?` and `error out`), which `lvai_af_add_hook` cannot wire; reconnects ONE far end only. Project open and active; then `pa_save_member`. | ops/override.md (E-after) | add-hook |
 | `pa_reg_to_control.xml` | helper XML | In a helper-loop VI, replaces the top-level Register For Events by an input control carrying the same registration refnum (Create Control on Register's input, delete Register, its Unbundle and the fresh constant, wire the control to the loop tunnel), assigns it to pane slot `term index`, saves. No Remove Bad Wires (on purpose). Project open and active. | ops/helper-loop.md (step 7b) | wire-dynamic-events-fix |
 | `pa_reg_through_error_frame.xml` | helper XML | In a helper-loop VI after step 7b: wires the registration refnum through the event loop's Error frame (case input tunnel to case output tunnel), so Unregister gets the live refnum on an error exit; all lookups first, `apply` F = dry run. `variant` 1 only: variant 2 (Unregister from the control) is the measured failure that hangs every stop. Project closed. | ops/helper-loop.md (step 7c) | wire-dynamic-events-fix |
 | `pa_reg_indicator.xml` | helper XML | In a VI with one Register For Events whose refnum output is unwired (an actor's `init`): Create Indicator on that output, assign it to pane slot `term index`, save. Project open and active. | ops/helper-loop.md (step 11) | wire-dynamic-events-fix |
@@ -126,7 +127,7 @@ kit's `project.example.json` is superseded by `conventions/templates/project.jso
 | File | Kind | What it does | Used by | MCP candidate |
 |---|---|---|---|---|
 | `example_helper_loop.xml` | example | Helper loop with notifier exit. | ops/helper-loop.md | - |
-| `example_pli_body_obtain_notifier.xml`, `example_pli_deferred_start.xml` | example | Pre Launch Init bodies: obtain a notifier; deferred start. | ops/override.md (deferred start; obtain notifier planned) | - |
+| `example_pli_body_obtain_notifier.xml`, `example_pli_deferred_start.xml` | example | Pre Launch Init bodies: obtain a notifier; deferred start. The deferred-start body is the older branch form (class in only): for the measured form after Call Parent add `<C> out` and wire its error out (`ops/override.md`, section 2). | ops/override.md (deferred start; obtain notifier planned) | - |
 | `example_sc_body_fire_notifier.xml` | example | Stop Core body that fires the notifier. | ops/override.md (planned) | - |
 | `example_launch_nested.xml` | example | A launch method for a nested actor. | ops/override.md (planned) | - |
 | `example_interface_override_forward.xml` | example | Interface override forwarding to the caller. | ops/override.md (planned) | - |
@@ -163,7 +164,8 @@ The examples use the pilot's `PA-` names and `LVMCP Stub …` names: replace the
 Removed on 2026-10-26, when labview-mcp 2.2 shipped the tools below. Nothing was lost: every file is in commit
 `539094c` (`git show 539094c:kit/<file> > <file>` brings one back), and its measured facts are in the tool's own
 description or in labview-mcp's `docs/`. Kept on purpose because a tool does not cover it: `af_add_hook_call_node.xml`
-(a node's error output into a log VI), `pa_insert_series_branch.xml` (a series insert on a wire with branches, which
+(a node's error output into a log VI), `pa_insert_series2.xml` (a series insert on any named panel wire, e.g. Handle
+Error's `stop actor?`; restored the same day), `pa_insert_series_branch.xml` (a series insert on a wire with branches, which
 `lvai_af_add_hook` refuses), `pa_remove_series_block.xml` (what `lvai_af_remove_hook` refuses as
 `seriesHookNotRemovable`), `pa_save_member.xml` and `pa_clean_member.xml` (after the kept hook helpers),
 `pa_project_vis_modified.xml` (it can SAVE the modified VIs; `lvai_vis_in_memory` only reads), `pa_set_vi_descriptions.xml`
@@ -200,7 +202,6 @@ over a span).
 | `pa_vis_modified.xml` | `lvai_vis_in_memory` | ported as `lvai_vis_modified.xml` |
 | `lv_windows.ps1` | `lvai_labview_state` | adds a screenshot per possible dialog and hidden-window checks |
 | `af_add_hook_call.xml` | `lvai_af_add_hook` `branch` | `af_add_hook_call_node.xml` stays: it wires any node output |
-| `pa_insert_series2.xml` | `lvai_af_add_hook` `series` / `seriesAfter` | on a wire with branches `pa_insert_series_branch.xml` stays |
 | `pa_delete_subvi.xml` | `lvai_af_remove_hook` | deletes ONE node by name and bypasses a series hook; the kit helper deleted every node with a terminal |
 | `pa_wire_dyn_deep.xml` | `lvai_wire_dynamic_events` | any depth, both sides, Use Default on the new tunnel |
 | `pa_wire_dyn_right.xml` | `lvai_wire_dynamic_events` `wireRightSide` |  |

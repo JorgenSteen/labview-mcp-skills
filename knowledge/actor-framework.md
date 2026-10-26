@@ -35,6 +35,13 @@ docs, or NI/AF designers on the NI forum), **observed in production** (the user'
   what it already created itself. *Evidence: documented (AristosQueue, NI forum, "Cleanup after Pre Launch Init");
   measured 2026-10-09 (skillsaudit M-CLOSE M3): a PLI returning error 5000 after its Call Parent made Launch return
   5000 with no Stop Core log line and no hang; the control run without the error logged Stop Core.*
+- **PLI's own cleanup works** as a body hooked after PLI's Call Parent on class and error: create → Merge Errors → a
+  case structure on the merged error, whose Error frame releases and whose No Error frame passes → `error out`.
+  *Evidence: measured 2026-10-10 (an AF measurement series on throwaway actors): a body that obtained a notifier and
+  then met a forced error 5004 made Launch return 5004; in the Error frame Release Notifier answered 0 and a status
+  read chained after it answered 1 (the refnum was gone); no Stop Core and no Handle Error line; 2 of 2 runs. With no
+  forced error the actor launched, ran and stopped normally.* Order a check after a release by its error wire:
+  unchained, the status read ran first and proved nothing. (`convention: af-shapes.pli-failure-cleanup`.)
 - **Stop Core's pane has no error in or error out,** only `final error code`, which tells whether the actor stopped
   because of an error. The base Stop Core passes the stop to every auto-stop nested actor. A child launched with
   auto-stop FALSE must be stopped by the caller's own Stop Core. AF gives Stop Core no error report because the caller
@@ -78,13 +85,22 @@ docs, or NI/AF designers on the NI forum), **observed in production** (the user'
 - **Error 43 on Handle Error's `error in`.** Because every normal stop arrives as 43, a VI chained on Handle Error's
   incoming error is skipped at every stop. Side work there (logging, file I/O) needs a fresh error chain. *Evidence:
   measured in the pilot project (its rule 88).*
-- **The parent Handle Error** always returns `stop actor?` = T, and it treats 43 as a normal shutdown: it does not pass
-  43 on. Other errors are passed on, and the actor stops. An override that does not call the parent must handle 43
-  itself. *Evidence: documented (AF help for Handle Error.vi; NI forum).* Whether the parent also clears 1608 is not
-  established here.
+- **The parent Handle Error** always returns `stop actor?` = T (a constant), and it clears 43 as a normal shutdown.
+  Every other code is passed on, **1608 (Emergency Stop) included**, and the actor stops. So a body after Call Parent
+  sees no error at a Normal Stop and 1608 at an Emergency Stop. An override that does not call the parent must clear
+  43 itself. *Evidence: documented (AF help for Handle Error.vi; NI forum); NI's source (`Actor.lvclass:Handle
+  Error.vi`, its case on the code clears 43 only; read 2026-10-17 for labview-mcp's AF docs); measured 2026-10-10 (an
+  AF measurement series on throwaway actors): a body after Call Parent logged code 0 at a Normal Stop and 1608 at an
+  Emergency Stop, 2 of 2 each, with Stop Core 0–1 ms later.*
 - **Which order can keep an actor running.** A handler placed before Call Parent can log or rewrite the error, but the
-  parent still returns T. Only code after Call Parent can set `stop actor?` back to F. *Evidence: reasoned from the
-  documented "always T"; unmeasured.* (`convention: af-shapes.handle-error-order`, `errors.plan-required`.)
+  parent still returns T. Only code after Call Parent can set `stop actor?` back to F: a body on Call Parent's
+  `stop actor?` and `error out` (the "third wire"; the body needs no class terminal, e.g. `error in`, `stop in` →
+  `error out`, `stop out`). *Evidence: measured 2026-10-10 (the same series): `Send Error Report.vi` delivered 5003,
+  the parent answered T, the body turned it to F for 5003 only, Stop Core did not run, and a Normal Stop 500 ms later
+  answered 0 and stopped the actor (2 of 2); the control without the body stopped on the 5003, and the later Normal Stop
+  answered 1556.* **The parent also answers T at a Normal Stop,** so the handler overrules only the codes the error
+  plan names: one that always answers F makes the actor ignore its own Normal Stop. (`convention:
+  af-shapes.handle-error-order`, `errors.plan-required`.)
 - **Scope.** `Read Self Enqueuer.vi` is protected: a VI that is not a member of an actor class cannot call it (the
   caller is broken, error 1003). A private dynamic-dispatch member VI is broken ("error of type 2000000"), so private
   accessors are static. *Evidence: measured in the pilot project (its rules 41 and 30).*
@@ -93,6 +109,13 @@ docs, or NI/AF designers on the NI forum), **observed in production** (the user'
   reentrant fixes it. *Evidence: measured in the pilot project (its rule 52).*
 - **Receive Message.vi** is a protected override that sees every message before it is executed; it is the place for
   message tracing. *Evidence: documented (AF).*
+- **Never graft a diagram into an override.** `lvai_graft_diagram` in place onto a `Stop Core` override (a copy of it
+  as the panel VI, the override as the output, the project open) raised an untitled modal dialog ("… has changed on
+  disk since last saved or loaded by LabVIEW …" [Revert] [Cancel]) instead of refusing, gave no answer within 300 s,
+  and the next call, an open of the same project, ended in a fatal LabVIEW crash. The tool copies the panel VI over
+  the output before its first LabVIEW step, so a loaded output VI meets a file that changed under it; and a graft that
+  completed would delete Call Parent with the rest of the diagram (reasoned). Change an override's body by hooks
+  (`ops/override.md`). *Evidence: measured 2026-10-10 (an AF measurement series), 1 of 1, not retried.*
 
 ## User events and helper-loop hazards
 
@@ -105,7 +128,11 @@ docs, or NI/AF designers on the NI forum), **observed in production** (the user'
   event stops new generates, but events already queued still fire. The LabVIEW 2020 help for Destroy User Event says
   the opposite; the newer R&D statements and the measurement agree. *Evidence: measured in the pilot project (its
   rule 97); documented (justACS 2016, Darren 2023, NI forum).* The same holds when both the generate and the destroy
-  sit in Stop Core. *Evidence: documented (NI forum); observed in production code, where several actors do exactly that.*
+  sit in Stop Core. *Evidence: documented (NI forum); observed in production code, where several actors do exactly
+  that; measured 2026-10-10 (an AF measurement series): a body after Stop Core's Call Parent doing Generate, then
+  Destroy chained on the Generate's error (both error 0), ended the helper loop in the same millisecond, 3 of 3, and
+  the actor stopped.* **One stop site per actor:** the same actor also kept a stop after Actor Core's Call Parent, and
+  that Generate then answered error 1 on the destroyed refnum each time.
 - **`close` after the joined error wires works.** Actor Core: the helper loop beside Call Parent; after Call Parent the
   stop hook on a fresh chain; Merge Errors(loop `error out`, stop hook `error out`) → `close` (Destroy User Event);
   Merge Errors(Call Parent `error out`, `close` `error out`) → Actor Core `error out`. In 5 of 5 runs (four with a
@@ -119,6 +146,14 @@ docs, or NI/AF designers on the NI forum), **observed in production** (the user'
   loop branched beside Call Parent never sees its actor stop through a failed send to itself. It needs its own stop
   signal: a user event, a notifier, a local variable or a stop element. Never abort it. *Evidence: measured in the
   pilot project (its rule 21).* (`convention: af-shapes.stop-mechanism`.)
+- **A notifier stop costs about one loop period.** A polled loop with a 200 ms tick that checks `Wait on Notification`
+  (timeout 0) each iteration exited 215–313 ms after Stop Core fired the notifier. Obtain the notifier in a PLI body
+  after Call Parent, error wired, so a failed obtain fails the launch; where the obtain sits does not change the stop
+  timing. *Evidence: measured 2026-09 (an AF measurement series on a two-actor tree).*
+- **A UI loop needs both exits:** on its Stop button it sends Normal Stop to its own actor, and it also exits on the
+  stop signal, so the button and an external Normal Stop both end the tree. Log a loop's exit from data that leaves
+  the loop through a tunnel: a log node fed from a constant runs at the start, beside the loop. *Evidence: measured 2026-09 (the same
+  two-actor series).*
 - **Register For Events skips on an upstream error.** It has standard error-in behaviour: with an error in, it does not
   run and nothing is registered. The event structure then waits for events that never come, and a loop whose only
   exit is the stop event hangs the actor at stop. *Evidence: documented (LabVIEW help for Register For Events);
@@ -233,9 +268,18 @@ af-shapes.one-pattern-per-area`). NI recommends one data-transfer mechanism per 
 - **Launch on request.** A panel is launched when asked for and reports back when it closes; the manager keeps a status
   table.
 - **Deferred start.** PLI sends an `init` message to self, or Actor Core calls an `init` method; the children are
-  launched from there. An `init` member in series before Call Parent (`af-shapes.registration`) launches before the
-  caller's message loop runs: messages a child sends meanwhile wait in the caller's queue and are handled once Call
-  Parent's loop starts. *Evidence: measured in a harness run, 2026-10 (a root launching two children from `init`).*
+  launched from there. Sending the launch message from PLI is a launch from a message: the launch itself runs in the
+  message's `Do.vi`, once Actor Core's loop handles it. An `init` member in series before Call Parent
+  (`af-shapes.registration`) launches before the caller's message loop runs: messages a child sends meanwhile wait in
+  the caller's queue and are handled once Call Parent's loop starts. *Evidence: measured in a harness run, 2026-10 (a
+  root launching two children from `init`).*
+  - **A PLI body that sends the launch message must sit after Call Parent with its error wired** to PLI's `error out`
+    (`Read Self Enqueuer` → `Send <launch>`; `Read Self Enqueuer` is protected, so the body is a class member). A
+    branch body wires the class only, so a failed send is seen by nothing. *Evidence: measured 2026-10-10 (an AF
+    measurement series): a body after Call Parent whose `Send` went to an enqueuer with no queue behind it made Launch
+    return 1556, and the actor never ran (no Handle Error, no Stop Core), 2 of 2; the control body launched with 0 and
+    the actor handled the message once Actor Core ran. The branch form started the child with nothing sent by the
+    launcher (the 2026-09 two-actor series), its send error unobserved.*
 - **Base actor or direct `Actor`.** AF's reuse model is inheritance: a base actor carries shared overrides, and a child
   decorates them (e.g. adds a loop to Actor Core). A base can offer an empty dynamic hook that its Stop Core calls, so
   a leaf overrides the hook, not Stop Core. Two or three base levels are normal; NI's own samples use them.
@@ -298,8 +342,14 @@ Open questions. They are not decided, and nothing in the skill may assume an ans
 
 - **What Actor Core returns after an error into its Call Parent,** beyond the Last Ack: the Last Ack carried the
   error in the measured cases ("Observing and testing actors"); Actor Core's own `error out` was not read.
-- **PLI failure cleanup and the Stop Core release order** were open proposals (AP-2, AP-4, OV-3, OV-5, DR-6). The user
-  settled them on 2026-10-09 as conventions (`convention: af-shapes.pli-failure-cleanup`, `af-shapes.stop-core-order`).
-  The PLI shape (a case structure on the merged error that reuses the release VIs) has not been run yet.
-- **1608 in the parent Handle Error:** whether it is cleared like 43 or passed on.
+- **The Stop Core release order** was an open proposal (AP-4, DR-6), settled by the user on 2026-10-09 as a convention
+  (`convention: af-shapes.stop-core-order`); an order between several releases has not been run. (PLI failure
+  cleanup was settled the same day and has been measured since: "Call order and lifecycle". Settled too: the
+  parent passes 1608 on, "Overrides and connector panes".)
+- **What makes an early stop safe beyond `init`:** with the stop sent after Actor Core's Call Parent and Register
+  inside the loop VI, a Normal Stop sent right after Launch was generated before the loop registered (the loop's
+  first node ran 38 ms later) and the actor hung (an AF measurement series, 2026-10-10, 1 of 1). Registering in `init`
+  before Call Parent is the measured fix ("User events and helper-loop hazards"); other forms (a "registered" signal, a
+  polled stop) are unmeasured.
 - **`Clear Errors.vi` in older LabVIEW versions** (e.g. 2020): whether `specific error code to clear` exists there.
+- **Handle Last Ack Core with a body:** its pane is read (`ops/override.md`, shape H); no body on it has been run.

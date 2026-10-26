@@ -33,7 +33,7 @@ source: default
 An actor launches what it owns: a panel its graphs, a hardware manager its hardware actors, a communication manager
 its communication actors, the root the main parts. Each launch is a method of the caller (`prelaunch-settings`),
 called from Actor Core (the `init` member before Call Parent, `registration`) or from a message, never from Pre
-Launch Init. A child launched from `init` may send before the caller's message loop runs; its messages wait in the
+Launch Init (a Pre Launch Init body may SEND the launch message to self: that is a launch from a message). A child launched from `init` may send before the caller's message loop runs; its messages wait in the
 caller's queue until Call Parent's loop starts. Launch on request (e.g. a panel when it is asked for) where it fits.
 source: default
 
