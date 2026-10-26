@@ -9,7 +9,8 @@ lists, set the status to `shipped in <version>`, and keep the entry.
 
 **Status:** `proposed` (asked for by this skill's sources), `open in audit` (no longer used: the user settled every
 audit proposal on 2026-10-09; kept for the history of older entries), `possibly fixed upstream` (labview-mcp's source
-or docs suggest it is covered; no run here confirms it), `submitted` (issue or PR open upstream), `shipped`.
+or docs suggest it is covered; no run here confirms it), `submitted` (issue or PR open upstream), `shipped in <version>`,
+`partly shipped in <version>` (what is still open follows), `in a fork build only`.
 
 **Contributing upstream** (the user's decision, 2026-10-09). The candidates stay in this skill until labview-mcp
 ships them. What goes upstream is both the candidates (as issues or pull requests) and the knowledge behind them: the
@@ -18,9 +19,10 @@ gap descriptions and measured facts in `knowledge/labview-mcp.md`, in the form o
 - Nothing is sent without the user's go-ahead for that batch, since it publishes to an outside repository.
 - After a send, set the status to `submitted` with the link.
 
-**Baseline:** labview-mcp 1.9.5-local, the installed version; the entries were measured with 1.7.2 to 1.9.5, each gap
-with its version in `knowledge/labview-mcp.md`. The local checkout of the plugin repository is at `f3091d4`, the
-**v1.8.0** tag, older than the installed version. Check each entry against the newest release before submitting it.
+**Baseline:** the entries were measured with labview-mcp 1.7.2 to 1.9.5, each gap with its version in
+`knowledge/labview-mcp.md`. **Checked against 2.2.4 on 2026-10-26** from its source and tool texts (not re-run
+here): the statuses below say what shipped; much of it came from this skill's own entries, through a fork. Check an
+entry against the newest release again before submitting it.
 
 **Evidence ids:** "pilot rule N" = the pilot project's toolchain rules; S1–S10 = its MCP suggestions;
 S11–S16, "rule candidate 100–111" and letter-number ids (MC-1, KT-1, ...) = the skills audit (`skillsaudit/`).
@@ -40,7 +42,7 @@ brief. **Removes** that rule in `knowledge/labview-mcp.md` and `session/brief.md
 samples. **Removes** the `DeadlineExceeded` workaround text; the busy route in `session/restart.md`.
 
 ## ensure-labview-complete
-**Status** proposed. **Gap** `lvai_status` does not tell "LabVIEW not running" from "running, service not up (Nigel
+**Status** partly shipped in 2.2 (`lvai_labview_state` tells not-running and dialog apart; the service comes up with LabVIEW, so Nigel is a fallback only); still open: an `LVAutoSave` count and dry run. Was: proposed. **Gap** `lvai_status` does not tell "LabVIEW not running" from "running, service not up (Nigel
 not opened)" or "blocked by a dialog"; `lvai_ensure_labview` starts the IDE but not the AI service, which starts with
 Nigel, and it deletes `LVAutoSave` files without saying how many. **Proposed** `lvai_status` answers one of
 `not-running` / `running-no-service` / `blocked-by-dialog "<title>"` / `ok`; `lvai_ensure_labview` also opens Nigel
@@ -56,7 +58,7 @@ Conditional Disable symbols set on a target. **Proposed** `lvai_exec_state(viPat
 which variant it checked. **Removes** the coverage note in `ops/sweep.md`.
 
 ## dialog-detection
-**Status** proposed (S9); its dependency-check half (MC-2) is covered by `offline-loadability`. **Gap** a modal dialog (`Find the VI
+**Status** partly shipped in 2.2 (`lvai_labview_state`: dialogs with screenshots, no LabVIEW call); answering one (`lvai_answer_dialog`) exists only in a fork build; calls still only time out. Was: proposed (S9); its dependency-check half (MC-2) is covered by `offline-loadability`. **Gap** a modal dialog (`Find the VI
 Named …`, a library search, a save prompt, autosave recovery) blocks the service; the agent sees only a timeout.
 **Proposed** detect a modal window of LabVIEW and answer `blocked by dialog "<title>"` with its buttons; answer it only
 on an explicit confirm. **Evidence** pilot rule 12; rule candidate 103 (720 s); S12. **Workaround** `lv_windows.ps1`;
@@ -70,7 +72,7 @@ audit G closure (~5 s for 5800 files, predicted every hang). **Workaround** `<sk
 **Removes** the offline-check rule; the loadability steps in `ops/analysis.md`, `ops/sweep.md`.
 
 ## close-project-guard
-**Status** proposed (S9, S13; MC-3 settled by Q24). **Gap** `lvai_close_active_project` saves and closes whatever
+**Status** partly shipped in 2.2 (the tools keep BOM and line endings of their own edits); the active-project check and the side-effect list still open. Was: proposed (S9, S13; MC-3 settled by Q24). **Gap** `lvai_close_active_project` saves and closes whatever
 project is active: `projectPath` only names the file swept and is not compared. The sweep removes every item whose file
 is missing; the answer does not list what LabVIEW rewrote. `lvai_create_typedef` with a foreign `projectPath` closes and
 saves the active project. **Proposed** refuse when `projectPath` differs from the active project (name both); sweep
@@ -95,7 +97,7 @@ project first` / `open and activate <project> first`; `lvai_exec_state` says whe
 and the per-step state lines in the ops files.
 
 ## restart-with-guards
-**Status** proposed (S2, S9); refinements RS-1, RS-3..RS-5 settled (RS-2 replaced by the user's Q30); KT-5, KT-6 are kit TODOs. **Gap** nothing stops or restarts
+**Status** in a fork build only (`lvai_restart_labview`); not in the official 2.2.4. Was: proposed (S2, S9); refinements RS-1, RS-3..RS-5 settled (RS-2 replaced by the user's Q30); KT-5, KT-6 are kit TODOs. **Gap** nothing stops or restarts
 LabVIEW; a hung helper loop is freed only by a restart. **Proposed** `lvai_restart_labview(confirm: true)`: refuse and
 list unsaved VIs (every instance), dialogs, running VIs; close, tell "busy" from "dialog", start, wait for gRPC, report
 port, uptime, steps; optionally reopen the Nigel chat (`--lv-version`, `--lv-bitness`); `ensure_labview` says "still
@@ -106,7 +108,7 @@ every close into a save dialog). **Evidence** pilot rules 59, 94, 96, 99; rule c
 `lv_windows.ps1`, `lv_close.ps1`, `lv_start_nigel_chat.ps1`, `lv_press_ok.ps1`. **Removes** most of `session/restart.md`.
 
 ## memory-inspection
-**Status** proposed (S2). **Gap** VI Server memory reads see only the default instance, never classes or libraries,
+**Status** partly shipped in 2.2 (`lvai_vis_in_memory`, every instance, VIs only; classes, libraries and running VIs still open). Was: proposed (S2). **Gap** VI Server memory reads see only the default instance, never classes or libraries,
 and no running top-level VI. **Proposed** `lvai_memory(instances: all)`: VIs, classes, libraries, modified flags and
 running VIs per instance. **Evidence** pilot rules 59, 96. **Workaround** `pa_vis_in_memory.xml`, `pa_vis_modified.xml`
 after the close. **Removes** step 5 and the empty check's memory read in `session/restart.md`.
@@ -124,14 +126,14 @@ project closed, code per VI, saved in the project's Save version. **Evidence** p
 `pa_cleanup_diagram(_file).xml`. **Removes** `ops/cleanup.md` steps 3–6.
 
 ## create-override
-**Status** proposed (S6). **Gap** no tool makes an override with Call Parent; AIXML cannot author Call Parent.
+**Status** shipped in 2.2 (`lvai_create_override`; the parent's help text it keeps is replaced with `lvai_set_vi_descriptions`). Was: proposed (S6). **Gap** no tool makes an override with Call Parent; AIXML cannot author Call Parent.
 **Proposed** `lvai_create_override(lvclassPath, parentMethod, projectPath)`: library-qualified name derived, Call Parent
 placed, parent's scope kept, verified from the files, pane returned; a `description` parameter (it keeps NI's help
 text of the parent today). **Evidence** pilot rules 6, 24, 27; a harness run 2026-10 (descriptions replaced in three
 steps). **Workaround** `lvai_create_override.xml`; `pa_set_vi_descriptions.xml`. **Removes** "create the override" in `ops/override.md`.
 
 ## add-hook
-**Status** proposed (S6); the `close` join shape (OV-7) measured 2026-10-09 (`kit/pa_close_join.xml`); PLI failure cleanup (OV-5) settled as the `createResources` member VI.
+**Status** partly shipped in 2.2 (`lvai_af_add_hook` shapes branch, branchFromNode, series, seriesAfter; `lvai_af_remove_hook`); still open: a series insert on a branched wire, D, D-close, D-append, a node's error output. Was: proposed (S6); the `close` join shape (OV-7) measured 2026-10-09 (`kit/pa_close_join.xml`); PLI failure cleanup (OV-5) settled as the `createResources` member VI.
 **Gap** hooks go in through six kit helpers with traps (panel vs node source, swapped roles after Call Parent, delete by
 terminal removes every hook). **Proposed** `lvai_af_add_hook(override, class, hookVi, shape, errorWiring)` with shapes
 branch, series, series-then-branch, after-call-parent, close-join; it knows each AF pane, returns the wires made, saves
@@ -141,7 +143,7 @@ separately. `lvai_af_remove_hook` deletes one node, removes bad wires, re-saves 
 `pa_remove_series_block`, `pa_delete_subvi`, `pa_clean_member`, `pa_save_member`. **Removes** most of `ops/override.md`.
 
 ## add-class-method-rerun
-**Status** proposed (S6). **Gap** a re-run on a called method fails with 56003 after dropping the member; a failed
+**Status** shipped in 2.2 (`memberHasLoadedCallers` before any change, `rerunNeedsAixml`, `keepPlacement`). Was: proposed (S6). **Gap** a re-run on a called method fails with 56003 after dropping the member; a failed
 convert leaves it dropped; a re-add resets scope and folder; `aixml` + `vi` re-converts and loses scripted edits.
 **Proposed** unhook, regenerate, re-hook in one call, keeping scope, folder and entry; warn on `aixml` + `vi`.
 **Evidence** pilot rules 22, 49, 56, 69, 91. **Workaround** swaps to stubs, `set_scope.py`, `check_membership.py`.
@@ -167,7 +169,7 @@ private DD. **Evidence** pilot rules 30, 36. **Workaround** `budgetSeconds: 1`, 
 recipe in `ops/class-field.md`.
 
 ## add-to-class
-**Status** proposed (MC-6, settled). **Gap** no tool adds a `.ctl` or VI to a class; `lvai_add_to_library` re-saves the
+**Status** shipped in 2.2 (`lvai_add_to_class`, callers relinked and saved; adding a `.vi` unmeasured by labview-mcp). Was: proposed (MC-6, settled). **Gap** no tool adds a `.ctl` or VI to a class; `lvai_add_to_library` re-saves the
 whole library. **Proposed** `lvai_add_to_class(lvclassPath, itemPath, virtualFolderName)`, saving only the `.lvclass`.
 **Evidence** rule candidate 106; Q17; a harness run 2026-10-11/12 (11 `.ctl` added by VI Server). **Workaround**
 `kit/pa_class_folder_add_files.xml`, `pa_save_libraries.xml`, `pa_project_vis_modified.xml` (the caller relink is the
@@ -176,19 +178,19 @@ hard part: the tool should load and save the callers). Also a member with NO cla
 `lvai_add_one_to_library.vi` on the `.lvclass`. **Removes** those helpers and the notes that cite them.
 
 ## library-virtual-folder
-**Status** proposed. **Gap** `lvai_add_to_library` refuses a missing virtual folder; no tool creates one. **Proposed**
+**Status** partly shipped in 2.2 (`lvai_move_to_folder` `createFolder`, `.lvlib` arm unmeasured; `lvai_add_to_library` still refuses a missing folder). Was: proposed. **Gap** `lvai_add_to_library` refuses a missing virtual folder; no tool creates one. **Proposed**
 `createFolder: true`, for `.lvlib` and `.lvclass`. **Evidence** pilot rule 92; S7. **Workaround** `{LV.Library}`
 `AddItem` Folder (`pa_class_folder_create_and_move.xml`; unmeasured on a `.lvlib`).
 **Removes** that bullet.
 
 ## class-description
-**Status** proposed. **Gap** no tool sets a class's or library's description (`NI.Lib.Description`). **Proposed**
+**Status** shipped in 2.2 (`lvai_set_class_description`, CP1252 refused before LabVIEW). Was: proposed. **Gap** no tool sets a class's or library's description (`NI.Lib.Description`). **Proposed**
 `lvai_set_class_description(lvclassPath, text)`: writes, reads back, saves only the `.lvclass`; refuses or
 transliterates characters outside CP1252 (stored ANSI: "→" became "?" with no error). **Evidence** a harness run
 2026-10-11/12 (15 classes). **Workaround** `kit/pa_set_class_description.xml`. **Removes** that helper.
 
 ## move-to-folder
-**Status** proposed. **Gap** no tool moves a class or library member into a virtual folder. **Proposed**
+**Status** shipped in 2.2 (`lvai_move_to_folder`). Was: proposed. **Gap** no tool moves a class or library member into a virtual folder. **Proposed**
 `lvai_move_to_folder(lvclassPath, folder, itemNames, createFolder)`, saving only the `.lvclass`. **Evidence** a harness
 run 2026-10-11/12 (every member of 15 classes). **Workaround** `kit/pa_class_folder_create_and_move.xml`,
 `pa_class_folder_move.xml`. **Removes** those helpers.
@@ -200,7 +202,7 @@ callers and class, deletes the old file, reports per caller the new link and the
 pilot rules 64, 85–87. **Workaround** `pa_rename_member.xml`, `pa_resave_vis.xml`, grep. **Removes** most of `ops/rename.md`.
 
 ## class-library-icons
-**Status** proposed (S1). **Gap** no tool sets a class or library icon; `ApplyIconToVIs` needs the project closed, does
+**Status** shipped in 2.2 (`lvai_set_owner_icon`). Was: proposed (S1). **Gap** no tool sets a class or library icon; `ApplyIconToVIs` needs the project closed, does
 not save members, and does nothing on a plain `.lvlib` unless members are opened. **Proposed** `lvai_set_owner_icon(owner,
 png)`: Set Icon, open members, apply, save each, codes per member. **Evidence** pilot rules 26, 42, 58, 59.
 **Workaround** `icon_set_class_icon`, `icon_set_library_icon`, `icon_apply_icon_and_save_n`. **Removes** `ops/icons.md`
@@ -212,18 +214,18 @@ generator reading `.labview/conventions/icon-spec.json`: own-layer, class and li
 Q19, Q20. **Workaround** `make_icons.py`. **Removes** "generate" in `ops/icons.md`.
 
 ## icon-readback
-**Status** proposed (S1); a "before" read-back (IC-4) settled. **Gap** `Save VI Icon to File` writes nothing into a
+**Status** shipped in 2.2 (`lvai_read_icons`). Was: proposed (S1); a "before" read-back (IC-4) settled. **Gap** `Save VI Icon to File` writes nothing into a
 missing folder or past MAX_PATH, with no error. **Proposed** a batch read-back against expected PNGs returning pixel
 differences. **Evidence** pilot rules 58, 80. **Workaround** `icon_get_vi_icons_n(_file).xml`, `icon_readback_inputs.py`,
 `pixcmp.py`. **Removes** `ops/icons.md` steps 3 and 7 (the read-backs).
 
 ## set-vi-icon-keep-layers
-**Status** proposed (MC-5). **Gap** `lvai_set_vi_icon` flattens the icon. **Proposed** `keepOwnLayer: true`
+**Status** shipped in 2.2 (`lvai_set_vi_icon` `keepOwnLayer`). Was: proposed (MC-5). **Gap** `lvai_set_vi_icon` flattens the icon. **Proposed** `keepOwnLayer: true`
 (re-apply the template only). **Evidence** rule candidate 110; S16. **Workaround** skip VIs with an own layer.
 **Removes** that warning.
 
 ## wire-dynamic-events-fix
-**Status** proposed (S7). **Gap** no AIXML element for the dynamic event terminal; the tool branches an authored tunnel,
+**Status** shipped in 2.2 (any depth, `wireRightSide`, several user events by `dynIndex`, Use Default on the new tunnel); the AIXML element for the dynamic terminal is still open. Was: proposed (S7). **Gap** no AIXML element for the dynamic event terminal; the tool branches an authored tunnel,
 wires the left side only, refuses several user events, skips its finish on the diagram route, saves the project by
 default; searches two levels only (the error-case shape is three: Error 91, no change); the case tunnel it leaves has
 no value in the other frames, and AIXML refuses "Use Default if Unwired". **Proposed** an AIXML element for both
@@ -240,7 +242,7 @@ build steps 5–7c.
 **Workaround** create typedef, bind, accessors. **Removes** that step in `ops/helper-loop.md`.
 
 ## control-property-setters
-**Status** proposed (S7). **Gap** no tool sets mechanical action, visibility, panel-on-call flags, VI description or
+**Status** partly shipped in 2.2 (`lvai_set_vi_descriptions`, `.vi` only); the property setters still open. Was: proposed (S7). **Gap** no tool sets mechanical action, visibility, panel-on-call flags, VI description or
 reentrancy; AIXML cannot carry the first two and a convert loses the flags. **Proposed** `lvai_set_vi_properties`,
 `lvai_set_control_properties` (plot names included), `lvai_set_vi_descriptions` (whole texts in a batch), verified by
 a cold read; or AIXML attributes a convert keeps. **Evidence** pilot rules 40, 52, 57, 65, 81, 82; a harness run 2026-10 (61
@@ -307,7 +309,7 @@ to test frameworks that may be missing. **Proposed** agents read a shipped trap 
 **Evidence** S9. **Workaround** briefs carry the traps. **Removes** the trap block in `session/brief.md`.
 
 ## vi-server-catalogue
-**Status** proposed. **Gap** `lvai_vi_server_reference` lacks `BD.CleanUp` and the Project and Library classes (Save,
+**Status** partly shipped in 2.2 (Project, ProjectItem, Library classes); `BD.CleanUp`, `SetSaveVersion`, `ref{UDP}` and the validator crash still open. Was: proposed. **Gap** `lvai_vi_server_reference` lacks `BD.CleanUp` and the Project and Library classes (Save,
 Close, `SetSaveVersion`), `{LV.LVClassLibrary}` `Description` and `{LV.ProjectItem}` (`AddItem`, `Move`, `Name`);
 `lvai_aixml_reference` lacks `ref{UDP}`. **Proposed** add them, generated from LabVIEW's `resource\lvserver.rsc`, which
 holds every name; and `lvai_validate_aixml` must answer an error, not crash, on an invented name (an invented
@@ -326,13 +328,13 @@ converts, and `lvai_generate_vi` takes that route itself. Not re-run here for th
 rules 8, 50. **Removes** the class-wire bullet once a run confirms it.
 
 ## placeholder-array-of-class
-**Status** proposed. **Gap** `lvai_placeholder_subvi` gives a scalar `path` for an array-of-class terminal, flattens a
+**Status** partly shipped in 2.2 (one stub per target, a class keeps its cluster); `array{path}` still open. Was: proposed. **Gap** `lvai_placeholder_subvi` gives a scalar `path` for an array-of-class terminal, flattens a
 typedef cluster that holds a class into a scalar `path`, and gives members with the same pane ONE shared stub.
 **Proposed** an `array{path}` stand-in; keep the typedef type; one stub per target name. **Evidence** pilot rule 53;
 S4; a harness run 2026-10 (seven hand-made stubs). **Removes** those bullets.
 
 ## swap-subvis-fixes
-**Status** proposed. **Gap** a stub shared by several nodes is swapped on an unpredictable node; a missing-subVI node
+**Status** partly shipped in 2.2 (constants at any depth, ambiguous labels refused, Remove Bad Wires after swap, bind and add-method); node by uid and a missing-subVI node still open. Was: proposed. **Gap** a stub shared by several nodes is swapped on an unpredictable node; a missing-subVI node
 cannot be swapped and the error reads `noActiveProject`; a swap, bind or `lvai_add_class_method` can leave a broken
 wire segment and answer only "state 0"; `constantsJson` finds top-level constants only (1055 for one inside a
 structure). **Proposed** select the node by uid or frame path; repair or name a missing-subVI node; search
@@ -350,7 +352,7 @@ Object. **Proposed** the parent from `Parent Libraries` only. **Evidence** pilot
 **Proposed** fix both. **Evidence** pilot rule 15. **Removes** that bullet.
 
 ## project-item-tools
-**Status** proposed. **Gap** project, class and library items need byte-exact edits no tool makes (drop a stray item,
+**Status** partly shipped in 2.2 (`lvai_create_library`; BOM and line endings kept on the tools' own edits); `.lvproj` creation and the item edits still open. Was: proposed. **Gap** project, class and library items need byte-exact edits no tool makes (drop a stray item,
 move one into a folder, add a top-level VI, set scope, remove a member and its file); `lvai_create_class` adds the parent
 as a top-level item; no tool creates a `.lvproj` (with virtual folders) or a plain `.lvlib`, although VI Server can
 (`Project.New`, `AddItem` Folder, `Library.Create`, measured in a harness run 2026-10). **Proposed** `lvai_project_items(op, ...)`, project closed, BOM and line endings kept. **Evidence**
@@ -374,7 +376,7 @@ per element. **Evidence** a harness run 2026-10 (two derived helpers needed). **
 **Removes** those helpers.
 
 ## clearer-answers
-**Status** proposed. **Gap** answers that point the wrong way: `lvai_add_class_method` reports `ok:false`,
+**Status** partly shipped in 2.2 (`missingInterfaceOverrides`, the bare subVI name resolved); `pathStandInsLeft` now documented as expected. Was: proposed. **Gap** answers that point the wrong way: `lvai_add_class_method` reports `ok:false`,
 `pathStandInsLeft` for a path stand-in inside a cluster terminal that a later pane bind resolves;
 `lvai_bind_typedef_constants` with a bare `subViName` answers 1055 "no active project" when the name is not qualified;
 `lvai_exec_state` says "VI has an error of type 8" for a class that implements an interface without overriding one of

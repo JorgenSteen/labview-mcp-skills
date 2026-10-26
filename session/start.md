@@ -11,20 +11,22 @@ with its guards and the user's go-ahead.
 ## Steps
 
 1. **`lvai_status`.** If it answers, note the port and `labviewUpSeconds` for the session's report, then look at the
-   IDE once, with no LabVIEW call: `powershell -NoProfile -ExecutionPolicy Bypass -File <skill>/kit/lv_windows.ps1`.
-   Unsaved windows (`*` in the title), `LVAutoSave` files or an open project that this session did not make mean the
-   user is working (they may open the project between steps): note them, and ask before any close, save, restart or
-   kill that would touch them (`SKILL.md`, "Save what you made; ask about the rest"). Then you are done.
-2. **It does not answer: look at the processes,** with no LabVIEW call:
-   `powershell -NoProfile -ExecutionPolicy Bypass -File <skill>/kit/lv_windows.ps1`. It lists the LabVIEW process,
-   the Nigel processes (`NI.NigelLocalService`, `LVNigelChat`), the `LVAutoSave` count, and every LabVIEW window
-   (unsaved VIs and possible dialogs flagged).
+   IDE once with `lvai_labview_state` (no LabVIEW call; it reads Windows). Unsaved windows (`unsaved`, `*` in the
+   title), `LVAutoSave` files or an open project that this session did not make mean the user is working (they may
+   open the project between steps): note them, and ask before any close, save, restart or kill that would touch them
+   (`SKILL.md`, "Save what you made; ask about the rest"). Then you are done.
+2. **It does not answer: look at the processes** with `lvai_labview_state`. It answers while the service is blocked,
+   and lists the LabVIEW processes (and whether this server started one), the Nigel processes
+   (`NI.NigelLocalService`, `LVNigelChat`), the `LVAutoSave` count, every LabVIEW window sorted into kinds, and one CPU
+   sample. Each possible dialog comes with a `screenshot` PNG: read it, the picture is the only way to tell which
+   dialog it is.
 
    | What it shows | Do |
    |---|---|
-   | no LabVIEW process (exit 2, none listed) | step 3 |
-   | one LabVIEW, a possible dialog flagged | Stop. A modal dialog blocks the service. Report the window title. The user answers it; never press a LabVIEW dialog yourself. |
-   | one LabVIEW, nothing flagged | step 4 (the service is not up yet, or Nigel is not open) |
+   | no LabVIEW process | step 3 |
+   | one LabVIEW, `possibleDialogs` not empty | Stop. A modal dialog blocks the service. Report the title and what the screenshot shows. The user answers it; never press a LabVIEW dialog yourself. |
+   | one LabVIEW, `hiddenUnrecognised` not empty | Look at each one before going on: LabVIEW dialogs have reported themselves hidden (labview-mcp measured it). |
+   | one LabVIEW, nothing flagged | step 4 (the service is not up yet) |
    | more than one LabVIEW process | Stop and ask the user which one is meant. |
 
 3. **Start LabVIEW.**
@@ -35,12 +37,15 @@ with its guards and the user's go-ahead.
      block every call.
    - **Which LabVIEW:** `lvai_list_labview_installations` shows which one would be started (the newest, preferring
      32-bit, which hosts the AI service). If it is not the one the project needs, ask.
-   - **`lvai_ensure_labview`.** A cold start takes about 36–40 s. It may answer `ok: false`, state "starting", at the
-     end of its budget. That is normal: go to step 4, and do not call it again at once.
-4. **Wait for the service.** Call `lvai_status`. If it answers, you are done.
-   If LabVIEW is visibly running (step 2 shows it) but `lvai_status` keeps failing, the AI gRPC service is not up.
-   It starts with Nigel, not with the IDE. Open the Nigel chat without a person:
-   `powershell -NoProfile -ExecutionPolicy Bypass -File <skill>/kit/lv_start_nigel_chat.ps1 -Version <ver> -Bitness <x86|x64> -Check`,
+   - **`lvai_ensure_labview`.** It verifies that the launched process survives (`launchMethod`; none surviving is
+     `launch-did-not-survive`, never a hopeful "starting"). While LabVIEW is still coming up, calling it once more is
+     right: the second call finds the instance and waits.
+4. **Wait for the service.** Call `lvai_status`. If it answers, you are done. The service comes up with LabVIEW
+   itself, about 45 s after a cold start, with no Nigel chat opened (labview-mcp measured it 2026-10-17, with
+   `NI.NigelLocalService` running; this skill said earlier that it starts with Nigel, which is refuted).
+   If LabVIEW is visibly running (step 2 shows it) but `lvai_status` still fails after about two minutes, the service
+   is not up (once seen: 30 listener ports, none serving). Then open the Nigel chat, the fallback that has brought it
+   up: `powershell -NoProfile -ExecutionPolicy Bypass -File <skill>/kit/lv_start_nigel_chat.ps1 -Version <ver> -Bitness <x86|x64> -Check`,
    then the same without `-Check`.
    - **`-Version`** is the add-on folder's name under `<Program Files>\NI\LVAddons\lvai\`, e.g. `26.3` for 2026 Q3.
    - **`-Bitness`** is `x86` when LabVIEW.exe is under `Program Files (x86)`, otherwise `x64`.
@@ -62,6 +67,5 @@ LabVIEW with another PID later is not the one this session started.
 Starting LabVIEW, opening the Nigel chat and clearing `LVAutoSave` are side effects. They go into the end-of-session
 report (`session/close.md`).
 
-> MCP-candidate: ensure-labview-complete. `lvai_status` should say plainly whether LabVIEW is not running, running
-> without the service, or blocked by a dialog. `lvai_ensure_labview` should open Nigel itself and warn before it
-> deletes `LVAutoSave` files.
+> MCP-candidate: ensure-labview-complete. `lvai_labview_state` now tells "not running" and "blocked by a dialog"
+> apart; still open: `lvai_ensure_labview` should warn before it deletes `LVAutoSave` files (a count, a dry run).

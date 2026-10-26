@@ -3,6 +3,8 @@
 The toolchain layer: how to drive labview-mcp without hurting the files or the service, what each tool gets wrong,
 and the LabVIEW scripting quirks met on the way. Measured with labview-mcp 1.7.2 to 1.9.5 on LabVIEW 2026 Q3 32-bit;
 each gap carries its version in brackets. On a newer labview-mcp, re-check a gap before working around it.
+Checked against labview-mcp 2.2.4 on 2026-10-26, from its source and tool texts (not re-run here): the gaps 2.2
+fixed are gone from this file or say what the tool does now ("[2.2]").
 
 `> MCP-candidate: <id>` marks a workaround for a gap that `MCP-CANDIDATES.md` proposes to fix in labview-mcp. Kit files
 are `<skill>/kit/<file>`. Step-by-step routes are in `ops/` and `session/`; this file holds the rules they share. How
@@ -23,8 +25,9 @@ not repeated here.
 - **`DeadlineExceeded` does not stop the work.** The VI Server helper keeps running inside LabVIEW, and every later
   call answers `DeadlineExceeded`, `lvai_status` included, until it ends (a cold sweep ran ~2.5 h past its 300 s
   deadline). Make no further LabVIEW call and do not retry with a larger budget: that starts the load again. Check
-  without LabVIEW: `<skill>/kit/lv_windows.ps1` (dialogs, `*` titles) and LabVIEW's CPU time sampled twice at least
-  15 s apart (one idle sample can be stale within minutes). Report "busy since <time>". [1.8.5] (audit rule
+  without LabVIEW: `lvai_labview_state` (dialogs with screenshots, `*` titles; it makes no LabVIEW call) and
+  LabVIEW's CPU time sampled twice at least 15 s apart (`kit/wait_lv_idle.ps1`; one idle sample can be stale within
+  minutes). Report "busy since <time>". [1.8.5] (audit rule
   candidate 104) > MCP-candidate: deadline-abort
 - **A modal dialog blocks the whole gRPC service** until a person answers it; the call only times out. Sources met: a
   missing dependency (`Find the VI Named "<qualified name>"`, which held a bind for 720 s), a library item whose file
@@ -45,22 +48,23 @@ not repeated here.
 
 | Call or step | Project |
 |---|---|
-| `lvai_exec_state` and the sweep helper (open: good VIs read state 0); Clean Up Diagram; re-save; class/library icon helpers (open: 1562) | **closed** |
-| front-panel property setters and cold read-backs, VI description edit (`pa_replace_description`, `pa_set_vi_descriptions`), `pa_set_plot_names`, `pa_wire_by_label`; `pylv_extract`/`pylv_rebuild` with kit bundle scripts; `lvai_generate_vi_with_events`; `lvai_set_event_data_fields` | **closed** |
+| `lvai_exec_state` and the sweep helper (open: good VIs read state 0); Clean Up Diagram; re-save; `lvai_set_owner_icon`, `lvai_read_icons` (open: 1562; both check first) | **closed** |
+| front-panel property setters and cold read-backs, VI descriptions (`lvai_set_vi_descriptions`, which refuses an active project; `pa_replace_description`, `pa_set_vi_descriptions` for a `.ctl`), `pa_set_plot_names`, `pa_wire_by_label`; `pylv_extract`/`pylv_rebuild` with kit bundle scripts; `lvai_generate_vi_with_events`; `lvai_set_event_data_fields` | **closed** |
 | byte-exact kit edits of `.lvclass`/`.lvlib`/`.lvproj`; file deletes; any git restore, checkout, revert or reset | **closed** |
-| AF override and hook helpers, `pa_save_member`, `pa_clean_member`, `pa_rename_member`; `lvai_swap_subvis` (`Replace` is a silent no-op outside the IDE's own instance) | **open and active** |
-| `lvai_wire_dynamic_events`, `pa_wire_dyn_right`, `pa_wire_dyn_deep`, `pa_set_panel_on_call`, `pa_switch_and_reset_boolean`, `pa_array_element_replace`; `lvai_add_class_field`, `lvai_bind_class_fields`, `lvai_add_class_method` on an existing member, `lvpdc_export`/`lvpdc_import` | **open and active** |
-| `pa_set_class_description`, `pa_class_folder_add_files`, `pa_class_folder_create_and_move`, `pa_class_folder_move`, `pa_save_libraries`, `pa_project_vis_modified` | **open and active** |
+| `lvai_create_override`, `lvai_af_add_hook`, `lvai_af_remove_hook` and the kit's hook helpers, `pa_save_member`, `pa_clean_member`, `pa_rename_member`; `lvai_swap_subvis` (`Replace` is a silent no-op outside the IDE's own instance) | **open and active** |
+| `lvai_wire_dynamic_events` (its bundle step then closes and saves the project), `pa_set_panel_on_call`, `pa_switch_and_reset_boolean`, `pa_array_element_replace`; `lvai_add_class_field`, `lvai_bind_class_fields`, `lvai_add_class_method` on an existing member, `lvpdc_export`/`lvpdc_import` | **open and active** |
+| `lvai_set_class_description`, `lvai_add_to_class`, `lvai_move_to_folder`, `lvai_create_library` (each opens `projectPath`), `pa_save_libraries`, `pa_project_vis_modified` | **open and active** |
 | `pa_insert_series_branch`, `pa_remove_series_block`, `pa_wire_nodes`, `pa_reg_to_control`, `pa_reg_indicator`, `pa_replace_constant_deep`, `pa_save_orphan` | **open and active** |
 | `lvai_create_accessors` | **open and active** (`projectPath` is the project to tidy; the tool's own text requires an active project; it opened a closed one anyway in an evaluation, 2026-10) |
 | `lvai_create_typedef` | closed with no `projectPath` (stays closed), or `projectPath` = the active project |
 | converting a VI that calls library or class members | open, one member opened through it |
 | test VIs and behaviour runs | as `checks.json` says; closed by default |
 
-Wrong-state codes: 1055 (nothing open or active), 1073 (class held elsewhere), 1562 (project or library locked). VI
-Server reads of what is in memory (`All VIs In Memory`, `Modifications:` bitsets, `Execution:State`) see only the
-**default application instance**: an open project's VIs are not listed, and classes and libraries never are. A probe
-VI run while a project is open is adopted into that project. > MCP-candidate: project-state-guard
+Wrong-state codes: 1055 (nothing open or active), 1073 (class held elsewhere), 1562 (project or library locked). A
+kit helper's reads of what is in memory (`All VIs In Memory`, `Modifications:` bitsets, `Execution:State`) see only
+the **default application instance**: an open project's VIs are not listed, and classes and libraries never are.
+`lvai_vis_in_memory` [2.2] reads the main, the active project's and the add-on's instance (VIs and controls only). A
+probe VI run while a project is open is adopted into that project. > MCP-candidate: project-state-guard
 
 ### Opening and closing a project
 - **`lvai_close_active_project` saves and closes whatever project is active.** `projectPath` does not choose the
@@ -181,28 +185,31 @@ newer IDE is fine; upgrading the files is not (the user's decision). Route:
 Each gap: effect, workaround, version measured. Long routes are in the ops files named.
 
 ### lvai_status, lvai_ensure_labview
-- The AI gRPC service lives in `LabVIEW.exe`, but it **starts with Nigel, not with the IDE**: a freshly started
-  LabVIEW can run for many minutes without serving `lvai.LVAI` until the Nigel chat has been opened (labview-mcp's own
-  tool description, 1.8.5). Once the service is up, it keeps answering when the chat window closes (pilot rule 99,
-  H19/H21). The start route, including opening Nigel unattended, is `session/start.md`. While a helper runs past its
-  deadline `lvai_status` cannot answer. [1.8.5] > MCP-candidate: deadline-abort, ensure-labview-complete
-- `lvai_ensure_labview` only starts LabVIEW; no tool stops or restarts it (`session/restart.md`). On a cold start it may
-  spend its 40 s budget and answer `ok:false`, "starting", "The operation was canceled." although the start worked:
-  call `lvai_status` next, not `ensure_labview` again. It clears `LVAutoSave` (from the real, possibly redirected
-  Documents folder) when it starts LabVIEW itself; `keepAutoSave: true` opts out, but then a recovery dialog blocks
-  the service. [1.8.5] (pilot rule 96) > MCP-candidate: restart-with-guards, ensure-labview-complete
+- The AI gRPC service lives in `LabVIEW.exe` and **comes up with LabVIEW itself**, about 45 s after a cold start, with
+  no Nigel chat opened ([2.2]: labview-mcp measured it 2026-10-17 with `NI.NigelLocalService` running, and refuted its
+  own earlier text, which this file repeated, that the service starts with Nigel). Once, a LabVIEW up for twenty
+  minutes served `lvai.LVAI` on none of 30 listener ports: a "starting" that lasts more than about two minutes is
+  that case, and opening the Nigel chat is the fallback (`session/start.md`). Once the service is up, it keeps
+  answering when the chat window closes (pilot rule 99, H19/H21). While a helper runs past its deadline
+  `lvai_status` cannot answer; `lvai_labview_state` [2.2] still does (it reads Windows). [1.8.5]
+  > MCP-candidate: deadline-abort, ensure-labview-complete
+- `lvai_ensure_labview` only starts LabVIEW; no official tool stops or restarts it (`session/restart.md`). [2.2] It
+  keeps a launch only when the process survives (`launchMethod`), and a second call while LabVIEW comes up finds the
+  instance and waits. It clears `LVAutoSave` (from the real, possibly redirected Documents folder) when it starts
+  LabVIEW itself, with no count beforehand; `keepAutoSave: true` opts out, but then a recovery dialog blocks the
+  service. [1.8.5] (pilot rule 96) > MCP-candidate: restart-with-guards, ensure-labview-complete
 
 ### lvai_exec_state
 - "VI has an error of type 8" on a class member can mean the class implements an interface without overriding one of
-  its methods: check the overrides before a sweep of the callers. [1.9.5, a harness run 2026-10]
-  > MCP-candidate: clearer-answers
+  its methods. [2.2] A broken member's answer names them in `missingInterfaceOverrides` (read from the files).
+  [1.9.5, a harness run 2026-10]
 - One VI per call. A tree needs the kit sweep (`pa_exec_state_sweep_file.xml`, `sweep_paths.py`) and a file-side
   membership check (`check_membership.py`): `ops/sweep.md`. The helper reloads each VI's library per VI, so where the
   hierarchy does not resolve a VI costs > 1 s, up to ~30 s, against 51–97 ms where it does. Size batches from a timed
   first batch (CS-1, open in the audit). [1.8.5] (pilot rule 1; audit rule candidate 108)
   > MCP-candidate: exec-state-batch
-- It reads the default instance only: a VI running in a project's instance is not seen, and nothing measured detects
-  a running top-level VI. > MCP-candidate: memory-inspection
+- Nothing measured detects a running top-level VI (`lvai_vis_in_memory` lists modified VIs per instance, not
+  running ones). > MCP-candidate: memory-inspection
 
 ### lvai_run_vi_and_read_values
 - Refuses an empty input value: omit the input. [1.8.0] (pilot rule 47)
@@ -257,23 +264,21 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
   [1.8.0] (pilot rule 53) > MCP-candidate: placeholder-array-of-class
 - A placeholder of a typedef-cluster accessor may fail with "error 1154 from Invoke Node in lvai_typedef_bind.vi …
   Replace"; the stub still works with the bare cluster. [1.8.5]
-- One stub shared by several nodes (Case frames, two top-level calls): "newest node first" is not reliable. Swap,
-  export, check where it landed (`aixml_frames.py`), correct by swapping with `socket` = the real VI's qualified name.
+- One socket called by several nodes (Case frames, two top-level calls): one swap call repoints ONE node, and which
+  one is not predictable. Swap, export, check where it landed (`aixml_frames.py`), correct by swapping with `socket` =
+  the real VI's qualified name. [2.2] Stubs are one per target VI, so two different targets no longer share one.
   A real member swaps straight onto another member with the same pane, keeping series wiring, also inside a
   flat-sequence frame. [1.8.0–1.8.5] (pilot rules 38, 71, 72) > MCP-candidate: swap-subvis-fixes
 - Cannot repair a missing-subVI node: its name reads empty, the call fails with 1055 reported as `noActiveProject`.
   Repair: `lvai_close_vi`, re-run `lvai_add_class_method` from the AIXML, swap. [1.8.5] (pilot rule 86)
   > MCP-candidate: swap-subvis-fixes
-- `constantsJson` finds TOP-LEVEL constants only: a class constant inside a case frame needs a deep replace
-  (`kit/pa_replace_constant_deep.xml`, input `class path`). With the swap's `class` = a `.ctl` path it turns a bare cluster constant into that typedef's
-  constant, which `lvai_bind_typedef_constants` cannot (it needs a subVI terminal). Depth: measured 2 levels (While >
-  Case), written for 3 (evaluation 2026-10). [1.9.5, a harness run 2026-10]
-  > MCP-candidate: swap-subvis-fixes
-- The placeholder for a typedef cluster that holds a class flattens it to a scalar `path`, and members with the same
-  pane get ONE shared stub, so a swap cannot tell them apart: make one stub per target by hand. [1.9.5, a harness run 2026-10]
-  > MCP-candidate: placeholder-array-of-class
-- `lvai_bind_typedef_constants` with a bare `subViName` answers 1055 "no active project" when it means "name not
-  qualified": pass the library-qualified name. [1.9.5, a harness run 2026-10] > MCP-candidate: clearer-answers
+- [2.2] `constantsJson` finds constants at any depth (a label two constants carry is refused) and the swap ends with
+  Remove Bad Wires. The kit's `pa_replace_constant_deep.xml` (input `class path`) stays for one case: with a `.ctl`
+  path it turns a bare cluster constant into that typedef's constant, which `lvai_bind_typedef_constants` cannot (it
+  needs a subVI terminal); whether the tool's `class` takes a `.ctl` is unmeasured. Depth of the kit helper: measured
+  2 levels (While > Case), written for 3 (evaluation 2026-10). [1.9.5, a harness run 2026-10]
+- [2.2] A class inside a typedef cluster keeps its cluster in the placeholder (only the element becomes `path`), and
+  each target gets its own stub. [1.9.5, a harness run 2026-10]
 
 ### lvai_create_class, lvai_create_interface
 - With a parent class, the PARENT is added as a top-level `.lvproj` item: drop it right after (`lvproj_drop.py`,
@@ -285,9 +290,10 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
 - `parentInterfaces` links interfaces at creation (no tool adds one later: NI's provider is a modal). A class must
   override every interface method, or the class is error 1003; interface overrides are ordinary
   `lvai_add_class_method` members with the same name and pane. (pilot rules 9, 10)
-- It writes the `.lvproj` with LF line endings and no BOM; a later project close may restore the BOM. Accept what
-  LabVIEW writes and check only the item lines: do not restore the `.lvproj` from git after each step (a harness did
-  it about 30 times in one session). Check once whether the repo's `.gitattributes` forces `eol=lf` on
+- It wrote the `.lvproj` with LF line endings and no BOM [1.9.5]; labview-mcp 2.2 keeps the BOM and line endings of
+  its own `.lvproj`/`.lvclass`/`.lvlib` edits (not re-run here). A later project close may still change them. Accept
+  what LabVIEW writes and check only the item lines: do not restore the `.lvproj` from git after each step (a harness
+  did it about 30 times in one session). Check once whether the repo's `.gitattributes` forces `eol=lf` on
   `.lvproj`/`.lvlib`/`.lvclass` while LabVIEW writes CRLF: that would cause the same churn (suspected, not measured).
   [1.9.5, a harness run 2026-10] > MCP-candidate: close-project-guard
 
@@ -335,31 +341,34 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
 
 ### lvai_add_class_method
 - Re-run on a method a loaded member calls (an override hook or a plain caller): Error 56003 **after** the member entry
-  was dropped. Unhook (swap the callers onto a placeholder), regenerate, swap back. One name stayed held after every
-  caller was unhooked: then add the new behaviour as a new hook. Since 1.8.5 a re-run drops the existing members first
-  (`dropExistingMembers`), with no 56003 when nothing holds the VI. [1.7.2–1.8.5] (pilot rules 22, 49)
+  was dropped [1.7.2–1.8.5]. [2.2] The re-run asks for loaded callers first and refuses (`memberHasLoadedCallers`,
+  naming them) before anything changes; a `vi`-only re-run over a listed member is refused (`rerunNeedsAixml`).
+  Unhook (swap the callers onto a placeholder, or `lvai_af_remove_hook`), regenerate, swap back. One name stayed held
+  after every caller was unhooked: then add the new behaviour as a new hook. (pilot rules 22, 49)
 - A failed convert inside a re-run leaves the member dropped: fix the AIXML, re-add, `check_membership.py`. A re-add
-  resets the scope to public and moves the VI out of its virtual folder: `set_scope.py` (project closed) and the folder
-  again, check with `lvai_describe_class`. [1.8.0–1.8.5] (pilot rules 56, 69)
+  resets the scope to public and moves the VI out of its virtual folder [1.8.0–1.8.5]; [2.2] `keepPlacement` (default)
+  writes the old scope and folder back. Check with `lvai_describe_class`; by hand: `set_scope.py` (project closed)
+  and `lvai_move_to_folder`. (pilot rules 56, 69)
 - With `aixml` AND `vi` it re-converts the VI from the AIXML: dynamic event wiring, user-event specs and event data
   fields are lost. To make a built VI a member pass `vi` only (with `classTerminals`). [1.8.5] (pilot rule 91)
   > MCP-candidate: add-class-method-rerun
 - A member with NO class terminal on its pane (a pure function) is refused here (no `classTerminals`) and by
-  `lvai_add_to_library` (refuses a `.lvclass`). Route: `lvai_generate_vi`; `lvproj_add_toplevel.py` (project
-  closed); the tool's cached helper `lvai_add_one_to_library.vi` with `library path` = the `.lvclass`, item type VI,
-  folder index -1 (project open and active); then `set_scope.py`. [1.9.5, a harness run 2026-10]
-  > MCP-candidate: add-to-class
+  `lvai_add_to_library` (refuses a `.lvclass`). Route: `lvai_generate_vi`, then [2.2] `lvai_add_to_class` (adding a
+  `.vi` is unmeasured by labview-mcp; check the `.lvclass`), then `set_scope.py`. The measured fallback:
+  `lvproj_add_toplevel.py` (project closed); the tool's cached helper `lvai_add_one_to_library.vi` with `library path`
+  = the `.lvclass`, item type VI, folder index -1 (project open and active). [1.9.5, a harness run 2026-10]
 - `ok: false` with `pathStandInsLeft` for a path stand-in INSIDE a cluster terminal is a false alarm when a later
   pane bind resolves it: read the state after the bind. [1.9.5, a harness run 2026-10]
   > MCP-candidate: clearer-answers
 
 ### lvai_add_to_library
-- Refuses a virtual folder that does not exist, and a new library has none (`Controls` included); no tool creates one.
-  `{LV.Library}` `AddItem` (Type `Folder`) creates one in a class (`kit/pa_class_folder_create_and_move.xml`); on a
-  `.lvlib` it is the same class but unmeasured: try it on a throwaway before asking the user.
+- Refuses a virtual folder that does not exist, and a new library has none (`Controls` included). [2.2]
+  `lvai_move_to_folder` with `createFolder` creates one in a class (measured on 15 classes) or a plain `.lvlib` (the
+  unmeasured twin): create the folder by moving the first member into it, or add at the root and move.
   [1.8.5] (pilot rule 92) > MCP-candidate: library-virtual-folder
 - One add re-saves every member of the library (11 files: all 7 VIs, the class, the other `.ctl`), each a save that can
-  change its version. No tool adds a `.ctl` to a class (kit route: "Class description, typedef membership, virtual folders" below). [1.8.5] (audit rule candidate 106) > MCP-candidate: add-to-class
+  change its version. A `.ctl` into a class: [2.2] `lvai_add_to_class`, which saves only the class and the files it
+  took in. [1.8.5] (audit rule candidate 106)
 - Messages go one folder each into `Messages for this Actor` (folder name; check `placedIn`). A
   `projectEntriesToRemove` for a `.ctl` the `.lvproj` never listed needs nothing. (pilot rule 20)
 - After any library add or Save All (`pa_save_libraries`): `git status --short` over the tree. A re-save outside
@@ -367,11 +376,12 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
   report it; never commit it blindly.
 
 ### lvai_create_message_class, lvai_describe_class
-- The kit's Message Maker helper (`lvai_create_message_class.xml`) writes the message class FLAT into its
-  `destination directory`: create the empty `<Msg class name>\` folder first and pass it as the destination.
+- The Message Maker helper (`lvai_create_message_class.xml` in labview-mcp's scripts folder; `lvai_status` reports
+  `scriptsDirectory`) writes the message class FLAT into its `destination directory`: create the empty
+  `<Msg class name>\` folder first and pass it as the destination.
 - Message payload = every method input other than the class and the error cluster, in pane order (descending
-  `conIdx`); String and class payloads work. For an **interface** method the tool refuses: run the kit's
-  `lvai_create_message_class.xml` directly, then `repair_r1.py`. [1.8.0] (pilot rule 19)
+  `conIdx`); String and class payloads work. For an **interface** method the tool refuses: run that helper
+  directly, then `<skill>/kit/repair_r1.py`. [1.8.0] (pilot rule 19)
   > MCP-candidate: message-interface-method
 - `lvai_describe_class` misreports a class derived from LabVIEW Object (rename history shown as ancestors): read the
   `.lvclass` XML. [1.7.2–1.8.0] (pilot rule 16) > MCP-candidate: describe-class-ancestry
@@ -379,20 +389,14 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
 ### lvai_generate_vi_with_events, lvai_wire_dynamic_events, lvai_set_event_data_fields
 - A plain AIXML convert loses every event frame: use `lvai_generate_vi_with_events`, which refuses two Event
   Structures in one document. [1.8.0] (pilot rule 39)
-- The dynamic event terminal has no AIXML element. An authored refnum tunnel makes `lvai_wire_dynamic_events` branch a
-  plain tunnel (the wrong shape). Author no refnum tunnel, wire the left side with `finishUserEvents: false` (the
-  diagram route) and the right side with `pa_wire_dyn_right.xml`. [1.8.5] (pilot rule 60)
-  > MCP-candidate: wire-dynamic-events-fix
-- It searches two levels: an event structure in a case frame inside the loop (three levels) gets Error 91 /
-  `helperDidNotAnswer` and no change. `kit/pa_wire_dyn_deep.xml` wires both sides at three levels. The right-side
-  case tunnel it creates has no value in the other frames and breaks the VI; "Use Default if Unwired" is refused by
-  AIXML ("Invalid property"), so `kit/set_use_default.py` sets it in the pylv round trip (state 1 with it, 0 without).
-  [1.8.5, measured 2026-10] > MCP-candidate: wire-dynamic-events-fix
-- Its finish step refuses more than one user event, is skipped on the diagram route (Error 91 / `helperDidNotAnswer`,
-  `wireEndsAfter 2`: expected), and with the default `finishUserEvents` closes and saves the active project. After a
-  load every user-event spec has `dynIndex` N+1. Write the specs with `set_user_event_specs.py` between `pylv_extract`
-  and `pylv_rebuild` (`dynIndex` = the source's 1-based position on `Register For Events`). labview-mcp's
-  `pylv-set-event-spec.py` documents a `[dynIndex]` it does not take. [1.8.0–1.8.5] (pilot rules 39, 60)
+- The dynamic event terminal has no AIXML element. [1.8.5] An authored refnum tunnel made `lvai_wire_dynamic_events`
+  branch a plain tunnel (the wrong shape), it searched two levels only, wired the left side only, refused several
+  user events and left the new case tunnel without a value (pilot rule 60, measured 2026-10). [2.2] It searches at
+  any depth, wires the right side to Unregister (`wireRightSide`), finishes several user-event frames from the
+  `dynIndex` `lvai_generate_vi_with_events` writes per frame (a VI generated before 2026-10-10 is refused), and sets
+  "Use Default if Unwired" (refused by AIXML) on the tunnel it created: `ops/helper-loop.md`, step 5. Its bundle step
+  closes and saves the active project. Offline check or hand fix of the specs and the flag: `set_user_event_specs.py`,
+  `set_use_default.py` (state 1 with the flag, 0 without). [1.8.0–1.8.5; 2.2] (pilot rules 39, 60)
   > MCP-candidate: wire-dynamic-events-fix
 - An event structure whose frames are all user events fails the spec step ("no dIdx on this event structure"): add an
   empty Timeout frame (a build-step limit, not LabVIEW's). `lvai_set_event_data_fields` on a VI not yet a member
@@ -401,60 +405,54 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
   (pilot rules 39, 62, 65, 66) > MCP-candidate: generate-with-events-fixes
 
 ### lvai_set_vi_icon and icon work
-- It sets the VI's own layer and **flattens** the icon: editable text layers are lost (27–36 % of hand-made icons
-  changed). Run it before the class template, never on a VI whose own layer is to be kept. [1.8.0–1.8.5] (pilot rule
-  26; audit rule candidate 110) > MCP-candidate: set-vi-icon-keep-layers
-- Class and library icons have no tool; kit route in `ops/icons.md` (`Set Icon`, then `ApplyIconToVIs` + a save per
-  member). With the project open: 1562, nothing written. `ApplyIconToVIs` alone does not save the members. On a plain
-  `.lvlib`, `Library.Open` does not load the members and the apply silently changes nothing: open them first. [1.8.0]
-  (pilot rules 26, 42) > MCP-candidate: class-library-icons
+- With an image it sets the VI's own layer and **flattens** the icon: editable text layers are lost (27–36 % of
+  hand-made icons changed). Run it before the class template, never with an image on a VI whose own layer is to be
+  kept; [2.2] `keepOwnLayer: true` re-applies only the owner's template. [1.8.0–1.8.5] (pilot rule 26; audit rule
+  candidate 110)
+- [2.2] Class and library icons: `lvai_set_owner_icon` (route in `ops/icons.md`); read-back: `lvai_read_icons`. Both
+  are built around the measured silent failures (project open: 1562, nothing written; `ApplyIconToVIs` saves no
+  member; on a plain `.lvlib` it changes nothing unless the members are opened; `Save VI Icon to File` writes nothing
+  into a missing folder or past MAX_PATH). Keep the read-back folder short (`<repo>\mcp_temp\rb`); if the repo sits so
+  deep that the paths still pass ~260 characters, say so to the user rather than writing outside `mcp_temp`.
+  (pilot rules 26, 42, 80)
 - `Set Icon` answered 1562 on one class with nothing visibly locked, also after a project open/close. A LabVIEW restart
   with that class call first cured it (probably held in memory by an earlier `LVClass.Open`). Fallback:
   `lvai_set_vi_icon` with each member's composite PNG (looks the same, no `NI_Library` layer). [1.8.0–1.8.5] (pilot
   rule 59)
-- `Save VI Icon to File` writes nothing and returns no error into a missing folder or for a path over MAX_PATH (~260
-  characters): use a short folder (`<repo>\mcp_temp\rb`), count the files. If the repo sits so deep that the
-  paths still pass ~260 characters, say so to the user rather than writing outside `mcp_temp`. [1.8.5] (pilot rule 80)
-  > MCP-candidate: icon-readback
 
 ### lvai_vi_server_reference, lvai_aixml_reference
-- `BD.CleanUp` (`{LV.VI}` Invoke: Clean Up Diagram) is missing from the catalogue, and so are the Project and Library
-  classes (Save, Close, `SetSaveVersion`). Find spellings in NI's exports (`examples\Application Control\VI
-  Scripting\`) or in LabVIEW's `resource\lvserver.rsc` (class and member names as plain text; search it with grep);
-  never guess. [1.8.0–1.8.5] (pilot rules 14, 46)
+- `BD.CleanUp` (`{LV.VI}` Invoke: Clean Up Diagram) and `SetSaveVersion` are missing from the catalogue; [2.2] the
+  Project, ProjectItem and Library classes are in it now. Find missing spellings in NI's exports
+  (`examples\Application Control\VI Scripting\`) or in LabVIEW's `resource\lvserver.rsc` (class and member names as
+  plain text; search it with grep); never guess. [1.8.0–1.8.5] (pilot rules 14, 46)
 - **Never probe an unknown name with `lvai_validate_aixml`.** An invented method on `{LV.Application}` crashed LabVIEW
   2026 Q3 inside the validator (DWarn in `invoke.cpp`, 2026-10). Validate only names found in one of the sources
   above. A real name can still be refused by the AIXML catalogue ("Invalid property", e.g. "Use Default if
   Unwired"): that is a refusal, not a crash, and the pylv route is next.
   > MCP-candidate: vi-server-catalogue
 
-### No tool yet (kit routes only)
-- AF overrides and hooks, `ops/override.md` > MCP-candidate: create-override; > MCP-candidate: add-hook
+### No official tool yet (kit routes only)
 - Member rename, `ops/rename.md` > MCP-candidate: rename-member
-- Clean Up Diagram, `ops/cleanup.md` > MCP-candidate: cleanup-diagram
-- Front-panel properties, `ops/helper-loop.md`; VI descriptions, "LabVIEW scripting quirks"
+- Clean Up Diagram, `ops/cleanup.md` (`lvai_layout_diagram` is labview-mcp's own layout, not NI's Clean Up: which one
+  a project uses is `convention: hygiene`) > MCP-candidate: cleanup-diagram
+- Front-panel properties, `ops/helper-loop.md`; a search-and-replace in a VI description, "LabVIEW scripting quirks"
   > MCP-candidate: control-property-setters
-- Restart LabVIEW, `session/restart.md` > MCP-candidate: restart-with-guards
+- Close or restart LabVIEW, `session/restart.md` (a labview-mcp build with `lvai_restart_labview` runs the guards
+  itself; the official release has none as of 2.2.4) > MCP-candidate: restart-with-guards
 - An actor's wiring without exports, `ops/review.md` > MCP-candidate: af-describe-actor
-- Class description, a `.ctl` into a class, a member into a virtual folder: "LabVIEW scripting quirks", "Class
-  description, typedef membership, virtual folders" > MCP-candidate: class-description;
-  > MCP-candidate: add-to-class; > MCP-candidate: move-to-folder
-- **A new project or a plain library** (no tool; `lvai_lvproj_reference` calls `.lvproj` generation unsupported).
-  Measured VI Server spellings (a harness run, 2026-10), in a helper VI:
-  - `.lvproj` (no project needs to be open): `{LV.Application}` Invoke `Project.New` (outputs `Project\3ANew`) →
-    `{LV.Project}` read `My Computer` → `{LV.TargetItem}` Invoke `AddItem` (inputs `Name`, `Path`, `Type` = `Folder`;
-    `Path` must be an EMPTY path) per virtual folder → `{LV.Project}` Invoke `Save` (input `Path`) → `Close`. NI's
-    example `Manipulating Projects\Add Files to Project.vi` carries the spellings. `lvai_describe_project` does not
-    list virtual folders: check them in the `.lvproj` XML. Helper: `kit/pa_new_project.xml`.
-  - Plain `.lvlib`, project open and active: `{LV.Application}` Invoke `Library.Create` (output `Create Library`) →
-    `AddItem` (Type `LVClass` or `VI`) per item → `{LV.Library}` Invoke `Save` (input `Path`) or `Edit
-    LVLibs.lvlib:Save All This Library.vi` (the kit's `lvai_create_actor_library.xml` is the model). A loose VI must
-    be a project item first (`lvproj_add_toplevel.py`, project closed), or the close writes no library and drops the
-    entry. An empty library: `kit/pa_new_library.xml`. The close does NOT list a new library that is empty: add it
-    with `{LV.TargetItem}` Invoke `AddFile` (input `Path`) on `My Computer` (`kit/pa_project_add_file.xml`), project
-    open and active, then close and `lvproj_move.py` it into its folder. A library
-    holding a class may come back at top level plus a stray class item: `lvproj_drop.py` and `lvproj_move.py`, project
-    closed. (measured in an evaluation, 2026-10) > MCP-candidate: project-item-tools
+- AF hook shapes the tools refuse or lack (a series insert on a branched wire, D, D-close, D-append, a node's error
+  output into a log VI), `ops/override.md` > MCP-candidate: add-hook
+- **A new project** (no tool; `lvai_lvproj_reference` calls `.lvproj` generation unsupported). Measured VI Server
+  spellings (a harness run, 2026-10), in a helper VI: `{LV.Application}` Invoke `Project.New` (outputs
+  `Project\3ANew`) → `{LV.Project}` read `My Computer` → `{LV.TargetItem}` Invoke `AddItem` (inputs `Name`, `Path`,
+  `Type` = `Folder`; `Path` must be an EMPTY path) per virtual folder → `{LV.Project}` Invoke `Save` (input `Path`)
+  → `Close`; no project needs to be open. NI's example `Manipulating Projects\Add Files to Project.vi` carries the
+  spellings. `lvai_describe_project` does not list virtual folders: check them in the `.lvproj` XML. Helper:
+  `kit/pa_new_project.xml`. A file directly under My Computer: `{LV.TargetItem}` Invoke `AddFile` (input `Path`),
+  `kit/pa_project_add_file.xml`, project open and active. > MCP-candidate: project-item-tools
+- **A plain library:** [2.2] `lvai_create_library` (creates, lists it in the project, optional description and
+  items). Measured by hand before it (an evaluation, 2026-10): a library holding a class may come back at top level
+  plus a stray class item: `lvproj_drop.py` and `lvproj_move.py`, project closed; check the `.lvproj` after the tool.
 
 ## LabVIEW scripting quirks
 
@@ -486,23 +484,15 @@ They hold for any VI Server or AIXML route, the kit's included.
   (pilot rule 52)
 - **VI description:** read `VI Description`, replace, write, `Save.Instrument` (project closed) keeps the icon, layout
   and state 1 (`pa_replace_description.xml`); edit the `.xml` source as text. (pilot rule 81)
-- **Class description, typedef membership, virtual folders** (VI Server, project open and active; measured on LabVIEW
-  2026 Q3 32-bit, 2026-10-11/12, on 15 classes). The names are not in `lvai_vi_server_reference`; they come from
-  LabVIEW's `resource\lvserver.rsc`. **Description:** `LVClass.Open` on the project's application, write
-  `{LV.LVClassLibrary}` `Description`, read back, `Save` (`kit/pa_set_class_description.xml`). It is stored ANSI
-  (CP1252): "→" became "?" with no error, so write ASCII and read back. **Folder:** `{LV.Library}` `AddItem` (Type
-  `Folder`); **member into it:** `{LV.ProjectItem}` `Move` (`New Parent` = the folder item)
-  (`kit/pa_class_folder_create_and_move.xml`, `pa_class_folder_move.xml`). A move changes only the `.lvclass` (no file
-  move, no rename, no relink): routine, no question. **File into a class:** `{LV.ProjectItem}` `AddItem` (Name, Path,
-  Type) on the folder item (`kit/pa_class_folder_add_files.xml`). **A `.ctl` added to a class is renamed**
-  (`Class.lvclass:X.ctl`) and every caller relinks: add it right after it is created, before anything uses it. Added
-  later: open every caller outside the class through the project first (so it relinks in memory), add, then
-  `kit/pa_save_libraries.xml` on each library whose members use it and `kit/pa_project_vis_modified.xml` (`save
-  modified?` T) for top-level VIs (on a large project its answer is saved to a file: read it with
-  `kit/mem_lines.py`). A `.ctl` saves only through a library Save All (`Open VI Reference` answers 1035).
-  LabVIEW makes the added typedef public. A harness permission check may stop the typedef add as a shared-resource
-  change while it allows the moves. > MCP-candidate: class-description; > MCP-candidate: add-to-class;
-  > MCP-candidate: move-to-folder
+- **Class description, typedef membership, virtual folders:** [2.2] `lvai_set_class_description`,
+  `lvai_add_to_class`, `lvai_move_to_folder` (the routes this skill measured on 15 classes, 2026-10-11/12, ported;
+  their tool texts carry the facts: CP1252 only, a move changes only the owner file, a `.ctl` added to a class is
+  renamed and only loaded callers relink). What the tools leave to you: LabVIEW makes an added typedef public
+  (`set_scope.py`); a caller saved outside the tool's list (a library member using the typedef) needs
+  `kit/pa_save_libraries.xml` on its library, or `kit/pa_project_vis_modified.xml` (`save modified?` T; a large answer
+  is saved to a file: read it with `kit/mem_lines.py`). A `.ctl` saves only through a library Save All (`Open VI
+  Reference` answers 1035). A harness permission check may stop the typedef add as a shared-resource change while it
+  allows the moves.
 - **Clean Up Diagram and Remove Bad Wires keep a helper-loop VI's dynamic event wiring, user-event specs and
   use-default tunnels** (measured, a harness run 2026-10): no probe needed before cleaning one.
 - **Clean Up Diagram** (`{LV.VI}` `BD.CleanUp` + `Save.Instrument`, project closed) keeps classes, state, icon and the
@@ -521,8 +511,9 @@ They hold for any VI Server or AIXML route, the kit's included.
   broken wire segment, not a type problem. First run `kit/pa_clean_member.xml` (Remove Bad Wires + save of the VI and
   its class, project open and active) and read it cold; rebuild only if that fails. Measured 2026-10: one run fixed
   (state 0 → 1) a VI that five rebuilds and a LabVIEW restart had not. > MCP-candidate: swap-subvis-fixes
-- **Whole VI descriptions in a batch:** `kit/pa_set_vi_descriptions.xml` (project closed) writes many at once from a
-  record file and reads each back; for a search-and-replace inside one description, `pa_replace_description.xml`.
+- **Whole VI descriptions in a batch:** [2.2] `lvai_set_vi_descriptions` (project closed; verifies each from the
+  saved file and checks the icon is unchanged). A typedef's description: `kit/pa_set_vi_descriptions.xml` (the tool
+  takes `.vi` only). A search-and-replace inside one description: `pa_replace_description.xml`.
 - **A path-less VI blocks the project close** after a convert failed at save (Error 1019): `kit/pa_save_orphan.xml`
   saves it by name to a path, then the close works.
 - **Small fixes: edit in place, not by regeneration.** A change of a few wires or nodes in a VI whose layout, icon,
@@ -541,10 +532,11 @@ They hold for any VI Server or AIXML route, the kit's included.
   `error in`/`error out` into the loop's error chain (an unwired error there was a review finding: a failed read gave
   a 0 ms wait and a spinning producer, measured in an evaluation, 2026-10).
 - **Deleting a node from a branched wire** leaves a loose end: the VI reads state 0 ("VI has an error of type
-  1000088"), and so does a sibling override of the same class; Remove Bad Wires on the edited VI fixes both. The kit's
-  delete by terminal name deletes every top-level subVI node with that terminal. (pilot rules 78, 89)
-- A hook VI's required inputs must all be fed by the helper's one wire, or the override breaks and only
-  `lvai_exec_state` shows it. `Terminals[]` of a subVI node is ordered by pane slot; match by name. (pilot rules 14, 23)
+  1000088"), and so does a sibling override of the same class; Remove Bad Wires on the edited VI fixes both.
+  `lvai_af_remove_hook` [2.2] does that clean-up itself. (pilot rules 78, 89)
+- A hook VI's required inputs must all be fed by one wire per side, or the override breaks and only `lvai_exec_state`
+  shows it; `lvai_af_add_hook` refuses such a hook, the kit helpers do not. `Terminals[]` of a subVI node is ordered
+  by pane slot; match by name. (pilot rules 14, 23)
 - `CloseMainWindow` on LabVIEW returns False while a VI Server helper runs, and LabVIEW does not exit. (audit rule
   candidate 105)
 - A string constant is not visible to `grep -a` on a `.vi` (the diagram is compressed); a subVI link and the VI

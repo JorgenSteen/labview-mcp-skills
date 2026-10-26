@@ -46,18 +46,15 @@ field: an accessor made earlier keeps the bare type for ever. (pilot rule 2)
      closed: `{LV.VI}` `Front Panel` → `{LV.Panel}` `Controls[]` → `{LV.Control}` write `Value` → `{LV.VI}` Invoke
      `Default Vals.Make Curr Default` → `Save.Instrument`; read `Default Value` back (measured in an evaluation, 2026-10).
      Copy `kit/example_ctl_defaults.xml` and give its `wanted` and `type template` constants your typedef's type.
-   - **Owner** per `convention: layout.typedef-placement`. No labview-mcp tool adds a `.ctl` to a class: add it right after it is created,
-     before anything uses it, with `kit/pa_class_folder_add_files.xml` (`class path`, `folder` = `TypeDefs`,
-     `item paths` = the `.ctl`, `item type` = `VI`, which is right for a `.ctl` (measured); project open and active);
-     added later it is renamed and its callers relink (`knowledge/labview-mcp.md`, "LabVIEW scripting quirks",
-     "Class description, typedef membership, virtual folders"). Never fall back to the class or library root.
-     The helper always CREATES the folder: when the class already has `TypeDefs`, `AddItem` (Type `Folder`) with the
-     existing name is REFUSED with 56001 (nothing added, nothing saved; measured in an evaluation, 2026-10). Then add into the existing
-     folder: `{LV.Library}` Invoke `Get All Descendents` (Type `Folder`) → the item whose `{LV.ProjectItem}` `Name`
-     is `TypeDefs` → `{LV.ProjectItem}` Invoke `AddItem` (Name, Path, Type `VI`) on it, then Save All of the class
-     (`kit/pa_class_folder_add_existing.xml`, same inputs as `pa_class_folder_add_files`). LabVIEW makes the added typedef public: set it private with `kit/set_scope.py`
-     (project closed, `convention: layout.scope`), unless a file outside the class uses it, which then keeps it public.
-     > MCP-candidate: add-to-class
+   - **Owner** per `convention: layout.typedef-placement`. Add it to the class right after it is created, before
+     anything uses it: `lvai_add_to_class(lvclassPath, itemPaths = the .ctl, projectPath, folder = "TypeDefs")`. It
+     creates the folder when missing and adds into it when it exists. Added later, a typedef is renamed
+     (`Class.lvclass:X.ctl`) and only LOADED callers relink: pass every caller outside the class in `callerPaths`
+     (the tool opens them first and saves each; an offline scan refuses with `callersNotLoaded` when it finds one you
+     did not list) (`knowledge/labview-mcp.md`, "Class description, typedef membership, virtual folders"). Never fall
+     back to the class or library root. LabVIEW makes the added typedef public: set it private with
+     `kit/set_scope.py` (project closed, `convention: layout.scope`), unless a file outside the class uses it, which
+     then keeps it public.
    - Where the area keeps typedefs in its library: `lvai_add_to_library` into that folder (it refuses a missing
      folder, and saves every library member). > MCP-candidate: library-virtual-folder
    - Commit. **Sweep point 1:** cold sweep of the class folder (`ops/sweep.md`).
@@ -99,8 +96,9 @@ field: an accessor made earlier keeps the bare type for ever. (pilot rule 2)
      after the field: read it with `lvai_vi_terminals` before a caller uses it. (pilot rule 48)
    - Icons and diagram for the new accessor: `ops/icons.md`, `ops/cleanup.md` (only VIs this task made).
    - **Descriptions** per `convention: hygiene.descriptions`: the wizard writes only a generic text into an accessor,
-     and a new typedef has none (evaluation 2026-10). Write both with `kit/pa_set_vi_descriptions.xml` (project
-     closed; one record per file). On a `.ctl` the helper is unmeasured: read the description back.
+     and a new typedef has none (evaluation 2026-10). Write the accessor's with `lvai_set_vi_descriptions` (project
+     closed; one entry per VI). The tool takes only `.vi` files: a typedef's goes through `kit/pa_set_vi_descriptions.xml`
+     (project closed; one record per file; on a `.ctl` unmeasured, so read the description back).
 
 ## B. Change a field
 

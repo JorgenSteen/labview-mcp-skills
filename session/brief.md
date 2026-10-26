@@ -66,13 +66,13 @@ Operating rules: <skill abs path>/knowledge/labview-mcp.md, "Operating rules". T
   answering, stop and report.
 - Strictly sequential LabVIEW calls: one lvai_*/pylv_* call at a time, never two in parallel, not even reads.
 - A crash, a hung call, DeadlineExceeded, or a modal dialog: stop at once and make no further LabVIEW call. The
-  timed-out helper keeps running and blocks every call. Check dialogs with <skill abs path>/kit/lv_windows.ps1
-  (no LabVIEW call). Never answer a LabVIEW dialog.
+  timed-out helper keeps running and blocks every call. Check dialogs with lvai_labview_state
+  (no LabVIEW call; read the screenshot of each possible dialog). Never answer a LabVIEW dialog.
 - Closing a project: lvai_close_active_project closes AND SAVES whatever project is active. First make yours
   the active one: lvai_open_file with projectPath <abs .lvproj> (check activeProjectPath in the answer). If
   another project would be closed, stop and report. Pass projectPath to the close anyway.
 - No hand edits of .vi .ctl .lvclass .lvlib .lvproj: only the kit's byte-exact scripts, with the project closed.
-- Before your first write, run <skill abs path>/kit/lv_windows.ps1: unsaved windows (* in the title) or LVAutoSave
+- Before your first write, run lvai_labview_state: unsaved windows (* in the title) or LVAutoSave
   files you did not make mean the user is working in LabVIEW. Stop and ask; never close, save or kill them.
 - Keep "commit, then close" short: leave the project closed between stretches of work, so a usage cut-off finds it
   closed. An agent cut off with the project open cannot close it, and its unsaved edits wait for the next session.
@@ -167,7 +167,7 @@ the same agent with `SendMessage`, do not re-spawn it, and never answer for the 
 - A fresh agent only when that one cannot go on: a short brief for what is left, from the last commit.
 - Record the resume time, and ask the agent to report the time of its first call (a resumed agent once sat idle for
   about three hours unexplained).
-- Before the resumed work: `lv_windows.ps1` and the `LVAutoSave` count. A project the cut-off agent left open with
+- Before the resumed work: `lvai_labview_state` (windows and the `LVAutoSave` count). A project the cut-off agent left open with
   unsaved edits holds this session's own work: save it through the open project (or discard it with the user's
   ok), then `git status` against the last commit. (A harness run, 2026-10: a cut-off left the project open with
   LVAutoSave 2.)

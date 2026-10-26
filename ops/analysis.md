@@ -91,7 +91,7 @@ Evidence only: no "should", no verdict. Paths relative to the repo root, with fo
 ## Kit status (the scripts this file uses)
 
 - **In the kit now:** `vi_nets.py` (wires with typed endpoints, offline), `check_membership.py`, `sweep_paths.py`,
-  `read_saved_answer.py`, `aixml_frames.py`, `lv_windows.ps1`.
+  `read_saved_answer.py`, `aixml_frames.py`. The window list is labview-mcp's `lvai_labview_state`.
 - **Being ported:** `lv_loadability.py`, from the audit's dependency closure (link scan, closure, "why" chain).
   Until it is in the kit, ask before any LabVIEW call on foreign code. > MCP-candidate: offline-loadability
 - **Still to port** (audit scripts, no kit file yet): the version-byte scan (`lv_save_version.py`, named in

@@ -32,8 +32,7 @@ stays running); the last sweep, tests and runs, which a subagent does before the
 Order: 1 state, 2 main-session events, 3 side effects, 4 status, 5 MCP report, 6 knowledge audit (may add to 3–5),
 7 commit, 8 report.
 
-1. **LabVIEW's state, no LabVIEW call:**
-   `powershell -NoProfile -ExecutionPolicy Bypass -File <skill>/kit/lv_windows.ps1`. Record the PID (this
+1. **LabVIEW's state, no LabVIEW call:** `lvai_labview_state`. Record the PID (this
    session's, per the `session/start.md` report line, or the user's), unsaved titles, dialogs and the `LVAutoSave`
    count. After a crash or a hang this goes first in the status, with what was not verified.
 2. **Main-session events.** Before a subagent closes, the main session writes its own events into

@@ -3,7 +3,7 @@
 # leaves unwired, in a pylv_extract bundle (between pylv_extract and pylv_rebuild, project CLOSED).
 # =============================================================================
 # Why: the right side of a dynamic event registration (Event Structure right terminal -> Unregister,
-# made by Connect Wire, kit/pa_wire_dyn_deep.xml) creates a case output tunnel with no value in the
+# made by Connect Wire, kit/pa_wire_dyn_deep.xml, retired; lvai_wire_dynamic_events now) creates a case output tunnel with no value in the
 # Error frame, which breaks the VI. VI Server's "Use Default if Unwired" is refused by the AIXML
 # property catalogue, so the flag is set in the bundle, in the same round trip as set_user_event_specs.py.
 # Measured on an NI accessor (AIXML export `cond="true"`): a use-default output selTun carries objFlags

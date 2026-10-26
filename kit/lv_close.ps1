@@ -1,7 +1,7 @@
 # =============================================================================
 # lv_close.ps1 - closes the one LabVIEW IDE cleanly (CloseMainWindow + WaitForExit
 # with a timeout) and prints the timing; never kills it. The close step of the
-# LabVIEW restart (session/restart.md; pilot rule 96). Run lv_windows.ps1 first.
+# LabVIEW restart (session/restart.md; pilot rule 96). Run lvai_labview_state first.
 # =============================================================================
 # Usage:
 #   powershell -NoProfile -ExecutionPolicy Bypass -File lv_close.ps1 [-ProcessName LabVIEW] [-TimeoutSeconds 20] [-Check]
@@ -10,7 +10,7 @@
 #   time (taken by this script: Process.ExitTime reads null after the exit, H19), ExitCode.
 # Exit: 0 exited; 1 not exited within the timeout: CloseMainWindow False = LabVIEW did not take the
 #   close message (busy running a VI Server helper, or a modal dialog); True = a dialog came up after
-#   the request. STOP, check with lv_windows.ps1 and wait_lv_idle.ps1, report; never kill.
+#   the request. STOP, check with lvai_labview_state and wait_lv_idle.ps1, report; never kill.
 #   2 no LabVIEW process or more than one.
 # Only with the user's go-ahead for this restart, the project closed with projectPath (pilot rule 95).
 param(
@@ -40,5 +40,5 @@ if ($exited) {
 }
 if ($sent) { "STOP: LabVIEW did not exit within $TimeoutSeconds s; CloseMainWindow returned True: a dialog came up after the close request (the user answers it)." }
 else { "STOP: LabVIEW did not exit within $TimeoutSeconds s; CloseMainWindow returned False: LabVIEW did not take the close message (busy running a VI Server helper, or a modal dialog)." }
-"Check with lv_windows.ps1 (dialogs) and wait_lv_idle.ps1 (CPU); never kill LabVIEW; report."
+"Check with lvai_labview_state (dialogs) and wait_lv_idle.ps1 (CPU); never kill LabVIEW; report."
 exit 1

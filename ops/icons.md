@@ -82,7 +82,7 @@ the spec holds the values `<skill>/kit/make_icons.py` draws from. Start from `<s
 1. **Spec** (mode new or on request; once per project, again when a row changes).
    - Missing spec: write it from the example with the values setup settled. Derive what setup did not settle
      (banner height, colours, glyph style) from the reference icons, `convention: icons.reference`: read a few
-     back with `icon_get_class_icon.xml` / `icon_get_library_icon.xml` into the scratch folder and compare.
+     back with `lvai_read_icons` (classes and libraries too) into the scratch folder and compare.
    - `python <skill>/kit/make_icons.py --spec <spec> --src <src> --out <out> --check`: exit 1 lists every spec
      error; it prints per owner the VIs and glyphs it would draw.
 2. **Generate:** the same command without `--check`. It writes PNGs only (offline), for the whole `src`; only the
@@ -90,37 +90,31 @@ the spec holds the values `<skill>/kit/make_icons.py` draws from. Start from `<s
    glyph layer), `_classes/`, `_libs/`, `manifest.json` (per VI: `composite`, `own`, `class`), `preview.png`.
    **Show `preview.png` to the user and get approval** the first time and after every spec change; commit the
    approved spec and `out`.
-3. **BEFORE read-back** (every class whose existing members or icon this op will save): read back the listed VIs
-   (step 7's route) into `<rb>_before\`, and the class and library icons into `<rb>_before_owner\` (3 calls, under
-   1 s measured). This makes any change measurable beside git.
+3. **BEFORE read-back** (every class whose existing members or icon this op will save): `lvai_read_icons` with
+   `paths` = the listed VIs plus the class and library files, `outDir` = `<rb>_before\` (a **short** absolute folder),
+   `baseDir` = `<src>`. One call; this makes any change measurable beside git.
 4. **The VI's own layer,** only for a VI without one (new, regenerated, or still LabVIEW's default icon):
    - mode new: `lvai_set_vi_icon` with `iconImagePath` = its `_own` PNG and a `readBackPath` in the scratch folder.
      It flattens the icon, so it always comes before the template.
-   - mode adopt: read a sibling's icon (`icon_get_vi_icon.xml`) and set it the same way, or the VI's own glyph only.
+   - mode adopt: read a sibling's icon (`lvai_read_icons`) and set it the same way, or the VI's own glyph only.
    - A VI that already has an `NI_Library` layer plus its own layer skips this step; steps 5–6 re-apply the template
-     and change only the banner pixels.
+     and change only the banner pixels (or `lvai_set_vi_icon` with `keepOwnLayer: true` for that one VI).
    - A VI with no class or library template (a launcher, a test VI) gets its composite PNG here and is done.
-   > MCP-candidate: set-vi-icon-keep-layers
-5. **Class or library template** (mode new or on request, or when the class's spec row changed; never in mode adopt,
-   never for a library under `libraries: keep`):
-   - Class: `icon_set_class_icon.xml` with `carrier vi path` (the generated `icon_carrier.vi`), `png path`
-     (`_classes/<class>.png`), `class path`.
-   - Plain `.lvlib`: `icon_set_library_icon.xml` with `_libs/<lib>.png` and `library path`. A library that holds a
-     class has its own icon, set here only when the library is new or its row changed.
-6. **Apply to the listed members:** `icon_apply_icon_and_save_n.xml` with `class path`, `vi paths` (one string, the
-   listed VIs separated by `;`, **no trailing `;`**) and `is library` (true for a plain `.lvlib`). It opens each
-   member, applies the template, saves each member and the class. `open codes` and `save codes` all 0.
-   > MCP-candidate: class-library-icons
-7. **Read back:**
-   - `python <skill>/kit/icon_readback_inputs.py <rb> <vi> [...] --base <src> --lists <rb>_VL.txt <rb>_PL.txt`, with
-     `<rb>` a **short** absolute folder. It writes both lists and creates the output folders.
-   - `icon_get_vi_icons_n_file.xml` with `vi list` and `png list`. **Count the PNG files**: it must equal the VI
-     count (a missing folder or a path over MAX_PATH writes nothing, with no error).
-   - `python <skill>/kit/pixcmp.py --tree <rb> <out>`: exit 0, every VI 0 px.
-   - Class and library icons into a folder **outside** `<rb>` (e.g. `<rb>_owner\`; a PNG inside `<rb>` makes the
-     tree compare fail with "NO REFERENCE"), then `pixcmp.py <read> <template png>`. In mode adopt, compare the
-     class icon with `<rb>_before_owner\`: 0 px.
-   > MCP-candidate: icon-readback
+5. **Class or library template, and 6. apply to the listed members** (mode new or on request, or when the class's
+   spec row changed; never in mode adopt, never for a library under `libraries: keep`), one call per owner:
+   `lvai_set_owner_icon(ownerPath, pngPath, applyToMembers: true, memberPaths, readBackDir)`.
+   - `ownerPath` = the `.lvclass`, or a plain `.lvlib`; `pngPath` = `_classes/<class>.png` or `_libs/<lib>.png`. A
+     library that holds a class has its own icon, set here only when the library is new or its row changed (then
+     without `applyToMembers`).
+   - `memberPaths` = the listed VIs, one absolute path per line: naming only this task's VIs keeps the other members
+     untouched on disk. `readBackDir` short, in the scratch folder.
+   - It refuses with the project open (`projectOpen`), opens every member, applies the template layer, saves each
+     member and the owner, and reads back: `ownerIcon.pixelsDifferent` 0 and `templateMissing` 0 on every member,
+     every member code 0. It reports `ownerLvVersionBefore/After`: a change is a save-version conflict (above).
+7. **Read back the listed VIs:** `lvai_read_icons` with `paths` = the listed VIs, `outDir` = a short folder `<rb>`,
+   `baseDir` = `<src>`, `expectedDir` = `<out>` (the generated composites). `written` true and status `OK` for every
+   VI (it refuses a PNG path over 259 characters and checks that each PNG was written). In mode adopt, compare the
+   class icon with `<rb>_before\`: 0 px.
 8. **Verify:** re-scan the versions; sweep the touched folder (`ops/sweep.md`) and compare with the sweep before;
    `git status` shows at most the listed VIs, the `.lvclass`/`.lvlib` and `out`. Commit. An apply can also re-save ANOTHER class's
    `.lvclass` (BOM and `FlattenedPrivateDataCTL` only, a harness run 2026-10): restore it from git with the project closed and report
@@ -134,7 +128,7 @@ row, regenerate, show the preview, then steps 3–8 for that class.
 ```
 icons <n> VIs  mode <new | adopt | on request> per owner  spec <path> (new | existing)  preview approved <yes | no>
 before read-back <yes | not needed>  own layers <n> (skipped: <n> with a layer)  templates: classes <n> libraries <n>
-applied <n>: open/save codes all 0 <yes | no>   read-back <ok>/<n> 0 px (files <n>)   owners <ok>/<n>
+applied <n>: member codes all 0, templateMissing 0 <yes | no>   read-back <ok>/<n> OK (written <n>)   owners <ok>/<n> 0 px
 versions <unchanged | conflict: asked, <answer>>   sweep <same as before | changed>   git <files>   commits <hashes>
 kit TODO differences shown to the user: <list | none>   LabVIEW calls <n>   issues: <exact text | none>
 ```
@@ -148,10 +142,10 @@ Every re-saved file and version change also goes into the end-of-session side ef
 - **Owner by folder name.** The engine takes a VI's owner from its folder name and builds `<folder>.lvclass` from
   it. If the class file is named differently, run per class with `--src` = the class folder and `top_level_owner` =
   the class name (KT-3).
-- **1562 on `icon_set_class_icon` with nothing visibly locked:** the class is probably held by an earlier
-  `LVClass.Open` in this LabVIEW. The cure is a restart with that call first, only with the user's go-ahead
-  (`session/restart.md`). Fallback, only with the user's ok (`convention: icons.labview-template`): `lvai_set_vi_icon`
-  with each member's composite (same look, no `NI_Library` layer, the class icon stays old). Details: `knowledge/labview-mcp.md`, "lvai_set_vi_icon and icon work".
-- `ApplyIconToVIs` alone saves no member, and on a plain `.lvlib` it silently does nothing unless the members are
-  opened first: the `_n` helper does both. A cached `icon_apply_icon_and_save_n.vi` without `open codes` is stale.
+- **1562 from `lvai_set_owner_icon` with the project closed and nothing visibly locked:** the class is probably held
+  by an earlier `LVClass.Open` in this LabVIEW. The cure is a restart with that call first, only with the user's
+  go-ahead (`session/restart.md`). Fallback, only with the user's ok (`convention: icons.labview-template`):
+  `lvai_set_vi_icon` with each member's composite (same look, no `NI_Library` layer, the class icon stays old).
+  Details: `knowledge/labview-mcp.md`, "lvai_set_vi_icon and icon work".
+- `lvai_set_owner_icon` with over 100 members (its list-file helper) is unmeasured.
 - Any regeneration of a VI drops its icon: steps 4–7 again for it.

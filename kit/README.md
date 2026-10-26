@@ -2,11 +2,12 @@
 
 The kit holds what the skill's `ops/` and `session/` files run beside labview-mcp's own tools:
 
-- **Helper VIs** as AIXML (`*.xml`): VI Server scripting that no labview-mcp tool does yet (AF overrides and hooks,
-  Clean Up Diagram, icons of classes and libraries, front-panel properties, sweeps, reads of running VIs).
+- **Helper VIs** as AIXML (`*.xml`): VI Server scripting that no labview-mcp tool does yet (the AF hook shapes the
+  tools refuse or lack, Clean Up Diagram, front-panel properties, sweeps, reads of running VIs).
 - **Python scripts** (standard library only): byte-exact edits of `.lvproj`/`.lvclass`/`.lvlib` files, input lists
   for the helpers, offline reads of VI files (links, nets, versions, loadability), icon generation and read-back.
-- **PowerShell scripts**: LabVIEW's windows, dialogs, CPU time and the Nigel chat, with no LabVIEW call.
+- **PowerShell scripts**: LabVIEW's close, dialogs, CPU time over a span and the Nigel chat, with no LabVIEW call
+  (the window list itself is `lvai_labview_state`).
 - **Examples** (`example_*.xml`): measured AIXML bodies to copy from.
 
 **How helpers are used** (generate into the helper folder, run with `lvai_run_vi_and_read_values`, input rules,
@@ -28,7 +29,6 @@ kit's `project.example.json` is superseded by `conventions/templates/project.jso
 
 | File | Kind | What it does | Used by | MCP candidate |
 |---|---|---|---|---|
-| `lv_windows.ps1` | powershell | Lists LabVIEW's top-level windows; flags `*` (unsaved) titles and possible dialogs; prints LabVIEW and Nigel PIDs and the `LVAutoSave` count. Read-only; `-Check` self-test. | session/start.md, restart.md, close.md, brief.md; ops/analysis.md, sweep.md; knowledge/labview-mcp.md | ensure-labview-complete, dialog-detection, restart-with-guards |
 | `lv_start_nigel_chat.ps1` | powershell | Starts the Nigel chat (`LVNigelChat.exe --lv-version --lv-bitness`), so the labview-mcp service comes up; never kills. `-Check` prints the command only. | session/start.md | ensure-labview-complete, restart-with-guards |
 | `lv_press_ok.ps1` | powershell | Presses OK on a message box of one given PID (a box our own probe raised); refuses a LabVIEW PID. `-Check` lists the boxes. | session/start.md | restart-with-guards |
 | `lv_close.ps1` | powershell | Closes the one LabVIEW (`CloseMainWindow` + wait), prints the timing and `CloseMainWindow`'s answer (False = close message not taken: busy or modal; True + timeout = a dialog came up); never kills. Only with the user's go-ahead. `-Check` dry run. | session/restart.md | restart-with-guards |
@@ -36,8 +36,6 @@ kit's `project.example.json` is superseded by `conventions/templates/project.jso
 | `lv_dialog.ps1` | powershell | Names the dialog that blocks LabVIEW (title, buttons, text). `-Escape` cancels it with Esc, **only with the user's go-ahead** for that dialog; refuses several matches or a dialog not in front. | session/restart.md (planned) | dialog-detection |
 | `lv_loadability.py` | python | Offline load closure per VI/class/library/project/folder: "loadable", or the unresolved dependencies grouped by package with the load chain; `--lazy`, `--json`, `--links`, `--check`. Exit 1 = something does not resolve. | ops/analysis.md, sweep.md, class-field.md, cleanup.md, icons.md, rename.md, review.md, run-checks.md | offline-loadability |
 | `lv_save_version.py` | python | The LabVIEW version a `.vi`/`.ctl`/`.vim` (version stamps, a heuristic) or a `.lvclass`/`.lvlib`/`.lvproj` (`LVVersion`, `NI.LV.All.SaveVersion`) was saved in, on disk or at a git revision. `--check`. | knowledge/labview-mcp.md "Save version"; ops/analysis.md, cleanup.md, icons.md; session/brief.md, close.md | save-version-check |
-| `pa_vis_in_memory.xml` | helper XML | `All VIs In Memory` names and count (default instance only; no classes or libraries). | session/restart.md | memory-inspection |
-| `pa_vis_modified.xml` | helper XML | Per VI in memory the front-panel and diagram modification bitsets (nonzero = unsaved); default instance only. | session/restart.md | memory-inspection |
 | `read_saved_answer.py` | python | Compact read of a tool answer saved to a file because it was too large (`describe_project`, `placeholder_subvi`, `add_class_method`). Read-only. | ops/analysis.md, run-checks.md, sweep.md; session/restart.md; knowledge/labview-mcp.md | read-named-indicators |
 
 ### Sweep, cleanup, membership, nets
@@ -56,9 +54,7 @@ kit's `project.example.json` is superseded by `conventions/templates/project.jso
 
 | File | Kind | What it does | Used by | MCP candidate |
 |---|---|---|---|---|
-| `lvai_create_override.xml` | helper XML | Creates an AF override with Call Parent (`class path`, `parent method path`, `new vi path`, `vi name in memory`). | ops/override.md | create-override |
-| `af_add_hook_call.xml`, `af_add_hook_call_node.xml` | helper XML | Branch hook from a panel terminal, or from a node terminal (after a series body). | ops/override.md | add-hook |
-| `pa_insert_series2.xml` | helper XML | In-series hook on one or two panel wires. Reconnects ONE far end only: on a wire with branches use `pa_insert_series_branch.xml`. | ops/override.md | add-hook |
+| `af_add_hook_call_node.xml` | helper XML | A hook fed from a node's terminal, any terminal (e.g. a release hook's `error out` into a log VI); `lvai_af_add_hook` `branchFromNode` taps only a series hook's class output. | ops/override.md | add-hook |
 | `pa_insert_series_branch.xml` | helper XML | In-series hook in front of ONE far terminal (`far name A/B`, owner class `far owner class`, default `CallParentNode`), every other branch of the wire kept on the panel terminal. Saves the VI only (then `pa_save_member`). Project open and active. | ops/override.md | add-hook |
 | `pa_reg_to_control.xml` | helper XML | In a helper-loop VI, replaces the top-level Register For Events by an input control carrying the same registration refnum (Create Control on Register's input, delete Register, its Unbundle and the fresh constant, wire the control to the loop tunnel), assigns it to pane slot `term index`, saves. No Remove Bad Wires (on purpose). Project open and active. | ops/helper-loop.md (step 7b) | wire-dynamic-events-fix |
 | `pa_reg_through_error_frame.xml` | helper XML | In a helper-loop VI after step 7b: wires the registration refnum through the event loop's Error frame (case input tunnel to case output tunnel), so Unregister gets the live refnum on an error exit; all lookups first, `apply` F = dry run. `variant` 1 only: variant 2 (Unregister from the control) is the measured failure that hangs every stop. Project closed. | ops/helper-loop.md (step 7c) | wire-dynamic-events-fix |
@@ -66,14 +62,11 @@ kit's `project.example.json` is superseded by `conventions/templates/project.jso
 | `pa_wire_nodes.xml` | helper XML | On a VI's top-level diagram, wires a terminal of one subVI node to a terminal of another (nodes by VI-name regex, terminals by name) and reads the wire back (ends, broken). Does not save: `pa_save_member` next. Project open and active. | ops/helper-loop.md (step 11) | add-hook |
 | `pa_insert_seq_hook.xml`, `pa_append_seq_hook.xml` | helper XML | A one-frame Flat Sequence after Call Parent holding a hook; a second hook in the same frame after the first. | ops/override.md | add-hook |
 | `pa_close_join.xml` | helper XML | Wires the close shape in an Actor Core: finds Call Parent, the helper-loop node and the frame's stop hook by VI-name regex (`vi path`, `class path`, `close vi path`, `loop vi regex`, `stop vi regex`; optional `remove vi regex`, `class terminal name`, `merge style` 2147, `indicator label`), creates the close subVI and two Merge Errors: Merge(loop, stop hook) -> close; Merge(Call Parent, close) -> `error out`; Call Parent's error out stays an order tunnel into the frame. The optional delete is outside the error chain (1055 in `delete node error` = nothing matched); hook error inputs `error in` or `error in (no error)`. Project open and active, one run, then `pa_save_member`. | knowledge/labview-mcp.md; ops/override.md | add-hook |
-| `pa_delete_subvi.xml` | helper XML | Deletes the subVI nodes that have a given terminal (unhooking). | ops/override.md | add-hook |
 | `pa_remove_series_block.xml` | helper XML | Takes one wire pair of a series subVI node out and bridges it: every lookup first, then deletes the in- and out-wire (and the node when `delete node` T), wires the source to every kept branch and far end, reads the wire back, saves the VI (then `pa_save_member`). Run once per pair. Project open and active. | ops/override.md (section 5); knowledge/labview-mcp.md | add-hook |
 | `pa_clean_member.xml` | helper XML | Remove Bad Wires + save of a member. | ops/sweep.md; knowledge/labview-mcp.md | add-hook |
 | `pa_save_member.xml` | helper XML | Saves a member edited in memory plus its class, in a separate call. | knowledge/labview-mcp.md | add-hook |
 | `pa_frame_hook_sink.xml` | helper XML | In an override with one one-frame Flat Sequence: finds a subVI node INSIDE the frame by VI-name regex and wires one of its terminals into a new subVI dropped in the same frame (an appended hook's `error out` into `Clear Errors`, input `error in (no error)`). `apply` F = dry run; saves the VI and the class. Project open and active. | ops/override.md | add-hook |
-| `lvai_create_message_class.xml` | helper XML | Drives NI's Message Maker directly; for an interface method, then `repair_r1.py`. | knowledge/labview-mcp.md | message-interface-method |
 | `repair_r1.py` | python | Repairs an interface message from the Message Maker helper (`Parent Libraries` block, `Send <method>.vi` name), byte-exact; project closed. | knowledge/labview-mcp.md | message-interface-method |
-| `lvai_create_actor_library.xml` | helper XML | Creates an AF library as NI's AddActor provider does and moves an existing class into it. | knowledge/labview-mcp.md; ops/override.md (planned) | - |
 | `pa_stop_actor_from_panel.xml` | helper XML | Sends Normal Stop to a running actor tree whose enqueuer you do not hold (reads the actor object from a running hook's panel); needs a socket VI edited to your actor type. | ops/run-checks.md (planned) | run-vi-async |
 
 ### Classes, fields, renames, project items
@@ -89,9 +82,7 @@ kit's `project.example.json` is superseded by `conventions/templates/project.jso
 | `lvproj_move.py` | python | Moves a one-line `.lvproj` item into a sibling virtual folder (`--create` makes it); byte-exact; project closed. | knowledge/labview-mcp.md | project-item-tools |
 | `lvproj_add_toplevel.py` | python | Adds one-line VI items directly under My Computer; refuses a name or URL already listed; byte-exact. | knowledge/labview-mcp.md | project-item-tools |
 | `pa_new_project.xml` | helper XML | Creates and saves a new `.lvproj` with virtual folders under My Computer (`new lvproj path`, `folder names` `;`-separated). No project needs to be open. | knowledge/labview-mcp.md | project-item-tools |
-| `pa_new_library.xml` | helper XML | Creates and saves an empty plain `.lvlib` (`library path`). Project open and active; then `pa_project_add_file.xml`, or the close drops it. | knowledge/labview-mcp.md | project-item-tools |
 | `pa_project_add_file.xml` | helper XML | Adds one existing file directly under My Computer (`{LV.TargetItem}` `AddFile`); the close saves the project. Project open and active. | knowledge/labview-mcp.md | project-item-tools |
-| `pa_class_folder_add_existing.xml` | helper XML | Adds existing files into an EXISTING virtual folder of a class (where `pa_class_folder_add_files.xml` answers 56001), then Save All of the class; same inputs. Project open and active. | ops/class-field.md | add-to-class |
 | `make_batch_json.py` | python | Builds `methodsJson` for `lvai_add_class_method` or `editsJson` for `lvai_swap_subvis` from a CSV/JSON table; warns on a shared stub. Read-only. | ops/helper-loop.md; ops/class-field.md (planned) | - |
 | `make_probe.py` | python | Copies an AIXML under a throwaway VI name, so a first trial convert cannot burn the real name. | knowledge/labview-mcp.md | - |
 | `patch_ctl.py` | python | Turns a generated VI bundle into a typedef `.ctl` (flag patch). | knowledge/labview-mcp.md | - |
@@ -100,8 +91,6 @@ kit's `project.example.json` is superseded by `conventions/templates/project.jso
 
 | File | Kind | What it does | Used by | MCP candidate |
 |---|---|---|---|---|
-| `pa_wire_dyn_right.xml` | helper XML | Wires the right side of the dynamic-event registration (event structure terminal to Unregister); event structure ONE level inside a top-level loop or case. Project open and active. | knowledge/labview-mcp.md; ops/helper-loop.md | wire-dynamic-events-fix |
-| `pa_wire_dyn_deep.xml` | helper XML | Wires BOTH sides of the dynamic-event registration (Register refnum to the dynamic terminal, right terminal to Unregister) with the event structure up to three levels down (loop, case frame, event structure). Leaves the new case tunnel without a value: `set_use_default.py` next. Project open and active. | ops/helper-loop.md; knowledge/labview-mcp.md | wire-dynamic-events-fix |
 | `set_use_default.py` | python | Sets "Use Default if Unwired" (objFlags +0x200000) on case output tunnels left unwired in a frame, in a `pylv_extract` bundle; `--check` lists them. Touches every such tunnel. | ops/helper-loop.md; knowledge/labview-mcp.md | wire-dynamic-events-fix |
 | `set_user_event_specs.py` | python | Writes user-event specs with an explicit `dynIndex` into a `pylv_extract` bundle before `pylv_rebuild`. | knowledge/labview-mcp.md; ops/helper-loop.md | wire-dynamic-events-fix |
 | `set_reentrant_flags.py` | python | Sets shared-clone reentrancy on a `pylv_extract` bundle (a static hook inside a dispatch recursion). | knowledge/labview-mcp.md | control-property-setters |
@@ -116,9 +105,6 @@ kit's `project.example.json` is superseded by `conventions/templates/project.jso
 | `pa_save_orphan.xml` | helper XML | Saves a path-less VI by name (`VI Name`, `Save Path`) in the active project's instance, so the project can close after a convert failed at save (Error 1019). Project open and active. | knowledge/labview-mcp.md | close-project-guard |
 | `pa_set_plot_names.xml` | helper XML | Sets the names of plot 0 and plot 1 of a waveform chart found by label (`{LV.WaveformChart}` `Active Plot` / `Plot`, `{LV.Plot}` `Plot Name`), reads back, saves. Two plots only. Project closed. | knowledge/labview-mcp.md | control-property-setters |
 | `mem_lines.py` | python | Prints the lines of a saved `pa_project_vis_modified` answer (too large for a tool result on a big project): every line to a file, the modified ones and filter hits to the screen. | knowledge/labview-mcp.md | memory-inspection |
-| `pa_set_class_description.xml` | helper XML | Writes a class's description (`{LV.LVClassLibrary}` `Description`), reads it back, class `Save`. Stored ANSI: write ASCII ("→" becomes "?" with no error). Project open and active. | knowledge/labview-mcp.md | class-description |
-| `pa_class_folder_add_files.xml` | helper XML | Creates a virtual folder in a class and adds existing files to it as members (`{LV.Library}` `AddItem` Folder, `{LV.ProjectItem}` `AddItem`), then Save All of the class. One run per folder (it creates the folder). A `.ctl` added this way is renamed and its callers relink (`knowledge/labview-mcp.md`, "Class description, typedef membership, virtual folders"). Project open and active. | ops/class-field.md; knowledge/labview-mcp.md | add-to-class |
-| `pa_class_folder_create_and_move.xml`, `pa_class_folder_move.xml` | helper XML | Moves existing class members into a virtual folder by name (`{LV.ProjectItem}` `Move`), class `Save`; the first creates the folder, the second finds an existing one. Only the `.lvclass` changes. Project open and active. | ops/override.md; ops/helper-loop.md; knowledge/labview-mcp.md | move-to-folder |
 | `pa_save_libraries.xml` | helper XML | Per library: `Library.Open`, `Save All This Library.vi`, only modified. The only save for a modified `.ctl` (`Open VI Reference` answers 1035 for one). Project open and active. | knowledge/labview-mcp.md | add-to-class |
 | `pa_project_vis_modified.xml` | helper XML | Every VI/ctl in memory in the ACTIVE PROJECT's instance with its modification bitsets; `save modified?` T saves the modified ones. The answer can exceed the tool-result limit on a large project. | knowledge/labview-mcp.md | memory-inspection |
 | `pa_run_vi_async.xml` | helper XML | Starts a never-returning VI (Run VI, Wait Until Done F) without blocking the service. | ops/run-checks.md; knowledge/labview-mcp.md | run-vi-async |
@@ -134,15 +120,6 @@ kit's `project.example.json` is superseded by `conventions/templates/project.jso
 |---|---|---|---|---|
 | `make_icons.py` | python | 32x32 icon generator from `.labview/conventions/icon-spec.json`: VI composites, own layers, class templates, library icons, manifest, preview; `--check` writes nothing. | ops/icons.md | icon-generator |
 | `icon-spec.example.json` | example | A small generic spec for `make_icons.py`; `_doc` explains every key. Copy to `.labview/conventions/icon-spec.json`. | ops/icons.md | icon-generator |
-| `icon_carrier.xml` | helper XML | An empty VI used as the image carrier of the class/library icon helpers. | ops/icons.md | class-library-icons |
-| `icon_set_class_icon.xml`, `icon_set_library_icon.xml` | helper XML | Sets a `.lvclass` / plain `.lvlib` icon from a PNG and saves it. Project closed. | ops/icons.md | class-library-icons |
-| `icon_apply_icon_and_save_n.xml` | helper XML | Opens every member, `ApplyIconToVIs`, saves each member and the owner; codes per member. Project closed; no trailing `;`. | ops/icons.md | class-library-icons |
-| `icon_apply_icon_and_save.xml`, `icon_apply_icon_to_vis.xml` | helper XML | The four-VI predecessor of the above; and `ApplyIconToVIs` without member saves (the negative control). | - | class-library-icons |
-| `icon_get_class_icon.xml`, `icon_get_library_icon.xml`, `icon_get_vi_icon.xml` | helper XML | Read a class / library / VI icon back to a PNG (the output folder must exist). | ops/icons.md | icon-readback |
-| `icon_get_vi_icons_n_file.xml` | helper XML | Batch read-back of VI icons to PNGs from list files (from ~100 VIs up). | ops/icons.md | icon-readback, runner-array-inputs |
-| `icon_get_vi_icons_n.xml` | helper XML | The same batch read-back from list strings. | - | icon-readback, runner-array-inputs |
-| `icon_readback_inputs.py` | python | Builds the paired VI/PNG lists for the batch read-back and creates the output folders. | ops/icons.md | icon-readback |
-| `pixcmp.py` | python | Pure-Python PNG pixel compare, file pair or tree. Read-only. | ops/icons.md | icon-readback |
 
 ### Examples
 
@@ -172,13 +149,58 @@ The examples use the pilot's `PA-` names and `LVMCP Stub …` names: replace the
   own folder); `--allow <file>` for project-level items by design; `--before <report>` for new MISSING lines only.
 - **KT-3, make_icons.py:** take the owner from the `.lvclass`/`.lvlib` file found in the VI's folder or above, the
   folder name only as a fallback with a warning (75 of 437 classes in the audit's reference code differ).
-- **KT-5, lv_windows.ps1:** match the ignore list by title suffix (`*RunService.vi`); `-CpuSeconds N`; flag
-  `AUTOSAVE-WITH-PROJECT` when a project window is open and `LVAutoSave` > 0.
 - **KT-6, lv_close.ps1:** the message half is done (it prints `CloseMainWindow`'s answer and tells busy from a late
   dialog, RS-5); separate exit codes for the two cases (1 vs 3) are still open.
 - **KT-8, sweep helper:** an `owner list` input that holds each owning library open for the batch (a library then
   loads once, not once per VI), and `sweep_paths.py --ext .vi,.vim,.ctl`.
 - **wait_lv_idle.ps1 and lv_dialog.ps1 (KT-7):** ported and run read-only against an idle LabVIEW; `lv_dialog.ps1
   -Escape` has not been run since the port (it needs a live dialog and the user's go-ahead).
-- **Pilot text in copied files:** `lv_windows.ps1`, `lv_start_nigel_chat.ps1` and the Python headers still cite the
+- **Pilot text in copied files:** `lv_start_nigel_chat.ps1` and the Python headers still cite the
   pilot's skill names and rule numbers as provenance; `PA-log.xml` holds a placeholder log path in its constant.
+
+## Retired (a labview-mcp tool does the job now)
+
+Removed on 2026-10-26, when labview-mcp 2.2 shipped the tools below. Nothing was lost: every file is in commit
+`539094c` (`git show 539094c:kit/<file> > <file>` brings one back), and its measured facts are in the tool's own
+description or in labview-mcp's `docs/`. Kept on purpose because a tool does not cover it: `af_add_hook_call_node.xml`
+(a node's error output into a log VI), `pa_insert_series_branch.xml` (a series insert on a wire with branches, which
+`lvai_af_add_hook` refuses), `pa_remove_series_block.xml` (what `lvai_af_remove_hook` refuses as
+`seriesHookNotRemovable`), `pa_save_member.xml` and `pa_clean_member.xml` (after the kept hook helpers),
+`pa_project_vis_modified.xml` (it can SAVE the modified VIs; `lvai_vis_in_memory` only reads), `pa_set_vi_descriptions.xml`
+(a typedef's description; the tool takes `.vi` only), `set_user_event_specs.py` and `set_use_default.py` (the offline
+check of what `lvai_wire_dynamic_events` wrote, and a hand fix), `lv_dialog.ps1`, `lv_close.ps1`, `lv_press_ok.ps1`,
+`lv_start_nigel_chat.ps1` and `wait_lv_idle.ps1` (no official tool closes LabVIEW, answers a dialog or samples CPU
+over a span).
+
+| File | Replaced by | Note |
+|---|---|---|
+| `lvai_create_override.xml` | `lvai_create_override` | same helper ships in labview-mcp's `scripts\` |
+| `lvai_create_actor_library.xml` | labview-mcp `<scriptsDirectory>\lvai_create_actor_library.xml` | byte-identical; `lvai_status` reports `scriptsDirectory` |
+| `lvai_create_message_class.xml` | labview-mcp `<scriptsDirectory>\lvai_create_message_class.xml` | byte-identical; still the route for an interface message, then `repair_r1.py` |
+| `icon_set_class_icon.xml` | `lvai_set_owner_icon` | ported as `lvai_icon_set_class_icon.xml` |
+| `icon_set_library_icon.xml` | `lvai_set_owner_icon` | ported as `lvai_icon_set_library_icon.xml` |
+| `icon_apply_icon_and_save_n.xml` | `lvai_set_owner_icon` `applyToMembers` | ported as `lvai_icon_apply_and_save_n.xml` |
+| `icon_apply_icon_and_save.xml` | `lvai_set_owner_icon` | the four-VI predecessor |
+| `icon_apply_icon_to_vis.xml` | - | negative control of the 2026-10 measurement (ApplyIconToVIs saves nothing) |
+| `icon_carrier.xml` | `lvai_set_owner_icon`, `lvai_read_icons` | ported as `lvai_icon_carrier.xml` |
+| `icon_get_class_icon.xml` | `lvai_read_icons` | ported as `lvai_icon_get_class_icon.xml` |
+| `icon_get_library_icon.xml` | `lvai_read_icons` | ported as `lvai_icon_get_library_icon.xml` |
+| `icon_get_vi_icon.xml` | `lvai_read_icons` |  |
+| `icon_get_vi_icons_n.xml` | `lvai_read_icons` |  |
+| `icon_get_vi_icons_n_file.xml` | `lvai_read_icons` | ported as `lvai_icon_get_vi_icons_n_file.xml` (100 VIs per call) |
+| `icon_readback_inputs.py` | `lvai_read_icons` | it creates the folders and refuses long paths itself |
+| `pixcmp.py` | `lvai_read_icons` `expectedDir` | the compare is a port of this script |
+| `pa_set_class_description.xml` | `lvai_set_class_description` | also refuses text outside CP1252 |
+| `pa_class_folder_add_files.xml` | `lvai_add_to_class` | creates the folder; relinks and saves the callers you list |
+| `pa_class_folder_add_existing.xml` | `lvai_add_to_class` | adds into an existing folder |
+| `pa_class_folder_move.xml` | `lvai_move_to_folder` |  |
+| `pa_class_folder_create_and_move.xml` | `lvai_move_to_folder` `createFolder` |  |
+| `pa_new_library.xml` | `lvai_create_library` | also lists it in the project, sets the description, adds items |
+| `pa_vis_in_memory.xml` | `lvai_vis_in_memory` | reads every instance, not only the default one |
+| `pa_vis_modified.xml` | `lvai_vis_in_memory` | ported as `lvai_vis_modified.xml` |
+| `lv_windows.ps1` | `lvai_labview_state` | adds a screenshot per possible dialog and hidden-window checks |
+| `af_add_hook_call.xml` | `lvai_af_add_hook` `branch` | `af_add_hook_call_node.xml` stays: it wires any node output |
+| `pa_insert_series2.xml` | `lvai_af_add_hook` `series` / `seriesAfter` | on a wire with branches `pa_insert_series_branch.xml` stays |
+| `pa_delete_subvi.xml` | `lvai_af_remove_hook` | deletes ONE node by name and bypasses a series hook; the kit helper deleted every node with a terminal |
+| `pa_wire_dyn_deep.xml` | `lvai_wire_dynamic_events` | any depth, both sides, Use Default on the new tunnel |
+| `pa_wire_dyn_right.xml` | `lvai_wire_dynamic_events` `wireRightSide` |  |

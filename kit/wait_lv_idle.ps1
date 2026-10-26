@@ -17,7 +17,7 @@
 #   -Check    print the process found and the settings; samples and waits nothing.
 # Exit: 0 idle (or -Check); 1 still busy at -MaxMinutes (or -Once busy); 2 no LabVIEW process or
 #   more than one, or LabVIEW exited while waiting.
-# Idle is not "safe": a modal dialog leaves LabVIEW idle and the service blocked. Run lv_windows.ps1
+# Idle is not "safe": a modal dialog leaves LabVIEW idle and the service blocked. Run lvai_labview_state
 #   after an idle verdict. Provenance: ported from the skills audit's scratch wait script (runs R1, R3).
 param(
     [string]$ProcessName = 'LabVIEW',

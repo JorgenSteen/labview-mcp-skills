@@ -1,6 +1,6 @@
 # ============================================================================
 # sweep_paths.py - builds the `vi paths` input for pa_exec_state_sweep.xml
-# (and pa_cleanup_diagram.xml, icon_get_vi_icons_n.xml): every *.vi under a
+# (and pa_cleanup_diagram.xml): every *.vi under a
 # folder, each followed by ';', plus a missing path as the negative control.
 # The runner cannot set array controls, so the helpers take one ';'-terminated
 # string.

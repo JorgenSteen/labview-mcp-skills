@@ -60,8 +60,9 @@ or when a concern is off, follow the surrounding code instead.
    - `stop`: `Read events` → Generate the stop event. `close`: per `af-shapes.close-vi`; work that must follow the
      loop's exit (a final log line) goes here, not into the D frame.
    - Their virtual folder: `Methods` (`convention: layout.class-folders`). A member with NO class terminal (a pure
-     function such as a `tick`) joins the class with `kit/pa_class_folder_add_files.xml` into `Methods`
-     (measured in an evaluation, 2026-10).
+     function such as a `tick`) joins the class with `lvai_add_to_class(lvclassPath, itemPaths, projectPath, folder =
+     "Methods")`. The VI Server route is measured (the kit, an evaluation 2026-10); labview-mcp lists the tool's
+     adding of a `.vi` as unmeasured: check the `.lvclass` afterwards.
    Author each in AIXML with the class as a `path` stand-in and the accessors as `lvai_placeholder_subvi` stubs.
    **Class terminals per member:** a member that goes in series on the class wire or writes a field returns the
    object: `createResources`, `createEvents` and `init` declare `<C> in` AND `<C> out` in their AIXML and get
@@ -85,15 +86,15 @@ or when a concern is off, follow the surrounding code instead.
      here) and **no incoming error** (a fresh "no error", measured in the pilot) → the loop(s) → `Unregister For
      Events` → `Merge Errors` (`error in`, the loop's error, Unregister's) → `error out`. Leave Register's output and
      Unregister's `event registration refnum` input unwired, and author **no** refnum `<Tunnel>`: the dynamic wiring is
-     steps 5 and 6.
+     step 5.
    - **The error case, inside the loop** (`convention: af-shapes.helper-loop-error-case`): `error in` enters the loop in
      a shift register; a `<Structure _name="Case Structure">` with `selectin` = that error. Error frame: the loop's stop
      terminal T, the error passed on. No Error frame: the event structure (or the loop's work). The AIXML reference
      lists error-cluster selectors (`No Error`, `Error 1..5`, `Default`). Every output tunnel needs a value in both
-     frames (the refnum tunnel step 5 creates is the exception: step 7 sets it). Built and run in a harness run
+     frames (the refnum tunnel step 5 creates is the exception: step 5 sets its flag). Built and run in a harness run
      (2026-10, state 1 after steps 5–7).
    - Frames select the element label, e.g. ` <stop>\3A User Event `. Timeout frame per `convention:
-     af-shapes.timed-work`; an event structure whose frames are all user events needs an empty one for step 7.
+     af-shapes.timed-work`; an event structure whose frames are all user events needs an empty one for the spec step (step 5).
    - Sends to its own actor: `Read Self Enqueuer` → a generated `Send <method>.vi` (protected: the VI must be a member).
      The message class must exist first (`lvai_create_message_class`; messages before overrides, `knowledge/labview-
      mcp.md`, "Evidence, git, build order"); in this AIXML the `Send` VI is a stub, swapped in step 9.
@@ -111,35 +112,34 @@ or when a concern is off, follow the surrounding code instead.
    structure nested in a case frame inside the loop (measured 2026-10). > MCP-candidate: generate-with-events-fixes
    A panel control with a static event (e.g. a `Stop` button) gets its Value Change frame from the generator itself;
    that row survives step 7 (`--check` lists it as a static row) (a harness run, 2026-10).
-5. **Both sides of the registration**, project open and active (the VI is not a member yet; opening the project with
-   it in memory can adopt it as a loose top-level item: after step 9, check the `.lvproj` with the project closed and
-   drop a leftover loose entry with `lvproj_drop.py`). Before step 9 a helper's own `Save.Instrument` is the save
-   (`pa_save_member` needs the class membership): `kit/pa_wire_dyn_deep.xml` (`VI Path`, capitals as written). It finds the event structure up
-   to three levels down (loop → case frame → event structure, the error-case shape), wires Register's refnum output to
-   the dynamic terminal and the right-side terminal to Unregister on the top-level diagram. Read `event structure
-   found`, `left terminal found`, `right terminal found`, `register found`, `unregister found` T, `left wire ends` and
-   `right wire ends` 2, `left wire broken` and `right wire broken` F, error 0. Measured 2026-10 on the error-case shape.
-   `lvai_wire_dynamic_events` searches two levels only: here it answers Error 91 / `helperDidNotAnswer` and changes
-   nothing. The new right-side tunnel has no value in the Error frame and breaks the VI until step 7; step 7c then
-   wires the refnum through that frame.
+5. **Both sides of the registration, the specs and the tunnel flag**, project open and active (the VI is not a member
+   yet; opening the project with it in memory can adopt it as a loose top-level item: after step 9, check the
+   `.lvproj` with the project closed and drop a leftover loose entry with `lvproj_drop.py`):
+   `lvai_wire_dynamic_events(viPath)` with its defaults (`wireRightSide`, `finishUserEvents` true). It finds the event
+   structure at any depth (the error-case shape: loop → case frame → event structure), wires Register's refnum output to
+   the dynamic terminal (`sourceFrom` = the diagram, since step 3 authors no refnum tunnel) and the right-side terminal
+   to Unregister, writes the user-event specs of every user-event frame from the `dynIndex` the generator wrote, and
+   sets "Use Default if Unwired" on the case tunnel this wiring created (only that one). Its bundle step CLOSES AND
+   SAVES the active project (`projectClosed`, `projectClosedFor`). Read `eventStructuresFound` 1, `rightSide` (not
+   skipped), `userEventStep`, `useDefaultSet` = the one new tunnel; then render the diagram (`lvai_render_diagrams`):
+   the tool says a render is the only proof of the wire. A VI generated before 2026-10-10 is refused (it carries
+   `dynIndex` 1 on every frame): regenerate it. These are labview-mcp's fixes for the measured gaps of this step; the
+   tool on this exact shape is not yet measured here: if it refuses, stop and report (the kit route it replaced is in
+   `kit/README.md`, "Retired").
    > MCP-candidate: wire-dynamic-events-fix
-6. **Skip on the error-case shape.** For a one-level shape only (event structure directly in the top-level loop, no
-   error case, e.g. existing code): left side
-   `lvai_wire_dynamic_events(viPath, finishUserEvents: false)` (expected `sourceFrom diagram`, `wireEndsAfter 2`,
-   Error 91 / `helperDidNotAnswer`; the default `finishUserEvents` closes and saves the active project), right side
-   `kit/pa_wire_dyn_right.xml` (`VI Path`): `event structure found`, `dyn out found`, `unregister found` T, `wire ends
-   after` 2, `wire broken` F. (pilot rule 60)
-7. **User-event specs**, project closed: `pylv_extract` → `python <skill>/kit/set_user_event_specs.py <bundle> <base>
-   <diagramIdx>:<element label>:<dynIndex> ...` → `pylv_rebuild`. `<bundle>` = the folder `pylv_extract` wrote,
-   `<base>` = the VI's file name without `.vi` (the bundle's files are `<base>_*.xml`). `diagramIdx` = the frame's
-   0-based position in the event structure's frame list as the AIXML export lists it (Timeout included), `dynIndex` =
-   the source's 1-based position on Register. Run `--check` before (current rows) and after: after, one row per
-   user-event frame with its `dynIndex`, plus any static row the generator made. Needed for one event too. Measured
-   rows: `0:error:2 2:stop:1`, `1:stop_event:1`. (pilot rules 39, 60)
-   In the same round trip, after step 5: `python <skill>/kit/set_use_default.py <bundle> <base> --check` must list
-   only the new refnum tunnel (it flags EVERY case output tunnel left unwired in a frame, which in hand-built code can
-   hide a real missing wire); if it lists more, stop and wire or report those first; then run it without `--check`. It sets "Use Default if Unwired", which AIXML refuses
-   ("Invalid property"). Measured 2026-10: cold state 1 with the flag, 0 without. > MCP-candidate: wire-dynamic-events-fix
+6. *(merged into step 5.)*
+7. **Check the specs and the flag offline**, project closed: `pylv_extract`, then
+   `python <skill>/kit/set_user_event_specs.py <bundle> <base> --check` and
+   `python <skill>/kit/set_use_default.py <bundle> <base> --check`. `<bundle>` = the folder `pylv_extract` wrote,
+   `<base>` = the VI's file name without `.vi` (the bundle's files are `<base>_*.xml`). Expect one spec row per
+   user-event frame with its `dynIndex` (`diagramIdx` = the frame's 0-based position in the event structure's frame
+   list as the AIXML export lists it, Timeout included; `dynIndex` = the source's 1-based position on Register), plus
+   any static row the generator made; measured rows: `0:error:2 2:stop:1`, `1:stop_event:1`. `set_use_default.py
+   --check` flags EVERY case output tunnel left unwired in a frame, which in hand-built code can hide a real missing
+   wire: anything besides the new refnum tunnel, stop and wire or report it. Should step 5 have left a row or the flag
+   unset, the same scripts without `--check` write them (`set_user_event_specs.py <bundle> <base>
+   <diagramIdx>:<element label>:<dynIndex> ...`), then `pylv_rebuild`. Cold state 1 with the flag, 0 without
+   (measured 2026-10). (pilot rules 39, 60)
 7b. **Registration refnum as an input** (`convention: af-shapes.registration`), project open and active, edited in
    place: `kit/pa_reg_to_control.xml` (`VI Path`, `term index` = a free INPUT slot of the pane: read the pane with
    `lvai_connector_pane` and take a slot with no terminal on the input side; measured 10 with the class and error
@@ -172,8 +172,8 @@ or when a concern is off, follow the surrounding code instead.
    `[{"vi": "<member path>", "classTerminals": ["<C> in"]}]`, `projectPath`); after it, check the `.lvproj` for a
    loose entry of the loop VI (step 5). With `aixml` as well it re-converts the
    VI and steps 5–8 (7b included) are lost. Then `lvai_swap_subvis` the stubs; scope private (`kit/set_scope.py`, project closed);
-   the folder `Helpers` (`convention: layout.class-folders`): `kit/pa_class_folder_create_and_move.xml`, or
-   `pa_class_folder_move.xml` when the folder exists (project open and active; no question needed). (pilot rule 91)
+   the folder `Helpers` (`convention: layout.class-folders`): `lvai_move_to_folder` (creates the folder when missing;
+   project open and active; no question needed). (pilot rule 91)
    > MCP-candidate: add-class-method-rerun, move-to-folder
 10. **Panel and controls** (`knowledge/labview-mcp.md`, "LabVIEW scripting quirks", panel flags and mechanical action):
     - a loop with a user-facing panel only: `kit/pa_set_panel_on_call.xml` (project open and active), read back cold
@@ -253,7 +253,7 @@ or when a concern is off, follow the surrounding code instead.
 (one block per helper loop)
 loop <class>:<vi> variant <1|2>  events <elements>  member private static  folder Helpers <created|moved>
 members: createResources createEvents init stop close <senders>  add_class_method 1 call  swaps 1 call  error case <frames>
-build: generate ok  dyn deep left <ends>/<broken> right <ends>/<broken>  specs <rows>  use-default <tunnels>  data fields <ok|n/a>
+build: generate ok  wire_dynamic_events sourceFrom <...> rightSide <...> render <ok>  specs <rows>  use-default <tunnels>  data fields <ok|n/a>
 reg input: term <n> on pane <T>  init indicator: term <n> on pane <T>  init->loop wire <ends>/<broken>  error-frame refnum <ends>/<broken>
 panel on call <r/r|n/a>  Stop action <1|n/a>  stop action <0|1> hidden <yes|n/a>  export <ok>  locals <n|n/a>
 hooks: PLI createResources F; Actor Core init B (kept branches <n>), loop A|C, stop D, close D-close   sweep <ok>/<n>, control 0 7, membership ok
@@ -264,14 +264,17 @@ side effects: <...>   commits <hashes>   LabVIEW calls <n>   issues: <exact erro
 
 ## Traps
 
-- An authored refnum tunnel makes `lvai_wire_dynamic_events` branch a plain tunnel, the wrong shape. (pilot rule 60)
+- An authored refnum tunnel made `lvai_wire_dynamic_events` branch a plain tunnel, the wrong shape (pilot rule 60,
+  1.8.5). labview-mcp now prefers an authored tunnel; this route still authors none, so step 5 must read `sourceFrom`
+  = the diagram.
 - Unregister must follow the loop by data flow (its refnum from the loop's output tunnel). Fed from the refnum control
   it runs as soon as the loop VI starts, the stop event never arrives, and every stop hangs the actor until LabVIEW is
   killed (measured in an evaluation, 2026-10).
 - Merge Errors with the loop's error first hides an error from Unregister (a null refnum answers 1055): a clean run
   does not prove the registration is released.
 - `lvai_add_class_method` with `aixml` and `vi` re-converts the VI: dynamic wiring, specs and data fields are lost.
-- `pylv-set-event-spec.py` of labview-mcp documents a `[dynIndex]` it does not take: use the kit script.
+- `pylv-set-event-spec.py` of labview-mcp documented a `[dynIndex]` it did not take (1.8.5): for a hand fix use the
+  kit script.
 - A plain AIXML convert of the loop VI loses every event frame; regenerating the loop repeats steps 3–10.
 - A loop branched beside Call Parent never sees its actor stop through a failed `Send`: its only exits are the stop
   event or the local `stop`. A hung loop cannot be aborted by VI Server; only a LabVIEW restart frees it.

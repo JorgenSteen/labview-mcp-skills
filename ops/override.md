@@ -27,36 +27,39 @@ mode, or when a concern is off, follow the surrounding code instead.
   **A plain hook member** (class in, `error in`/`error out`, no calls into other new members) that does not exist
   yet: author it in AIXML with the class as a `path` stand-in, then `lvai_add_class_method` with `methodsJson`
   entries `aixml` + `vi` and `classTerminals` (`["<C> in"]`, or with `<C> out` when it goes in series), no
-  `dispatchTerminals` (static); virtual folder `Methods` (`kit/pa_class_folder_move.xml`); scope private with
+  `dispatchTerminals` (static); virtual folder `Methods` (`lvai_move_to_folder`); scope private with
   `kit/set_scope.py` (project closed). Members that call other new members: `ops/helper-loop.md` step 2. Measured
   on a teardown hook: added, retyped, state 1 (evaluation 2026-10).
-- **Project state:** every helper here needs the project open and active; `lvai_exec_state` and the byte-exact
-  scripts need it closed (`knowledge/labview-mcp.md`, "Project open or closed, per kind of call").
-- **Helpers:** generate and run them as `knowledge/labview-mcp.md`, "Helper VIs (the kit)" says. Every error output of
-  a helper must read 0. The inputs below are the helpers' control labels.
+- **Project state:** `lvai_create_override`, `lvai_af_add_hook`, `lvai_af_remove_hook` and every kit helper here need
+  the project open and active (the tools open it from `projectPath`); `lvai_exec_state` and the byte-exact scripts
+  need it closed (`knowledge/labview-mcp.md`, "Project open or closed, per kind of call").
+- **Tools first, kit for the rest.** The override and the shapes A, B, B-after, C and E-after are labview-mcp tools
+  (`lvai_create_override`, `lvai_af_add_hook`, `lvai_af_remove_hook`; their shapes, panes and refusals are in
+  labview-mcp's `docs/af-override-tools.md`). The kit covers what they refuse or do not offer: a series insert on a
+  wire with branches, D, D-close, D-append, a hook fed from a node's error output. Kit helpers: generate and run them
+  as `knowledge/labview-mcp.md`, "Helper VIs (the kit)" says. Every error output of a helper must read 0. The inputs
+  below are the helpers' control labels.
 - **Commits:** one before and one after each override and each hook. Keep the commit right after step 1 (the bare
   override): it is the restore point for "Change a hooked method". Save version and loadability on code this session
   did not build: `knowledge/labview-mcp.md`, "Save version" and "A failed, hung or blocked call".
 
 ## 1. Create the override
 
-`<skill>/kit/lvai_create_override.xml`, project open and active. > MCP-candidate: create-override
+`lvai_create_override(classPath, parentMethod, projectPath)`. `parentMethod` is the AF lifecycle name (`Pre Launch
+Init`, `Actor Core`, `Stop Core`, `Handle Error`, `Handle Last Ack Core`), or for a plain class the path of the
+parent's `.vi`. `newViPath` only when `convention: naming.override-names` wants another file name than the parent's.
+The tool derives the library-qualified name in memory, checks the class's ancestry first and verifies the member
+from the saved `.lvclass`; read `failedAtStep` on a refusal.
 
-| input | value |
-|---|---|
-| `class path` | the class's `.lvclass` |
-| `parent method path` | `<LabVIEW>\vi.lib\ActorFramework\Actor\<method>.vi`; for a plain class, the parent's own `.vi` |
-| `new vi path` | `<class folder>\<the parent's file name>.vi` (`convention: naming.override-names`) |
-| `vi name in memory` | `<Lib>.lvlib:<Class>.lvclass:<file name>.vi`; only for a class in no library `<Class>.lvclass:<file name>.vi` |
-
-All seven error outputs 0. The new diagram is class in (and error in) → Call Parent → class out (and error out). The
-override is protected and dynamic; a plain-class override keeps its parent's scope. Put it in AF Overrides for an
-actor's AF method, Methods otherwise (`convention: layout.class-folders`; `kit/pa_class_folder_create_and_move.xml`, or
-`pa_class_folder_move.xml` when the folder exists; project open and active; no question needed).
+The new diagram is class in (and error in) → Call Parent → class out (and error out). The override is protected and
+dynamic; a plain-class override keeps its parent's scope. Put it in AF Overrides for an actor's AF method, Methods
+otherwise (`convention: layout.class-folders`): `lvai_move_to_folder(ownerPath = the .lvclass, folder, itemNames,
+projectPath)`, which creates the folder when it is missing; no question needed.
 The new override carries NI's help text of the parent method as its VI description: replace it per `convention:
-hygiene.descriptions` with the whole new text: `kit/pa_set_vi_descriptions.xml` (project closed; one record per VI). (a harness run 2026-10) > MCP-candidate: create-override
+hygiene.descriptions` with the whole new text: `lvai_set_vi_descriptions` (project closed; one entry per VI). (a harness run 2026-10)
 Close the project, read the override cold (state 1), commit. Measured on four AF overrides in skillsaudit M-CLOSE
-M3/M4 (2026-10-09) and in the pilot. (pilot rule 6)
+M3/M4 (2026-10-09), in the pilot, and by labview-mcp on five lifecycle overrides in and outside a library
+(2026-10-10). (pilot rule 6)
 
 ## 2. Choose the shape per override
 
@@ -74,44 +77,50 @@ M3/M4 (2026-10-09) and in the pilot. (pilot rule 6)
 Pre Launch Init has no `error in`, and its parent does nothing, so the order of work in it is free
 (`knowledge/actor-framework.md`). B-after is the measured form in which a hook's error reaches PLI's `error out`, so
 a failed create fails the launch. Where there is no error-handling plan, the statement `errors.no-plan-statement`
-goes into the class description (`kit/pa_set_class_description.xml`, project open and active) and Handle Error's
-VI description (`kit/pa_set_vi_descriptions.xml`, project closed). Hook placement here; what each hook VI does is set by the conventions cited.
+goes into the class description (`lvai_set_class_description`, project open and active; CP1252 only) and Handle
+Error's VI description (`lvai_set_vi_descriptions`, project closed). Hook placement here; what each hook VI does is set by the conventions cited.
 
 ## 3. Place each hook
 
 Commit before each hook. Project open and active, class loaded. `<C>` = the class's terminal prefix.
-**Hook terminal names:** the `hook in`/`hook out`/`hook terminal name`/`in name`/`out name` inputs below must be the
-hook's names as its pane has them: read them with `lvai_vi_terminals` first. A member made by `lvai_add_class_method`
-may name its error input `error in (no error)` instead of `error in`; pass what the pane says. Panel and Call Parent
-terminal names (`panel name`, `far name`) are the override's own and are as written below.
+**Hook terminal names:** the hook's terminal names (the tool's `hookClassIn`/`hookClassOut`/`hookErrorIn`/
+`hookErrorOut`, the kit's `hook in`/`hook out`/`hook terminal name`/`in name`/`out name`) must be the hook's names as
+its pane has them: read them with `lvai_vi_terminals` first. A member made by `lvai_add_class_method` may name its
+error input `error in (no error)` instead of `error in`; pass what the pane says. Panel and Call Parent terminal names
+(`panel name`, `far name`) are the override's own and are as written below.
 
-**A. Branch beside Call Parent:** `kit/af_add_hook_call.xml`: `vi path` = the override, `class path`, `hook vi path`,
-`source terminal name` = `<C> in`, `hook terminal name` = `<C> in`. It taps the **panel** terminal, so the hook runs
-beside everything else on that wire. Only the class terminal is wired. (pilot rules 28, 74)
+**The tool, for A, B, B-after, C and E-after:** `lvai_af_add_hook(overridePath, classPath, hookViPath, shape,
+projectPath)`. Run it with `dryRun: true` first and read the planned wires. It knows each AF override's pane, refuses
+before changing anything (a required hook input left unfed, a Handle Error hook before Call Parent, a series insert
+into a wire that already branches, the same hook twice, an override with unsaved edits), and saves the override and
+the class itself: no `pa_save_member` after it. Its answer gives the execution state read in the project's instance:
+read it again cold. Its unsaved-edit check does not see edits made by scripting (labview-mcp measured it), so commit
+before each hook as above.
 
-**B. Series before Call Parent:** `kit/pa_insert_series2.xml`: `vi path`, `class path`, `hook vi path`,
-`panel name A` = `<C> in`, `hook in A` = `<C> in`, `hook out A` = `<C> out`; the error wire as block B:
-`panel name B` = `error in`, `hook in B` = `error in`, `hook out B` = `error out`. Measured on Actor Core (M-CLOSE M4,
-all 0). The hook needs both class terminals. Then `kit/pa_save_member.xml` (`vi path`, `class path`) in a separate
-call.
-- **A wire with branches** (Actor Core whose class wire also feeds the helper loop, the stop frame or `close`):
-  `pa_insert_series2` reconnects only one far end and drops the other branches. Use `kit/pa_insert_series_branch.xml`
-  instead: the same `vi path`, `hook vi path` and A/B names, plus `far name A` = Call Parent's class input (`Actor in`,
-  the default), `far name B` = `error in`, `far owner class` = `CallParentNode` (a tunnel terminal carries its source's
-  name, so the name alone is not enough). No `class path`: it saves the VI only, then `pa_save_member`. Read
+**A. Branch beside Call Parent:** `shape: "branch"`. It taps the **panel** terminal, so the hook runs beside
+everything else on that wire. Only the class terminal is wired unless `wireError` is set. (pilot rules 28, 74)
+
+**B. Series before Call Parent:** `shape: "series"`. The hook needs both class terminals; the error chain is wired
+where the pane has it. Measured with the kit on Actor Core (M-CLOSE M4) and by labview-mcp with this tool.
+- **A wire with branches** (Actor Core whose class wire also feeds the helper loop, the stop frame or `close`): the
+  tool refuses it. Use `kit/pa_insert_series_branch.xml`: `vi path`, `hook vi path`, `panel name A` = `<C> in`,
+  `hook in A` = `<C> in`, `hook out A` = `<C> out`; block B `panel name B` = `error in`, `hook in B` = `error in`,
+  `hook out B` = `error out`; plus `far name A` = Call Parent's class input (`Actor in`, the default), `far name B` =
+  `error in`, `far owner class` = `CallParentNode` (a tunnel terminal carries its source's name, so the name alone is
+  not enough). It saves the VI only, then `kit/pa_save_member.xml` (`vi path`, `class path`) in a separate call. Read
   `far A found`, `wire A kept branches` (the branches you expect), every error 0. Measured on an Actor Core with three
   branches (loop, stop frame, `close`), all kept, 2026-10.
 - **Two series hooks before Call Parent:** each insert lands at the panel side, so the SECOND insert ends up FIRST.
   For hook 1 -> hook 2 -> Call Parent, insert hook 2 first. Afterwards a `<C> in` source search (shape D) matches the
-  first hook's input, so the stop's class wire comes from that hook's output (harmless, but surprising).
+  first hook's input, so the stop's class wire comes from that hook's output (harmless, but surprising). Place series
+  hooks before branches (labview-mcp's rule for the tool).
 
-**B-after. Series after Call Parent (roles swapped):** the same helper, with `panel name A` = `<C> out`,
-`hook in A` = `<C> out`, `hook out A` = `<C> in`; block B `panel name B` = `error out`, `hook in B` = `error out`,
-`hook out B` = `error in`. The hook then sits between Call Parent and the override's outputs. Measured on Pre Launch
-Init with both blocks (M-CLOSE M3, all 0, the hook's error 5000 came out of Launch) and on a plain-class override
-(pilot). **Stop Core** has no error terminals: block A only, leave `panel name B` empty. Unmeasured on Stop Core (the
-measured Stop Core hook sat before Call Parent, the old order). A second B-after hook on the same override lands
-between the first and the indicators: unmeasured.
+**B-after. Series after Call Parent:** `shape: "seriesAfter"`. The hook then sits between Call Parent and the
+override's outputs. Measured on Pre Launch Init with the kit (M-CLOSE M3, the hook's error 5000 came out of Launch) and
+on a plain-class override (pilot); labview-mcp measured the tool on Pre Launch Init, Stop Core and Handle Error (both
+hooks ran after their Call Parent at the stop). Stop Core has no error terminals; the tool knows the pane. Actor Core
+refuses it (`Actor out` is typed `Actor`): use D there. A second B-after hook on the same override lands between the
+first and the indicators: unmeasured.
 - **Typing, in a DYNAMIC override of a plain class:** the hook's class input AND output are typed as the PARENT
   class; it casts to the child inside as needed. Call Parent's class output carries the run-time-type guarantee, and
   a static subVI keeps it only with the same class in and out. Measured cold (a harness run, 2026-10): child in/child
@@ -123,12 +132,12 @@ between the first and the indicators: unmeasured.
   Read-only and close hooks pass the input wire straight through. (A harness run, 2026-10.)
 - **Stop Core release errors** (`convention: errors.release-errors`): the release hook's `error out` has nowhere to
   go on Stop Core's pane. Feed it to the project's log VI, or to `Clear Errors.vi` when ignored on purpose, with
-  `kit/af_add_hook_call_node.xml`: `source terminal name` = `error out`, `hook terminal name` = `error in`, `hook vi
-  path` = that VI. Unmeasured.
+  `kit/af_add_hook_call_node.xml` (`lvai_af_add_hook` taps only a class output): `vi path` = the override,
+  `class path`, `source terminal name` = `error out`, `hook terminal name` = `error in`, `hook vi path` = that VI.
+  Unmeasured.
 
-**C. Series, then a branch that sees its result:** B first, then `kit/af_add_hook_call_node.xml` with
-`source terminal name` = `<C> out` (searched over the diagram's subVI nodes, i.e. the series hook),
-`hook terminal name` = `<C> in`. `af_add_hook_call` here would run the branch before the series body. (pilot rule 28)
+**C. Series, then a branch that sees its result:** B first, then `shape: "branchFromNode"` with `sourceHookName` =
+the series hook. A plain `branch` here would run the branch before the series body. (pilot rule 28)
 
 **D. Stop hook after Call Parent, in a one-frame flat sequence:** `kit/pa_insert_seq_hook.xml`: `vi path` = Actor
 Core, `class path`, `hook vi path` = the stop hook, `source terminal name` = `<C> out` of the series hook, or `<C> in`
@@ -165,24 +174,25 @@ wire from BEFORE Call Parent as D uses it (`<C> out` of the series hook, or `<C>
 hook's class input, `prev order terminal name` = the stop hook's error output, `hook order terminal name` = the hook's
 error input (read with `lvai_vi_terminals`). Then `pa_save_member`. It works before or after D-close (run after it,
 measured in an evaluation, 2026-10). The appended hook's `error out` is left unwired: end it in `Clear Errors` INSIDE the frame
-(`convention: errors.ignored-errors`); `af_add_hook_call_node.xml` cannot do that (it searches top-level nodes only),
+(`convention: errors.ignored-errors`); neither `lvai_af_add_hook` nor `af_add_hook_call_node.xml` can do that (they reach top-level nodes only),
 so use `kit/pa_frame_hook_sink.xml` (`node vi regex` = the hook, `sink vi path` = `Clear Errors.vi`'s path in
 vi.lib, dry run first, then `apply` T). `Clear Errors`' input is named `error in (no error)`; `lvai_vi_terminals` cannot
 read it (it lives in an `.llb`). Measured on Actor Core: frame found, hook wired, state 1 (measured in an evaluation, 2026-10).
 
-**E-after. Handle Error, Call Parent first:** a handler that only logs needs class and error: B-after with
-`panel name B` = `error out` as above (the parent has already cleared 43, so the log sees real errors only;
-`stop actor?` passes from Call Parent untouched). Unmeasured on Handle Error (measured on PLI). A handler that may
-overrule `stop actor?` (only per a plan, `convention: errors.plan-required`) needs a third wire, which no kit helper
-makes: **unmeasured**, ask before building. The old shape (handler before Call Parent, `panel name B` =
-`error in (no error)`) was measured (M-CLOSE M4) and stays only in existing code. > MCP-candidate: add-hook
+**E-after. Handle Error, Call Parent first:** a handler that only logs needs class and error: `shape:
+"seriesAfter"` (the parent has already cleared 43, so the log sees real errors only; `stop actor?` passes from Call
+Parent untouched). labview-mcp measured it on Handle Error (the hook ran after Call Parent at the stop). A handler
+that may overrule `stop actor?` (only per a plan, `convention: errors.plan-required`) needs a third wire, which
+neither the tool nor a kit helper makes: **unmeasured**, ask before building. The old shape (handler before Call
+Parent) was measured (M-CLOSE M4) and stays only in existing code; the tool refuses it unless
+`allowHandleErrorBeforeCallParent`. > MCP-candidate: add-hook
 
 **F. PLI failure cleanup** (`af-shapes.pli-failure-cleanup`, the user's choice 2026-10-09): the case structure lives
 in the member VI `createResources`, never on the override's diagram (the kit cannot wrap existing nodes, and an
 override is never regenerated from AIXML). Write `createResources` as AIXML (creates → Merge Errors → a case structure
 on the merged error: Error case calls the release VIs, No Error case empty → `error out`; AIXML supports error-cluster
-selectors) and generate it as a class member; then hook it into Pre Launch Init as shape B-after (class and error), the
-one hook there. Hook placement is measured (B-after, M-CLOSE M3); the generated case structure in `createResources` is
+selectors) and generate it as a class member; then hook it into Pre Launch Init as shape B-after (`seriesAfter`, class
+and error), the one hook there. Hook placement is measured (B-after, M-CLOSE M3); the generated case structure in `createResources` is
 **unmeasured**: sweep it cold and run a forced-failure launch (as M-CLOSE M3) before calling it done.
 > MCP-candidate: add-hook
 
@@ -209,27 +219,33 @@ helpers do not make; Call Parent's `error out` must reach the override's `error 
 - **Replaced by another member with the same pane:** `lvai_swap_subvis` straight onto it (`socket` = the old VI's
   qualified name). It keeps the series wiring and also reaches a node inside the shape-D frame (measured: the stop
   hook swapped in the frame, M-CLOSE M1). Use this route first.
-- **A series hook taken out, no regeneration** (`knowledge/labview-mcp.md`, "Small fixes: edit in place"):
+- **A hook taken out, no regeneration** (`knowledge/labview-mcp.md`, "Small fixes: edit in place"):
+  `lvai_af_remove_hook(overridePath, classPath, hookName, projectPath)`, `dryRun: true` first. It deletes one node
+  (`occurrence` when the name is on the diagram twice), bypasses a series hook (each output read is bridged to the
+  input of the same stem), runs Remove Bad Wires, saves the override, only the siblings it left modified, and the
+  class, and does not save an override it left broken (`removeBrokeOverride`). Read `bypassed` and
+  `sinksReconnected`. Prefer it to the restore-bare-and-rehook route below.
+- **The tool refuses a series hook** (`seriesHookNotRemovable`: an output with no input of its stem): the kit's
   `kit/pa_remove_series_block.xml` once per wire pair: `vi path`, `node vi regex` = the hook, `in name`/`out name` =
   `<C> in`/`<C> out`, then `error in`/`error out` with `delete node` T on that last pair. It does every lookup first,
   deletes the two wires (and the node), and bridges the source to every other branch and every far end. Read `node
   hits` 1, `kept count` and `sink count` = the branches you expect, `new wire broken` F, every error 0; then
-  `pa_save_member`. Measured 2026-10 on an Actor Core (a kept frame tunnel, Call Parent as the far end), no `git
-  checkout` needed. Prefer it to the restore-bare-and-rehook route below.
+  `pa_save_member`. Measured 2026-10 on an Actor Core (a kept frame tunnel, Call Parent as the far end).
 - **Putting a hook back:** before Call Parent, shape B (`pa_insert_series_branch` on a wire with branches); after
   Call Parent in Actor Core, shape D-append or, after the loop's exit, inside `close`.
 - **A hook with a third output wire** (e.g. `init`'s registration refnum into the loop): `pa_remove_series_block`
   handles the class and error pairs only. The third wire is left one-ended (cold state 0): run `pa_clean_member` after
   the removal, and after the put-back re-wire it with `kit/pa_wire_nodes.xml` (measured in an evaluation, 2026-10).
-- **Regenerated, the override holds only a branch hook (A):** commit; `kit/pa_delete_subvi.xml` (`vi path`,
-  `class path`, `terminal name` = `<C> in`); `kit/pa_clean_member.xml` on that override (the loose end also breaks a
-  sibling override; cleaning the edited one fixes both); re-run `lvai_add_class_method`, re-swap its stubs, restore
-  scope (`kit/set_scope.py`, project closed) and folder; re-hook with A; cold sweep of every member. (pilot rule 78)
-- **Regenerated, the override holds series or several hooks (B to D-close):** `pa_delete_subvi` deletes every
-  top-level subVI node with that terminal and leaves the panel terminal unwired, so a series hook cannot be put back.
-  Instead: re-run `lvai_add_class_method` on the hook; project closed, `git checkout <bare-override commit> --
-  "<override>.vi"` (cold 1); project open, re-hook every shape in its order (B, C, A, D, D-close, each with its
-  `pa_save_member`); close, sweep, export, run. (pilot rule 49)
+  Whether `lvai_af_remove_hook` bridges or refuses a third output is unmeasured: dry run first.
+- **Regenerated, the override holds only a branch hook (A):** commit; `lvai_af_remove_hook` on that hook (it cleans
+  the loose end in the override and the sibling it breaks, pilot rule 78); re-run `lvai_add_class_method`, re-swap
+  its stubs, restore scope (`kit/set_scope.py`, project closed) and folder; re-hook with A; cold sweep of every
+  member.
+- **Regenerated, the override holds series or several hooks (B to D-close):** re-run `lvai_add_class_method` on the
+  hook; project closed, `git checkout <bare-override commit> -- "<override>.vi"` (cold 1); project open, re-hook every
+  shape in its order (B, C, A, D, D-close, each saved as its section says); close, sweep, export, run. (pilot rule 49)
+  Removing the hooks one by one with `lvai_af_remove_hook` instead of the checkout is unmeasured on a D/D-close
+  override.
 - **The re-run already failed:** close the project, `git checkout` the `.lvclass` and the VI, start again. A name that
   stays held after every caller was unhooked: keep the VI and add the new behaviour as a new hook.
 
@@ -237,23 +253,23 @@ helpers do not make; Call Parent's `error out` must reach the override's `error 
 
 ```
 override <class>:<method> created yes/no (errors 0)  protected  dynamic  member  folder <name> (created|moved)
-hooks: <hook> shape <A|B|B-after|C|D|D-close|E-after>  helper errors 0  hits <...>  saved by <helper|pa_save_member>
-unmeasured shapes used: <none|F|H|E-after 3 wires|B-after on Stop Core>  user asked: <yes/no>
-changed: <method> route <swap|unhook-rehook|restore-bare-and-rehook>  pa_clean_member <n/a|run>
+hooks: <hook> shape <A|B|B-after|C|D|D-close|E-after> by <lvai_af_add_hook|kit helper>  errors 0  hits <...>  saved by <tool|helper|pa_save_member>
+unmeasured shapes used: <none|F|H|E-after 3 wires>  user asked: <yes/no>
+changed: <method> route <swap|lvai_af_remove_hook|pa_remove_series_block|restore-bare-and-rehook>  pa_clean_member <n/a|run>
 sweep <ok>/<n> (siblings incl.), control 0 7, membership ok  export <ok>  run order <as expected>  commits <hashes>
 side effects: <files re-saved, project items>   LabVIEW calls <n>   issues: <exact error text or none>
 ```
 
 ## Traps
 
-- `vi name in memory` must be library-qualified for a class in a library. (pilot rule 6)
-- `af_add_hook_call` taps the panel terminal: after a series hook it would run first; use `af_add_hook_call_node`.
-- `pa_insert_series2` after Call Parent swaps the roles: `hook in` is the `<C> out`/`error out` side.
+- The name in memory of a new override must be library-qualified for a class in a library; `lvai_create_override`
+  derives it, a hand-run helper does not. (pilot rule 6)
+- `branch` taps the panel terminal: after a series hook it would run first; use `branchFromNode`.
 - A child-typed hook after Call Parent in a dynamic plain-class override reads state 0 with only "VI is not
   executable", and breaks every caller of the method too: type the hook's class terminals as the parent (B-after,
   "Typing"); a hook that writes a field ends with `Preserve Run-Time Class`.
-- A hook's required inputs must all be fed by the helper's one wire per side; one unwired input breaks the override
-  and only a cold `lvai_exec_state` shows it. (pilot rule 23)
+- A hook's required inputs must all be fed by one wire per side; one unwired input breaks the override and only a
+  cold `lvai_exec_state` shows it. `lvai_af_add_hook` refuses such a hook; the kit helpers do not. (pilot rule 23)
 - `pa_close_join` deletes Call Parent's whole error-out net and rebuilds it. LabVIEW deletes a flat-sequence tunnel
   with no wire on either side, so a helper that wires to the old tunnel fails with 1055; Merge Errors as
   `Function` answers 1057 (`knowledge/labview-mcp.md`, "LabVIEW scripting quirks").

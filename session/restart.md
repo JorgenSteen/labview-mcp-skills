@@ -23,11 +23,12 @@ How a timed-out call blocks the service: `knowledge/labview-mcp.md`, "A failed, 
 
 - **An empty LabVIEW** (the user's rule, 2026-10-09: "if Nigel and basic LabVIEW is open, it is ok to close and
   restart at will"). LabVIEW counts as empty when all of these hold, checked with no LabVIEW call where possible:
-  - the window list (`<skill>/kit/lv_windows.ps1`) shows only LabVIEW's own frame windows (Getting Started, the
-    hidden system windows) and the Nigel chat: no VI panel or diagram, no project window, no dialog, no `*` title;
+  - the window list (`lvai_labview_state`) shows only LabVIEW's own frame windows (Getting Started, the hidden system
+    windows) and the Nigel chat: no VI panel or diagram, no project window, no dialog, no `*` title;
   - `LVAutoSave` holds no files;
   - LabVIEW is idle (`<skill>/kit/wait_lv_idle.ps1 -Once`, quiet);
-  - if the service answers, `pa_vis_in_memory` lists only labview-mcp's own helpers and VIs this session made (step 5).
+  - if the service answers, `lvai_vis_in_memory` lists only labview-mcp's own helpers and VIs this session made
+    (step 5).
   Anything else open, or any check that cannot run, means it is not empty: the go-ahead rule applies. Write in the
   report which checks made it empty. A kill still needs its own go-ahead ("Killing LabVIEW").
 - **A standing go-ahead per project** (the user's rule, 2026-10-09): `project.json` `restart_go_ahead` is `ask` by
@@ -47,10 +48,14 @@ How a timed-out call blocks the service: `knowledge/labview-mcp.md`, "A failed, 
 - **Unattended** with no go-ahead in hand and a LabVIEW that is not this session's: stop, report why a restart is
   needed, and ask. Finishing unattended never includes that restart.
 - **Never touch** the Nigel processes (`NI.NigelLocalService`, `LVNigelChat`), never answer a LabVIEW dialog.
-- Kit: `<skill>/kit/lv_windows.ps1`, `lv_close.ps1`, `pa_vis_in_memory.xml`, `pa_vis_modified.xml`,
-  `read_saved_answer.py`. Generate the two `pa_vis_*` helpers once at the session start (`knowledge/labview-mcp.md`,
-  "Helper VIs (the kit)"), not right before a close, so they add no validation scratch at the end. Once any
-  validation has run, the close ends in the save dialog anyway (next bullet).
+- Tools: `lvai_labview_state` (no LabVIEW call), `lvai_vis_in_memory`. Kit: `<skill>/kit/lv_close.ps1`,
+  `wait_lv_idle.ps1`, `read_saved_answer.py`. Call `lvai_vis_in_memory` once at the session start: on the gRPC
+  backend it generates its helper the first time, and that validation leaves an `LVMCP Validate` VI in memory, so
+  not right before a close. Once any validation has run, the close ends in the save dialog anyway (next bullet).
+- **A labview-mcp build with `lvai_restart_labview`** (not in the official release as of 2.2.4): it runs these
+  guards itself (unsaved VIs in every instance, dialogs, running VIs, recovery copies) and refuses rather than
+  closing over the user's work. The ownership and go-ahead rules above still decide whether to call it; report its
+  answer in the format below.
 - **Tool scratch VIs pile up.** `lvai_validate_aixml` leaves hidden, unsaved `LVMCP Validate*` VIs in memory, more
   with every validation (8–18 per step, 14 still open on labview-mcp 1.9.5-local, a harness run 2026-10). Once any
   is in memory, the close route always ends in the save dialog, which no agent answers: a session that validates
@@ -62,11 +67,11 @@ How a timed-out call blocks the service: `knowledge/labview-mcp.md`, "A failed, 
 Any guard that fails: stop and report; nothing is closed.
 
 1. **The go-ahead,** or the PID match from the table above. Write down which.
-2. **Window list, no LabVIEW call:** `powershell -NoProfile -ExecutionPolicy Bypass -File <skill>/kit/lv_windows.ps1`.
-   Record the LabVIEW PID and `StartTime`, the Nigel PIDs, the `LVAutoSave` count and its path (the Documents
-   folder may be redirected: give the path the script printed).
+2. **Window list, no LabVIEW call:** `lvai_labview_state`. Record the LabVIEW PID and start time, the Nigel PIDs,
+   the `LVAutoSave` count and its path (the Documents folder may be redirected: give the path it printed).
    - **More than one LabVIEW:** ask which one is meant.
-   - **A possible dialog:** stop; the user answers it. A VI panel with a custom title is flagged too: look at it.
+   - **A possible dialog** (`possibleDialogs`, or a `hiddenUnrecognised` window): stop, read its screenshot; the
+     user answers it. A VI panel with a custom title is flagged too: look at it.
    - **The user is working** (the user's rule, 2026-10-09): a `*` title for a file this session did not make, or
      `LVAutoSave` files while a project is open whose edits this session did not make. The project close would
      discard those edits with no dialog. Stop, list them, and ask.
@@ -78,7 +83,7 @@ Any guard that fails: stop and report; nothing is closed.
    - **Busy:** never close a busy LabVIEW; it does not take the close message.
      Wait, re-sample, and report "busy since <time>" with the samples. One idle sample can be stale within minutes
      (a sweep read 0 s over 20 s, then 11.3 s over 15 s a minute later).
-   - **Idle** in two samples in a row (idle is not "safe": run `lv_windows.ps1` again for a dialog): `lvai_status` again. Answers: go on. Still dead and no dialog: stop and report;
+   - **Idle** in two samples in a row (idle is not "safe": run `lvai_labview_state` again for a dialog): `lvai_status` again. Answers: go on. Still dead and no dialog: stop and report;
      the user decides whether to close on the window list alone. > MCP-candidate: deadline-abort
 4. **Your project closed.** `lvai_close_active_project` saves and closes whatever is active, so if this session has
    a project open, make it the active one first: `lvai_open_file` with its `projectPath` (check `activeProjectPath`).
@@ -88,11 +93,12 @@ Any guard that fails: stop and report; nothing is closed.
    close may rewrite the `.lvproj` (BOM, Dependencies, items whose file is missing), `.lvlps`, `.aliases` and
    `.<project>.UserState\`. List each change for the side-effects report (`session/close.md`).
    > MCP-candidate: close-project-guard
-5. **In memory, after the close** (these read only the default instance, so an open project's VIs are not seen):
-   run `pa_vis_in_memory` and `pa_vis_modified` with `lvai_run_vi_and_read_values`, one after the other. With 400+
-   VIs the answers are saved to a file: read them with `<skill>/kit/read_saved_answer.py`, never by re-running the
-   call. Report the count and only the lines with a nonzero front-panel or diagram bitset. A modified VI this session
-   did not make: stop and ask (step 2 rule). > MCP-candidate: memory-inspection
+5. **In memory, after the close:** `lvai_vis_in_memory` (default `context: all`: the main instance, the active
+   project's if one is still open, and the add-on's on gRPC). It returns only the modified, unreadable and `other`
+   lines, each sorted as service, labview, helper or other, plus `onlyServiceAndHelpers` per instance. Classes and
+   libraries are not listed, only VIs and controls. A large answer saved to a file: read it with
+   `<skill>/kit/read_saved_answer.py`, never by re-running the call. A modified VI this session did not make: stop
+   and ask (step 2 rule). > MCP-candidate: memory-inspection
 6. **Record before:** `lvai_status` (`serverVersion`, `labviewUpSeconds`, port).
 7. **Close:** `powershell -NoProfile -ExecutionPolicy Bypass -File <skill>/kit/lv_close.ps1` (`CloseMainWindow`, then
    up to 20 s `WaitForExit`; it never kills).
@@ -101,8 +107,8 @@ Any guard that fails: stop and report; nothing is closed.
      VI Server helper, or modal. **True** and no exit: a dialog came up after the request, most likely a save prompt.
      Report which, with a fresh window list and a CPU sample. Do not kill unless the session's blanket kill
      go-ahead covers it ("Killing LabVIEW"); otherwise the user decides. If the window list
-     shows only `LVMCP Validate*` as unsaved, say so: it is tool scratch, nothing of the user's, and the route on is a
-     kill ("Killing LabVIEW").
+     shows only `LVMCP Validate*` as unsaved (`labviewMcpScratch`), say so: it is tool scratch, nothing of the user's,
+     and the route on is a kill ("Killing LabVIEW").
      > MCP-candidate: dialog-detection
    - Exit 2: none or several LabVIEW processes: report.
 8. **Close only:** stop here and write the report. **Restart:** run `session/start.md` from step 3 (the `LVAutoSave`
@@ -136,7 +142,7 @@ anything else of the user's means ask. Report every kill with the quote. Afterwa
 restart    mode <close | restart>  LabVIEW <this session's (PID <n>) | user's: go-ahead "<words>" (<date>, <source>)>
 guards     window list: unsaved <none | list>  dialogs <none | list>  user working <no | asked: answer>
            service <ok | DeadlineExceeded: CPU <s> s/<s> s at <time>, <time>>  project <path> closed <code>
-           in memory <n> VIs, modified <none | list>
+           in memory: onlyServiceAndHelpers <per instance>, modified <none | list>
 before     LabVIEW PID <n> start <time> up <s> s port <p>  labview-mcp <version>
 close      <s> s  (CloseMainWindow <True|False>, WaitForExit <True|False>)
 start      ensure_labview <s> s launchMethod <m> (<ok | ok:false starting>)   <n/a for close only>
@@ -151,9 +157,10 @@ deviations <none | list>   LabVIEW calls <n>, ~<min> min
 ## Traps
 - `CloseMainWindow` returns False while a VI Server helper runs, and LabVIEW does not exit: a busy LabVIEW looks like
   a dialog case unless step 3 sampled the CPU.
-- The window list does not show a modified VI with no open window, and nothing measured detects a running VI. Report
-  open VI panels as "running state unknown".
-- `pa_vis_*` run while a project is open are adopted into that project; the close sweep removes them.
+- The window list does not show a modified VI with no open window (`lvai_vis_in_memory` does), and nothing measured
+  detects a running VI. Report open VI panels as "running state unknown".
+- A memory probe run while a project is open may be adopted into that project on its next save; the close sweep
+  removes it.
 - A project of the user's that is open may be dirty although nobody edited it (opening an older project runs an App
   Builder mutation): the IDE close then raises a save prompt, step 7 exit 1 with `True`. The user answers it.
 - `Get-Process LabVIEW` returns two processes when two LabVIEW versions run: ask which one.

@@ -22,7 +22,7 @@ sweep reads only and applies no convention, so it runs the same in local mode an
   for ~2.5 h.
 - **Project closed.** With a project open, good VIs read state 0. Close it as `knowledge/labview-mcp.md`, "Opening
   and closing a project" says. This op's variant: in a repo with several projects no project owns the swept
-  folders, so close the one that is **active**, whichever it is (the window list from `<skill>/kit/lv_windows.ps1`
+  folders, so close the one that is **active**, whichever it is (the window list from `lvai_labview_state`
   shows it). If it or its VIs carry unsaved changes this session did not make (`*` in a title, `LVAutoSave` files),
   ask first (`SKILL.md`, "Save what you made; ask about the rest"). What the close rewrites is a side effect.
 

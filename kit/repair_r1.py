@@ -7,7 +7,7 @@
 # =============================================================================
 """
 Why this exists
-    When the Message Maker helper (lvai_create_message_class.xml) is run for an INTERFACE
+    When the Message Maker helper (labview-mcp's scripts/lvai_create_message_class.xml) is run for an INTERFACE
     method, the class file it leaves on disk is stale (finding 00-interface-message):
       - it has no <Item Name="Parent Libraries" ...> block, so LabVIEW would load the class
         as a root class instead of a Message child;
