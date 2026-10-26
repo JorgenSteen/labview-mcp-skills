@@ -51,7 +51,9 @@ How a timed-out call blocks the service: `knowledge/labview-mcp.md`, "A failed, 
 - Tools: `lvai_labview_state` (no LabVIEW call), `lvai_vis_in_memory`. Kit: `<skill>/kit/lv_close.ps1`,
   `wait_lv_idle.ps1`, `read_saved_answer.py`. Call `lvai_vis_in_memory` once at the session start: on the gRPC
   backend it generates its helper the first time, and that validation leaves an `LVMCP Validate` VI in memory, so
-  not right before a close. Once any validation has run, the close ends in the save dialog anyway (next bullet).
+  not right before a close. Once any validation has run, the close ends in the save dialog anyway (next bullet). On
+  the `pylabview` backend it validates nothing and reads the main and project instances only (the add-on instance is
+  gRPC-only; `knowledge/labview-mcp.md`, "The AIXML backend").
 - **A labview-mcp build with `lvai_restart_labview`** (not in the official release as of 2.2.4): it runs these
   guards itself (unsaved VIs in every instance, dialogs, running VIs, recovery copies) and refuses rather than
   closing over the user's work. The ownership and go-ahead rules above still decide whether to call it; report its
@@ -59,7 +61,10 @@ How a timed-out call blocks the service: `knowledge/labview-mcp.md`, "A failed, 
 - **Tool scratch VIs pile up.** `lvai_validate_aixml` leaves hidden, unsaved `LVMCP Validate*` VIs in memory, more
   with every validation (8–18 per step, 14 still open on labview-mcp 1.9.5-local, a harness run 2026-10). Once any
   is in memory, the close route always ends in the save dialog, which no agent answers: a session that validates
-  AIXML and may need a restart needs a kill, not a close. Ask for the kill go-ahead up front (above).
+  AIXML and may need a restart needs a kill, not a close. Ask for the kill go-ahead up front (above). The
+  validation scratch is a gRPC matter: on the `pylabview` backend nothing validates through NI, and a whole
+  session's close ended clean (3.2 s, no save dialog, 2026-10-26). A single call re-run with `backend: "grpc"` may
+  still leave one: check the window list.
 
 > MCP-candidate: restart-with-guards
 

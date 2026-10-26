@@ -10,6 +10,15 @@ with its guards and the user's go-ahead.
 
 ## Steps
 
+0. **Which backend.** `pylv_status` (no LabVIEW needed): `aixmlBackend.serverDefault` is the route the tools take,
+   `serverDefaultSource` why (usually the user's `settings.json`). Note it for the session's report and every brief;
+   never change it (`knowledge/labview-mcp.md`, "The AIXML backend").
+   - **`grpc`:** the steps below as written; `lvai_status` is the readiness check.
+   - **`pylabview`:** LabVIEW is ready when it answers over ActiveX, and NI's gRPC service does not matter for the
+     start. Step 1 is then `lvai_labview_state`: with one LabVIEW running and nothing flagged, `lvai_ensure_labview`
+     (it starts nothing when one runs) must answer `"state": "ready"`, and you are done. With none running, go on at
+     step 3. A failing `lvai_status` is no reason to open Nigel; only a call that must fall back to `grpc` needs the
+     service, and it usually comes up with LabVIEW by itself.
 1. **`lvai_status`.** If it answers, note the port and `labviewUpSeconds` for the session's report, then look at the
    IDE once with `lvai_labview_state` (no LabVIEW call; it reads Windows). Unsaved windows (`unsaved`, `*` in the
    title), `LVAutoSave` files or an open project that this session did not make mean the user is working (they may
@@ -40,7 +49,8 @@ with its guards and the user's go-ahead.
    - **`lvai_ensure_labview`.** It verifies that the launched process survives (`launchMethod`; none surviving is
      `launch-did-not-survive`, never a hopeful "starting"). While LabVIEW is still coming up, calling it once more is
      right: the second call finds the instance and waits.
-4. **Wait for the service.** Call `lvai_status`. If it answers, you are done. The service comes up with LabVIEW
+4. **Wait for the service** (`grpc` only; on `pylabview` the start ended with `lvai_ensure_labview`'s `ready`, step 0,
+   and this step is skipped). Call `lvai_status`. If it answers, you are done. The service comes up with LabVIEW
    itself, about 45 s after a cold start, with no Nigel chat opened (labview-mcp measured it 2026-10-17, with
    `NI.NigelLocalService` running; this skill said earlier that it starts with Nigel, which is refuted).
    If LabVIEW is visibly running (step 2 shows it) but `lvai_status` still fails after about two minutes, the service
@@ -58,8 +68,8 @@ with its guards and the user's go-ahead.
 
 ## Report (one line per session)
 
-`LabVIEW: <already running (the user's) | started by this session (<s> s, launchMethod <m>, PID <pid>)> port <p>, up <s> s;
-Nigel chat: <running | opened | not needed>; LVAutoSave: <n> files <kept | cleared with the user's ok>`
+`LabVIEW: <already running (the user's) | started by this session (<s> s, launchMethod <m>, PID <pid>)> port <p | n/a>, up <s> s;
+backend <grpc | pylabview> (<source>); Nigel chat: <running | opened | not needed>; LVAutoSave: <n> files <kept | cleared with the user's ok>`
 
 Who started LabVIEW decides who may close it (`SKILL.md`, "The user's LabVIEW is the user's"). Keep the PID: a
 LabVIEW with another PID later is not the one this session started.

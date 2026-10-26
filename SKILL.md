@@ -111,7 +111,7 @@ These protect the files and the toolchain. They are not conventions and cannot b
 | Set up or extend `.labview/conventions/`; swap a convention | `conventions/setup.md` |
 | The `.labview/` folder: files, keys, tags | `conventions/dot-labview.md` |
 | How the Actor Framework behaves (call order, Stop Core inside Call Parent, stop/destroy hazards) | `knowledge/actor-framework.md` |
-| labview-mcp operating rules and known gaps, by tool; the save-version route | `knowledge/labview-mcp.md` |
+| labview-mcp operating rules and known gaps, by tool; the AIXML backend (`grpc` / `pylabview`); the save-version route | `knowledge/labview-mcp.md` |
 | Analyse an existing project (writes `.labview/analysis/`) | `ops/analysis.md` |
 | Create an AF override and put hook VIs into it | `ops/override.md` |
 | Build an actor's helper loop | `ops/helper-loop.md` |

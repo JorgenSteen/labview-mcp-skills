@@ -15,7 +15,10 @@ a concern is off, the brief names the surrounding code to follow instead of conv
 
 ## Before you start
 - **LabVIEW is running.** The main session ran `session/start.md` and read `lvai_status`. Machine facts (LabVIEW
-  version and bitness, labview-mcp version, the `LVAutoSave` path) go into the brief as read there, not from memory.
+  version and bitness, labview-mcp version, the `LVAutoSave` path, **the AIXML backend in force** and its source) go
+  into the brief as read there, not from memory. With `pylabview`, add the fallback rule: a call that route refuses
+  may be re-run with `backend: "grpc"` and reported, unless the user ruled gRPC out; copy the known refusals
+  (`knowledge/labview-mcp.md`, "The AIXML backend") into the traps.
 - **Project facts** come from `.labview/project.json` (`conventions/dot-labview.md`): `project_file`, `source_root`,
   `save_version`, `proof_folder` + `proof_prefix`, `briefs_folder`, `knowledge_files`, `commit_attribution`. Write
   them into the brief as **absolute long-form paths**: the agent does not read the JSON. If a key the brief needs is
@@ -77,6 +80,8 @@ Operating rules: <skill abs path>/knowledge/labview-mcp.md, "Operating rules". T
 - Keep "commit, then close" short: leave the project closed between stretches of work, so a usage cut-off finds it
   closed. An agent cut off with the project open cannot close it, and its unsaved edits wait for the next session.
 - Absolute long-form paths everywhere: no %TEMP%, no 8.3 short names.
+- Backend <grpc | pylabview> (<source>): never change labview-mcp's settings file. <With pylabview: a call that route
+  refuses may be re-run with backend "grpc", that call only, and reported | the user's rule on gRPC>.
 - Take every time from `date` / `Get-Date`, never from memory (agents' own clocks drifted 20+ minutes in long runs).
 - Touch nothing outside <target folder>.
 ```

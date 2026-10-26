@@ -21,6 +21,33 @@ not repeated here.
 - One LabVIEW agent at a time; the main session makes no LabVIEW call while it runs. Docs-only agents may run beside
   it. A project is global to the LabVIEW instance: an agent that opens, closes or swaps changes it for every caller.
 
+### The AIXML backend: `grpc` or `pylabview`
+- labview-mcp does its AIXML work (generate, convert, validate), the runs and renders, and the class, test, AF,
+  typedef and graft tools through one of two routes: **`grpc`**, NI's AI service inside LabVIEW (LabVIEW 2026 or later
+  with the AI add-on), or **`pylabview`**, labview-mcp's own composer and reader, which write and read VI files with no
+  NI service; what needs a running LabVIEW (is it executable, run it, render it, what is in memory) then goes over
+  LabVIEW's ActiveX server. NI's own assistant calls (`lvai_discuss_file`, `lvai_monitor_*`, the search-candidate
+  filters) always use NI's service.
+- **Every answer names the route:** `backend`, and `backendSource` for why. The choice, highest first: the call's
+  `backend` argument; the server's `--aixml-backend`; `LABVIEWMCP_AIXML_BACKEND`; `"aixmlBackend"` in
+  `%USERPROFILE%\.labviewmcp\settings.json` (`grpc`, `pylabview` or `auto`; read on every call); with `auto` or nothing
+  set, `pylabview` when the LabVIEW in use is older than 2026, else `grpc`. `pylv_status` shows the file, its entry
+  and the default in force. labview-mcp's own `docs/aixml-backends.md` has what each route covers.
+- **The settings file is the user's choice: never edit it.** Read the backend at the start (`session/start.md`), put
+  it in the session's start line and in every brief (`session/brief.md`).
+- **A per-call fallback.** A call that the `pylabview` route refuses may be re-run with `backend: "grpc"`: that call
+  only, with the gRPC service answering (`lvai_status`), and reported. If the user has ruled out gRPC altogether, stop
+  and ask instead. Refused on `pylabview`, measured on LabVIEW 2026 Q3 (2026-10-26): a `ref{UserEvent}` type in
+  `lvai_create_typedef` ("carrierRefused"), `lvai_placeholder_subvi` and `lvai_add_class_method`'s pre-check
+  ("unreadable type"); `Set File Position` ("is not a primitive") in `lvai_add_class_method`. The same calls ran on
+  `grpc`. `lvai_add_class_method`'s `pylabview` pre-check also composes in a scratch folder, so a stub placed next to
+  the caller is not found: use `lvai_placeholder_subvi` stubs.
+- **What else differs on `pylabview`** (measured 2026-10-26, a whole actor build with overrides, hooks, a helper loop,
+  icons and a typedef field on that route): `lvai_ensure_labview`'s `"state": "ready"` means LabVIEW answers over
+  ActiveX, and NI's gRPC service was not asked; no tool validates through NI, so no `LVMCP Validate*` scratch VIs pile
+  up, and the session's close ended clean (3.2 s, no save dialog); `lvai_vis_in_memory` reads the main and the active
+  project's instance only (the add-on's instance is gRPC-only).
+
 ### A failed, hung or blocked call: stop and report
 - **`DeadlineExceeded` does not stop the work.** The VI Server helper keeps running inside LabVIEW, and every later
   call answers `DeadlineExceeded`, `lvai_status` included, until it ends (a cold sweep ran ~2.5 h past its 300 s
