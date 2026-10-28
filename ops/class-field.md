@@ -100,7 +100,7 @@ field: an accessor made earlier keeps the bare type for ever. (pilot rule 2)
    - **Descriptions** per `convention: hygiene.descriptions`: the wizard writes only a generic text into an accessor,
      and a new typedef has none (evaluation 2026-10). Write the accessor's with `lvai_set_vi_descriptions` (project
      closed; one entry per VI). The tool takes only `.vi` files: a typedef's goes through `kit/pa_set_vi_descriptions.xml`
-     (project closed; one record per file; on a `.ctl` unmeasured, so read the description back).
+     (project closed; one record per file; measured on a new class `.ctl` 2026-10-26: report `0 1 0`, ok 1; read the description back).
 
 ## B. Change a field
 
