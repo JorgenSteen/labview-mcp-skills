@@ -577,8 +577,9 @@ They hold for any VI Server or AIXML route, the kit's included.
   renamed and only loaded callers relink). What the tools leave to you: LabVIEW makes an added typedef public
   (`set_scope.py`); a caller saved outside the tool's list (a library member using the typedef) needs
   `kit/pa_save_libraries.xml` on its library, or `kit/pa_project_vis_modified.xml` (`save modified?` T; a large answer
-  is saved to a file: read it with `kit/mem_lines.py`). A `.ctl` saves only through a library Save All (`Open VI
-  Reference` answers 1035). A harness permission check may stop the typedef add as a shared-resource change while it
+  is saved to a file: read it with `kit/mem_lines.py`). A `.ctl` held by a loaded library saves only through a
+  library Save All (`Open VI Reference` answered 1035 there); with the project CLOSED, `kit/pa_set_vi_descriptions.xml`
+  opened a new class typedef by `Open VI Reference` and saved it with `Save.Instrument` (2026-10-26). A harness permission check may stop the typedef add as a shared-resource change while it
   allows the moves.
 - **Clean Up Diagram and Remove Bad Wires keep a helper-loop VI's dynamic event wiring, user-event specs and
   use-default tunnels** (measured, a harness run 2026-10): no probe needed before cleaning one.

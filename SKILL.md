@@ -92,6 +92,9 @@ These protect the files and the toolchain. They are not conventions and cannot b
   `<skill>/conventions/defaults/` are templates and are never followed directly.
 - **New rules during work.** If a rule the conventions do not cover comes up, propose it to the user. Once chosen,
   log it in `.labview/decisions.md` and add it with a `decided` tag. Do not invent conventions silently.
+- **A request that contradicts a convention.** The user's explicit request for this task wins over a convention
+  (e.g. a Timeout frame where `af-shapes.timed-work` says a second loop). Build what was asked, name the convention
+  it departs from in the report, and ask whether it is a one-off or a change to log in `.labview/decisions.md`.
 - **Architecture is the user's call.** That covers the class hierarchy, base actors and the error-handling plan. Propose,
   then ask.
 - **Before a step goes to the user "in the IDE", check VI Server.** When no tool does a step, look for the route in
