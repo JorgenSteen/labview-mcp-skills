@@ -86,11 +86,19 @@ source trees are fine; make them absolute and long-form before any call.
         on the proof queue for the Last Ack and returns per launch: launch, stop and Last Ack codes, the stop-to-ack
         time, and a second Normal Stop's code (1556 = the actor had stopped). N launches in one call (a loop in the
         launcher) give the repeats, and prove a reset, in one `lvai_run_vi_and_read_values` call. Measured: N 5, run
-        1000 ms and 0 ms, Last Ack 0 each time, no hang (evaluation 2026-10). Copy
+        1000 ms and 0 ms, Last Ack 0 each time, no hang (evaluation 2026-10, LabVIEW 2026); N 3, run 1000 ms, the
+        same on LabVIEW 2020 with AF's base `Actor.lvclass` (2026-10-28). Copy
         `kit/example_launcher_last_ack.xml`; its `actor seed` and `last ack seed` path stand-ins become the actor class
         and AF's `Last Ack.lvclass`: `lvai_validate_aixml` refuses them (the stand-in false positive in
-        `knowledge/labview-mcp.md`), so convert with `validateFirst: false`, then swap both top-level constants with
-        `lvai_swap_subvis` `constantsJson`.
+        `knowledge/labview-mcp.md`), so convert with `lvai_convert_aixml_to_vi`, which does not validate (not
+        `lvai_generate_vi`, whose first step on `grpc` is the validate); it answers `ok` false and state 0 until the
+        swap. Then swap both top-level constants with `lvai_swap_subvis` `constantsJson`: on a launcher that is in no
+        project this needs no project open (measured 2026-10-28), and its closing Remove Bad Wires step answers 1055
+        (`noActiveProject`) and is skipped, which is harmless here; read `lvai_exec_state` 1 afterwards.
+        **Reading the order:** first stop 0 and second stop 1556 on every launch prove the second stop came after the
+        actor had gone. `stop to ack ms` 0 is normal for an actor that acks within the 1 ms tick (AF's base Actor read
+        0 3 of 3); a wrong order shows as about `run ms` (the first Tick Count ran early) or a U32 wrap near 4294967295
+        (the second ran early).
       - **Interactive run:** start the never-returning VI with `<skill>/kit/pa_run_vi_async.xml` (it cannot set
         controls: the VI runs with its defaults); read the running loop VI with `pa_read_control.xml` /
         `pa_read_control_u32.xml` (state 3, panel open); press its stop with `pa_press_control_signal.xml`

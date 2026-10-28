@@ -134,7 +134,7 @@ kit's `project.example.json` is superseded by `conventions/templates/project.jso
 | `example_launch_nested.xml` | example | A launch method for a nested actor. | ops/override.md (planned) | - |
 | `example_interface_override_forward.xml` | example | Interface override forwarding to the caller. | ops/override.md (planned) | - |
 | `example_launcher_ui_stop.xml` | example | Headless launcher that presses the UI's Stop. | ops/run-checks.md (planned) | - |
-| `example_launcher_last_ack.xml` | example | Actor stop proof: N launches with a proof-owned queue, Normal Stop, the Last Ack's code per launch, a second stop (1556). The two top-level path stand-ins become the actor class and `Last Ack.lvclass` (validate refuses them as they are: convert with `validateFirst: false`, then `constantsJson`). | ops/run-checks.md | - |
+| `example_launcher_last_ack.xml` | example | Actor stop proof: N launches with a proof-owned queue, Normal Stop, the Last Ack's code per launch, a second stop (1556). The two top-level path stand-ins become the actor class and `Last Ack.lvclass` (validate refuses them as they are: convert with `lvai_convert_aixml_to_vi`, which does not validate, then `constantsJson`). | ops/run-checks.md | - |
 | `example_ctl_defaults.xml` | example | Sets and reads back a standalone typedef's default value (project closed); retype `wanted` and `type template` to your typedef. | ops/class-field.md | - |
 | `example_to_json.xml`, `example_notifier_typedef.xml` | example | A to_json method; a notifier typedef. | ops/helper-loop.md (planned) | - |
 

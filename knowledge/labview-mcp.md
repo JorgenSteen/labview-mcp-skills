@@ -53,6 +53,12 @@ not repeated here.
   ActiveX, and NI's gRPC service was not asked; no tool validates through NI, so no `LVMCP Validate*` scratch VIs pile
   up, and the session's close ended clean (3.2 s, no save dialog); `lvai_vis_in_memory` reads the main and the active
   project's instance only (the add-on's instance is gRPC-only).
+- **On a LabVIEW older than the one that last ran a tool, its cached helper may be too new.** The `pylabview` helper
+  cache (`%TEMP%\LabVIEWMCP\helpers-pylabview\`) is shared by every LabVIEW on the station; a helper saved there by
+  LabVIEW 2026 is refused by LabVIEW 2020: `lvai_swap_subvis` answered `ok` false, `viNotOpened`, "File version is
+  later than the current LabVIEW version" (0x465), nothing saved. Re-run that call with `regenerateHelper: true` and
+  `helperViPath` set to a folder of this session's own (e.g. `<repo>/mcp_temp/helpers/`), so the next 2026 session's
+  cache is left alone; later calls reuse that path. *Measured 2026-10-28 on LabVIEW 2020 20.0.1f1.*
 
 ### A failed, hung or blocked call: stop and report
 - **`DeadlineExceeded` does not stop the work.** The VI Server helper keeps running inside LabVIEW, and every later
@@ -84,7 +90,7 @@ not repeated here.
 | `lvai_exec_state` and the sweep helper (open: good VIs read state 0); Clean Up Diagram; re-save; `lvai_set_owner_icon`, `lvai_read_icons` (open: 1562; both check first) | **closed** |
 | front-panel property setters and cold read-backs, VI descriptions (`lvai_set_vi_descriptions`, which refuses an active project; `pa_replace_description`, `pa_set_vi_descriptions` for a `.ctl`), `pa_set_plot_names`, `pa_wire_by_label`; `pylv_extract`/`pylv_rebuild` with kit bundle scripts; `lvai_generate_vi_with_events`; `lvai_set_event_data_fields` | **closed** |
 | byte-exact kit edits of `.lvclass`/`.lvlib`/`.lvproj`; file deletes; any git restore, checkout, revert or reset | **closed** |
-| `lvai_create_override`, `lvai_af_add_hook`, `lvai_af_remove_hook` and the kit's hook helpers, `pa_save_member`, `pa_clean_member`, `pa_rename_member`; `lvai_swap_subvis` (`Replace` is a silent no-op outside the IDE's own instance) | **open and active** |
+| `lvai_create_override`, `lvai_af_add_hook`, `lvai_af_remove_hook` and the kit's hook helpers, `pa_save_member`, `pa_clean_member`, `pa_rename_member`; `lvai_swap_subvis` (`Replace` is a silent no-op outside the IDE's own instance). Exception: `constantsJson` on a loose VI in no project worked with no project open, only its Remove Bad Wires step answered 1055 and was skipped (LabVIEW 2020, `pylabview`, 2026-10-28) | **open and active** |
 | `lvai_wire_dynamic_events` (its bundle step then closes and saves the project), `pa_set_panel_on_call`, `pa_switch_and_reset_boolean`, `pa_array_element_replace`; `lvai_add_class_field`, `lvai_bind_class_fields`, `lvai_add_class_method` on an existing member, `lvpdc_export`/`lvpdc_import` | **open and active** |
 | `lvai_set_class_description`, `lvai_add_to_class`, `lvai_move_to_folder`, `lvai_create_library` (each opens `projectPath`), `pa_save_libraries`, `pa_project_vis_modified` | **open and active** |
 | `pa_insert_series_branch`, `pa_remove_series_block`, `pa_wire_nodes`, `pa_reg_to_control`, `pa_reg_indicator`, `pa_replace_constant_deep`, `pa_save_orphan` | **open and active** |
@@ -294,7 +300,9 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
 - `lvai_validate_aixml` answers only "Error 42 ... Generic error" for an AIXML file holding XML comments
   (`<!-- -->`): author none (evaluation 2026-10).
 - `lvai_validate_aixml` refuses `To More Generic/Specific Class` on path stand-ins ("Polymorphic terminal cannot accept
-  this data type"), a false positive: convert with `validateFirst: false`, let `lvai_exec_state` decide. Since 1.8.5 the
+  this data type"), a false positive: convert with `lvai_convert_aixml_to_vi` (it does not validate; there is no
+  `validateFirst` parameter on either tool, and `lvai_generate_vi` validates first on `grpc`, skips it on
+  `pylabview`), let `lvai_exec_state` decide. Since 1.8.5 the
   convert repairs reserved-range uids (< 4200) and refuses invalid XML characters (`notWellFormedXml`). (pilot rule 56)
 - `lvai_convert_vi_to_aixml` does not create its target folder (`Error 7 … Write to Text File`); `lvai_convert_vis_to_aixml` (a list) does.
   [1.8.5] (pilot rule 75) > MCP-candidate: convert-target-folder
