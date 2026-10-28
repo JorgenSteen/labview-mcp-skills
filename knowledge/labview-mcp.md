@@ -42,6 +42,12 @@ not repeated here.
   ("unreadable type"); `Set File Position` ("is not a primitive") in `lvai_add_class_method`. The same calls ran on
   `grpc`. `lvai_add_class_method`'s `pylabview` pre-check also composes in a scratch folder, so a stub placed next to
   the caller is not found: use `lvai_placeholder_subvi` stubs.
+- **Not refused but broken on `pylabview`:** a case structure on an error cluster (`Error`/`No Error` selectors, as in
+  `createResources`, `ops/override.md` shape F) is composed so that the VI loads broken ("Case Structure: Selector
+  values are not unique / No case for some selector values", cold state 0), while `lvai_add_class_method` answers ok
+  and verifiedOnDisk. The same AIXML on `grpc` gave state 1. Generate such VIs with `backend: "grpc"`; only a cold
+  sweep catches it. The `pylabview` reader also drops wires in an export of such a VI ("2 sources" comments).
+  *Measured 2026-10-26 on LabVIEW 2026 Q3.*
 - **What else differs on `pylabview`** (measured 2026-10-26, a whole actor build with overrides, hooks, a helper loop,
   icons and a typedef field on that route): `lvai_ensure_labview`'s `"state": "ready"` means LabVIEW answers over
   ActiveX, and NI's gRPC service was not asked; no tool validates through NI, so no `LVMCP Validate*` scratch VIs pile
@@ -387,6 +393,12 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
   naming them) before anything changes; a `vi`-only re-run over a listed member is refused (`rerunNeedsAixml`).
   Unhook (swap the callers onto a placeholder, or `lvai_af_remove_hook`), regenerate, swap back. One name stayed held
   after every caller was unhooked: then add the new behaviour as a new hook. (pilot rules 22, 49)
+- [2.2] The re-run also failed with **56003 with no loaded caller** (`checkLoadedCallers` answered `callers {}`, the
+  hook already removed): it dropped the member, converted, retyped, then AddItemFromMemory 56003, and left the member
+  out of the `.lvclass`. A second try as a first run failed the same, on `pylabview` and on `grpc`. Working route:
+  project closed, `kit/remove_members.py <.lvclass> "<vi>"` (no `--delete-files`), then a FIRST-run
+  `lvai_add_class_method`; then scope and folder by hand (a first run puts it public at the root). Full sequence for a
+  hooked method: `ops/override.md` section 5, "A new body for a series hook". *Measured 2026-10-26.*
 - A failed convert inside a re-run leaves the member dropped: fix the AIXML, re-add, `check_membership.py`. A re-add
   resets the scope to public and moves the VI out of its virtual folder [1.8.0–1.8.5]; [2.2] `keepPlacement` (default)
   writes the old scope and folder back. Check with `lvai_describe_class`; by hand: `set_scope.py` (project closed)

@@ -42,6 +42,16 @@ docs, or NI/AF designers on the NI forum), **observed in production** (the user'
   read chained after it answered 1 (the refnum was gone); no Stop Core and no Handle Error line; 2 of 2 runs. With no
   forced error the actor launched, ran and stopped normally.* Order a check after a release by its error wire:
   unchained, the status read ran first and proved nothing. (`convention: af-shapes.pli-failure-cleanup`.)
+- **A create that creates nothing launches an actor that hangs at stop.** If `createResources`' create call leaves the
+  events field null with no error (a wrong or swapped create, a create whose error is dropped), PLI succeeds, Launch
+  answers 0 and the actor runs; Register For Events on the null refnum gives no error, the stop event can never reach
+  the loop, the Last Ack times out and the actor stays in memory until LabVIEW is killed. The guard: `createResources`
+  tests each created refnum with `Not A Number/Path/Refnum?` and turns an invalid one into an error merged into its
+  case selector; Launch then returns that error, Actor Core never runs (no Stop Core, no Handle Error), and the
+  launcher returns within its timeout. *Evidence: measured 2026-10-26 (an AF measurement series on a throwaway actor,
+  the create call swapped onto a same-pane member that creates nothing): without the guard Launch 0 and a hang at
+  stop; with the guard (code 5101) the forced failure gave Launch 5101 and no hang 3 of 3, and the normal launch ran
+  and stopped with Last Ack 0 3 of 3.* (`convention: af-shapes.pli-failure-cleanup`.)
 - **Stop Core's pane has no error in or error out,** only `final error code`, which tells whether the actor stopped
   because of an error. The base Stop Core passes the stop to every auto-stop nested actor. A child launched with
   auto-stop FALSE must be stopped by the caller's own Stop Core. AF gives Stop Core no error report because the caller

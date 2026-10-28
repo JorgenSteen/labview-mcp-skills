@@ -84,8 +84,15 @@ A Pre Launch Init that fails cleans up after itself, because Stop Core does not 
 their errors, and a case structure on that merged error runs, in its Error case, the same release VIs that Stop Core
 and `close` use (`resources`) on whatever was created. The No Error case does nothing. It returns the error. Pre Launch
 Init calls only `createResources` (class and error), so a failure fails the launch.
+- **Every created refnum is checked.** After its creates, `createResources` reads back each refnum it created (the
+  events typedef: `Read` + Unbundle By Name) and tests it with `Not A Number/Path/Refnum?`; an invalid one becomes an
+  error (Select between an error cluster with the project's code and a message naming the VI, and no error), merged
+  with the creates' errors into the case selector. A create that silently leaves a field null then fails the launch
+  and runs the cleanup, instead of an actor that launches and hangs at its first stop
+  (`knowledge/actor-framework.md`, "A create that creates nothing").
 Why: one release VI per resource group, reused, so a cleanup is written once and cannot drift between the paths; and
-the whole member VI can be written and generated in one piece, with Pre Launch Init's diagram one call.
+the whole member VI can be written and generated in one piece, with Pre Launch Init's diagram one call. The refnum
+check, because a null refnum passes every later node without an error until the stop needs it.
 source: default
 
 ## events-typedef

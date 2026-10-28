@@ -207,6 +207,20 @@ and error), the one hook there. Measured: hook placement (B-after, M-CLOSE M3), 
 and a chained status read proved the refnum gone, no Stop Core, 2 of 2; `knowledge/actor-framework.md`, "PLI's own
 cleanup works"). Still sweep each new `createResources` cold and run one forced-failure launch, because its creates
 and releases are the project's own. Order a check after a release by its error wire.
+- **The refnum check** (`af-shapes.pli-failure-cleanup`): after the creates, `Read` the events (fresh error chain) →
+  Unbundle By Name → `Not A Number/Path/Refnum?` per refnum → Select(error cluster with the project's code, no error)
+  → into the same Merge Errors as the creates.
+- **Generate `createResources` on `grpc`** (`backend: "grpc"` on `lvai_add_class_method`). The `pylabview` composer
+  writes an error-cluster case structure (`Error`/`No Error`) that loads broken ("Selector values are not unique / No
+  case for some selector values") while the tool answers ok and verifiedOnDisk; only the cold sweep shows it
+  (`knowledge/labview-mcp.md`, "The AIXML backend"). Measured 2026-10-26.
+- **The forced-failure launch:** with the project open, `lvai_swap_subvis` the create call inside `createResources`
+  (e.g. `createEvents`) onto a same-pane member that creates nothing (`init` served) or one that returns an error;
+  save; close the project; run ONE launch through the launcher (`ops/run-checks.md`). Expect: Launch returns the
+  guard's (or the forced) error, no Actor Core log line, no Stop Core, no Handle Error, the launcher back within its
+  timeout. Then, project closed, `git checkout -- "<createResources>.vi"` and sweep cold; never commit the swap. A
+  Launch 0 with a hang at stop means the refnum check is missing (`knowledge/actor-framework.md`, "A create that
+  creates nothing"): kill only with the user's go-ahead. Measured 2026-10-26, 3 of 3 with the check.
 
 **H. Handle Last Ack Core:** pane read offline from production code and with `lvai_connector_pane` from NI's VI
 (2026-10-10, pattern 4812): `error in (no error)` 4, `Last Ack` 6, `<C> in` 7, `<C> out` 3, `error out` 0; confirm it
@@ -227,8 +241,16 @@ helpers do not make; Call Parent's `error out` must reach the override's `error 
 
 ## 5. Change a hooked method
 
-`lvai_add_class_method` re-run on a method a loaded member calls fails with 56003 after dropping the member entry
-(`knowledge/labview-mcp.md`, "lvai_add_class_method"). > MCP-candidate: add-class-method-rerun
+`lvai_add_class_method` re-run on a method a loaded member calls fails with 56003 after dropping the member entry, and
+in 2.2 it failed the same way with no loaded caller at all (`knowledge/labview-mcp.md`, "lvai_add_class_method").
+> MCP-candidate: add-class-method-rerun
+- **A new body for a series hook** (e.g. `createResources` hooked B-after into PLI), measured 2026-10-26: commit;
+  `lvai_af_remove_hook` (`dryRun` first; read `bypassed`, `sinksReconnected`); close the project;
+  `kit/remove_members.py <.lvclass> "<hook>.vi"` (no `--delete-files`); open; `lvai_add_class_method` as a FIRST run
+  with the new AIXML (a re-run gave 56003, see above; `grpc` for an error-cluster case structure, shape F); re-swap its
+  stubs; `lvai_af_add_hook` with the shape it had (`seriesAfter`, dry run first); then scope and folder again, because
+  a first run puts the member public at the class root (`lvai_move_to_folder`; `kit/set_scope.py`, project closed);
+  close, cold sweep, `check_membership.py`, export, run.
 - **Replaced by another member with the same pane:** `lvai_swap_subvis` straight onto it (`socket` = the old VI's
   qualified name). It keeps the series wiring and also reaches a node inside the shape-D frame (measured: the stop
   hook swapped in the frame, M-CLOSE M1). Use this route first.
