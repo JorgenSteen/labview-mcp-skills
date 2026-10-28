@@ -126,7 +126,8 @@ Any guard that fails: stop and report; nothing is closed.
 
 ## Killing LabVIEW
 `Stop-Process` loses every unsaved edit, and the next start meets the `LVAutoSave` recovery data. It is never part of
-this route. Only with the user's explicit go-ahead, quoted with its date: either for this kill, after steps 2 and 3
+this route. The harness refused a subagent's `Stop-Process` twice despite the user's quoted go-ahead (2026-10-26):
+a kill comes from the main session; a subagent stops and reports instead. Only with the user's explicit go-ahead, quoted with its date: either for this kill, after steps 2 and 3
 have been reported to the user, or a **blanket kill go-ahead for this session** (asked up front, e.g. "feel free to
 kill labview at will for this session"; it ends with the session). Under the blanket go-ahead, kill only when a
 fresh window list shows nothing unsaved but `LVMCP Validate*` scratch and no `LVAutoSave` files of the user's;

@@ -25,6 +25,9 @@ and class glyphs with the user is `conventions/setup.md`, section 4.
   | **adopt** | an existing class with icons, local mode, or the concern off | `icons.existing-icons`: nothing is redrawn. A new or regenerated VI gets a sibling's icon copied or only its own glyph, then the class's existing template re-applied. The class icon is not set. |
   | **on request** | existing classes the user named | as **new**, for those classes only, after a BEFORE read-back |
 
+- **Tools draw icons by default:** `lvai_generate_vi` (`icon: "none"` skips it), `lvai_create_accessors`
+  (`setIcons: false`), `lvai_add_class_method` (a derived icon, no opt-out). With the concern off, pass the opt-outs
+  and report the rest as side effects (measured 2026-10-26).
 - **LabVIEW is running** (`session/start.md`), no other LabVIEW agent, project **closed** for every class and
   library icon call (open: Error 1562; close as `knowledge/labview-mcp.md`, "Opening and closing a project" says).
 - **Commit before you start and after each class or library** (or record `HEAD` when the tree is clean).

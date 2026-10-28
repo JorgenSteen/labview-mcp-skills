@@ -189,7 +189,10 @@ Call Parent at the stop).
   `kit/pa_insert_series2.xml` after the log hook, roles swapped as after Call Parent: `vi path`, `class path`, `hook vi
   path`, `panel name A` = `stop actor?`, `hook in A` = `stop out`, `hook out A` = `stop in`; block B `panel name B` =
   `error out`, `hook in B` = `error out`, `hook out B` = `error in` (names as the body's pane has them); then
-  `pa_save_member`. The body needs no class terminal (`error in`, `stop in` → `error out`, `stop out`). Measured
+  `pa_save_member`. The body needs no class terminal (`error in`, `stop in` → `error out`, `stop out`), so it joins
+  the class by `lvai_generate_vi` (`panePattern: 4815`) and `lvai_add_to_class` (folder `Methods`), not
+  `lvai_add_class_method` (`knowledge/labview-mcp.md`). Measured 2026-10-26: the body that overrules a code answers
+  `stop out` F and clears that error (`error out` no error); keeping the error while answering F is unmeasured. Measured
   2026-10-10 (an AF measurement series): the override read Call Parent → class/error body → `stop actor?`/error body
   → indicators, and the body kept the actor running on 5003 while the control stopped
   (`knowledge/actor-framework.md`, "Which order can keep an actor running"). **The parent answers T at a Normal Stop

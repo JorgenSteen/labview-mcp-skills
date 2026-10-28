@@ -31,7 +31,9 @@ Usage
     --check     dry run: print the lines that would be added and write nothing.
 
 Exit code 0 on success, 2 when the Dependencies anchor is not found exactly once,
-3 when an item is already listed (or given twice).
+3 when an item is already listed (or given twice), 4 when a path is absolute (a drive
+letter, a UNC path or a leading slash): it would be written as URL="../C:/...", which
+LabVIEW cannot resolve. Nothing is written in either refusal.
 """
 import argparse
 import re
@@ -66,7 +68,10 @@ def main(argv=None):
 
     new, seen = [], set()
     for rel in a.paths:
-        rel = rel.replace("\\", "/").lstrip("/")
+        rel = rel.replace("\\", "/")
+        if re.match(r"^([A-Za-z]:|/)", rel):
+            print("REFUSED: %s is absolute; give it relative to the .lvproj's folder; nothing written" % rel)
+            return 4
         name = rel.split("/")[-1]
         url = "../" + rel
         name_b = ('Name="%s"' % name).encode("utf-8")

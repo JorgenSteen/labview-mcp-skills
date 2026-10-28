@@ -78,7 +78,9 @@ field: an accessor made earlier keeps the bare type for ever. (pilot rule 2)
    `layout.accessors-for-own-data`). A new member of the class reads and writes the field through its accessor, so
    the accessor is made when the first such member is built, in the direction it uses:
    `lvai_create_accessors(lvclassPath, fromField=<index>, fieldCount=1, budgetSeconds=1, accessUi="Read"|"Write",
-   dynamicDispatch=false, virtualFolderName=<the class's accessor folder>, projectPath)`. `projectPath` is the
+   dynamicDispatch=false, virtualFolderName=<the class's accessor folder>, projectPath)`, plus `setIcons: false`
+   when the icons concern is off (the tool draws icons by default; a class with its own icon still gets the
+   wizard's template on the new accessor, 2026-10-26). `projectPath` is the
    project to tidy; the tool needs it open and active first (`lvai_open_file`), as its own text says (it opened a
    closed one anyway in an evaluation, 2026-10, answering `projectOpened`). When the user asks for the accessors
    outright, both directions are wanted: two calls, Read then Write.

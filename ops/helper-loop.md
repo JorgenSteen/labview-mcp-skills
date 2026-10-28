@@ -65,6 +65,9 @@ or when a concern is off, follow the surrounding code instead.
      "Methods")`. The VI Server route is measured (the kit, an evaluation 2026-10); labview-mcp lists the tool's
      adding of a `.vi` as unmeasured: check the `.lvclass` afterwards.
    Author each in AIXML with the class as a `path` stand-in and the accessors as `lvai_placeholder_subvi` stubs.
+   The stubs are written into the LabVIEW installation (`<LabVIEW>\user.lib\LV_MCP\`), outside the repo: report
+   them as a side effect. Pass `removeBadWires: false` to `lvai_add_class_method` until the stubs are swapped
+   (`knowledge/labview-mcp.md`, "lvai_add_class_method").
    **Class terminals per member:** a member that goes in series on the class wire or writes a field returns the
    object: `createResources`, `createEvents` and `init` declare `<C> in` AND `<C> out` in their AIXML and get
    `classTerminals` = `["<C> in", "<C> out"]`; `stop` and `close` take `<C> in` only (`["<C> in"]`).
@@ -205,7 +208,7 @@ or when a concern is off, follow the surrounding code instead.
       with branches, `ops/override.md`): `wire A kept branches` = the loop, the stop frame and `close`. Then
       `kit/pa_wire_nodes.xml`: `source vi regex` = `init`'s name, `source terminal name` = `event registration
       refnum`, `sink vi regex` = the loop VI's name, `sink terminal name` = the label of the control step 7b made
-      (`event registration refnum`); `source hits` and `sink hits` 1, `wire ends` 2, `wire broken` F. It does not save:
+      (`Event Registration Refnum`; the lowercase spelling also matched, 2026-10-26); `source hits` and `sink hits` 1, `wire ends` 2, `wire broken` F. It does not save:
       `pa_save_member`. Measured on two actors, 2026-10 (one of them a root whose `init` also launches the nested
       actors).
     - The kit's branch hook wires the class terminal only: the loop's `error in` stays unwired (no error), as in the

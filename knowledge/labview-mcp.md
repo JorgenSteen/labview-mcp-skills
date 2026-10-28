@@ -285,6 +285,9 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
   > MCP-candidate: read-running-vi > MCP-candidate: press-control
 
 ### lvai_generate_vi, lvai_convert_aixml_to_vi, lvai_convert_vi_to_aixml, lvai_validate_aixml
+- `lvai_generate_vi` keeps the station's default pane (LabVIEW.ini `DefaultConPane`); on one station that was 4833,
+  and a 2-in/2-out VI failed the tool's own pane gate; `panePattern: 4815` passed (2026-10-26). It also draws a
+  derived icon on every deliverable: `icon: "none"` when the project's icons concern is off (`ops/icons.md`).
 - `lvai_convert_aixml_to_vi` does not create the target folder; the miss reads `Error 7 … Save:Instrument`, and a
   failed save may block that file name (1051). `lvai_generate_vi` creates it since 1.8.5. [1.7.2–1.8.5] (pilot rule 13)
   > MCP-candidate: convert-target-folder
@@ -300,8 +303,8 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
 - `lvai_validate_aixml` answers only "Error 42 ... Generic error" for an AIXML file holding XML comments
   (`<!-- -->`): author none (evaluation 2026-10).
 - `lvai_validate_aixml` refuses `To More Generic/Specific Class` on path stand-ins ("Polymorphic terminal cannot accept
-  this data type"), a false positive: convert with `lvai_convert_aixml_to_vi` (it does not validate; there is no
-  `validateFirst` parameter on either tool, and `lvai_generate_vi` validates first on `grpc`, skips it on
+  this data type"), a false positive: convert with `lvai_convert_aixml_to_vi` (it does not validate; `validateFirst` exists
+  only on `lvai_add_class_method`, and `lvai_generate_vi` validates first on `grpc`, skips it on
   `pylabview`), let `lvai_exec_state` decide. Since 1.8.5 the
   convert repairs reserved-range uids (< 4200) and refuses invalid XML characters (`notWellFormedXml`). (pilot rule 56)
 - `lvai_convert_vi_to_aixml` does not create its target folder (`Error 7 … Write to Text File`); `lvai_convert_vis_to_aixml` (a list) does.
@@ -407,6 +410,11 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
   project closed, `kit/remove_members.py <.lvclass> "<vi>"` (no `--delete-files`), then a FIRST-run
   `lvai_add_class_method`; then scope and folder by hand (a first run puts it public at the root). Full sequence for a
   hooked method: `ops/override.md` section 5, "A new body for a series hook". *Measured 2026-10-26.*
+- Defaults that bite (2.2): `removeBadWires` (true) clears a stub's path-typed socket wire before the swap; pass
+  `false` while a method still holds `lvai_placeholder_subvi` stubs, swap, then read it cold (measured 2026-10-26; the
+  repair cost `pa_wire_nodes` + `pa_save_member` + two generates). `panePattern` (4815, NI's accessor layout) and
+  `cleanUpDiagram` (true, labview-mcp's layout engine) are applied to every method; `validateFirst` (true) is this
+  tool's own. The tool also draws a derived icon on each method, with no opt-out (`ops/icons.md`).
 - A failed convert inside a re-run leaves the member dropped: fix the AIXML, re-add, `check_membership.py`. A re-add
   resets the scope to public and moves the VI out of its virtual folder [1.8.0–1.8.5]; [2.2] `keepPlacement` (default)
   writes the old scope and folder back. Check with `lvai_describe_class`; by hand: `set_scope.py` (project closed)
@@ -431,7 +439,9 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
 - One add re-saves every member of the library (11 files: all 7 VIs, the class, the other `.ctl`), each a save that can
   change its version. A `.ctl` into a class: [2.2] `lvai_add_to_class`, which saves only the class and the files it
   took in. [1.8.5] (audit rule candidate 106)
-- Messages go one folder each into `Messages for this Actor` (folder name; check `placedIn`). A
+- Messages go one folder each into `Messages for this Actor` (the tool's folder name; check `placedIn`); the
+  project's folder is the convention's (`layout.class-folders`: `Messages`): move them there with
+  `lvai_move_to_folder` (`createFolder`). A
   `projectEntriesToRemove` for a `.ctl` the `.lvproj` never listed needs nothing. (pilot rule 20)
 - After any library add or Save All (`pa_save_libraries`): `git status --short` over the tree. A re-save outside
   the task's scope (a test VI re-saved by 1 byte, a harness run 2026-10) is a side effect: restore it with the project closed or
@@ -445,6 +455,10 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
   `conIdx`); String and class payloads work. For an **interface** method the tool refuses: run that helper
   directly, then `<skill>/kit/repair_r1.py`. [1.8.0] (pilot rule 19)
   > MCP-candidate: message-interface-method
+- A new message class joins the ACTOR's library (`lvai_add_to_library`, the actor's `.lvlib`) and then the
+  convention's folder (`layout.class-folders`: `Messages`, via `lvai_move_to_folder` with `createFolder`). Measured
+  2026-10-26 on one actor (a start message, its `Do` and `Send` sweep state 1). The library add re-saves every
+  member of the library (above).
 - `lvai_describe_class` misreports a class derived from LabVIEW Object (rename history shown as ancestors): read the
   `.lvclass` XML. [1.7.2–1.8.0] (pilot rule 16) > MCP-candidate: describe-class-ancestry
 

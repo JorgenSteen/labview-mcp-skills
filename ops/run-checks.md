@@ -89,7 +89,8 @@ source trees are fine; make them absolute and long-form before any call.
         1000 ms and 0 ms, Last Ack 0 each time, no hang (evaluation 2026-10, LabVIEW 2026); N 3, run 1000 ms, the
         same on LabVIEW 2020 with AF's base `Actor.lvclass` (2026-10-28). Copy
         `kit/example_launcher_last_ack.xml`; its `actor seed` and `last ack seed` path stand-ins become the actor class
-        and AF's `Last Ack.lvclass`: `lvai_validate_aixml` refuses them (the stand-in false positive in
+        and AF's `Last Ack.lvclass` (`<LabVIEW>\vi.lib\ActorFramework\LastAck\Last Ack.lvclass`; a Send Error Report
+        mode calls `Send Error Report.vi` in `vi.lib\ActorFramework\Specialty Messages\Report Error Msg\`): `lvai_validate_aixml` refuses them (the stand-in false positive in
         `knowledge/labview-mcp.md`), so convert with `lvai_convert_aixml_to_vi`, which does not validate (not
         `lvai_generate_vi`, whose first step on `grpc` is the validate); it answers `ok` false and state 0 until the
         swap. Then swap both top-level constants with `lvai_swap_subvis` `constantsJson`: on a launcher that is in no
