@@ -465,6 +465,16 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
   answers `ok:false`, state 0: expected until membership and swaps. A frame selector takes the refnum or cluster
   **element** label (` <stop>\3A User Event `). Panel flags: see the scripting quirks. [1.8.0–1.8.5]
   (pilot rules 39, 62, 65, 66) > MCP-candidate: generate-with-events-fixes
+- **Event structure Timeout value: no route.** AIXML has no element for the Timeout terminal; the composer builds the
+  terminal and leaves it unwired (-1, never), and both exports (NI's and the `pylabview` reader) drop the value, so an
+  export can neither set nor show it (labview-mcp `docs/cold-build-atm-cld.md` §4). A Timeout-only frame is spelled
+  `<CaseFrame selector=" Timeout ">` and builds with `lvai_generate_vi_with_events` (state 1). The scripting route
+  (Timeout Terminal → Create Constant, a derived helper) failed on LabVIEW 2020 `pylabview`: with the cast to
+  `ref{LV.Terminal}` the run answered 1057 at the cast, without it the helper was written broken ("Invalid method");
+  the composer's Terminal refnum class does not match what that LabVIEW returns. On `grpc`/2026 the cast compiled
+  (2026-10-26) but no run was proven. So: avoid the need (`convention: af-shapes.timed-work`); otherwise set the value
+  by hand in the IDE and check it on `lvai_render_diagrams` (a constant wired to the structure's top-left terminal).
+  *Measured 2026-10-28 (LabVIEW 2020 20.0.1f1).* > MCP-candidate: event-timeout
 
 ### lvai_set_vi_icon and icon work
 - With an image it sets the VI's own layer and **flattens** the icon: editable text layers are lost (27–36 % of

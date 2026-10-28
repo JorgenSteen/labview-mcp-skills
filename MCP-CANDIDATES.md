@@ -410,3 +410,11 @@ service" in `knowledge/labview-mcp.md`.
   KT-7 save-version-check, deadline-abort, dialog-detection. These are kit ports first; they shrink once a candidate ships.
 - TR-1..TR-3 are AF facts (`knowledge/actor-framework.md`). TR-4 is applied as scope notes in `knowledge/labview-mcp.md`.
   TR-5 (rule candidates 100–111) is used here as evidence; they live in `knowledge/labview-mcp.md`; the pilot's own rules file stays as it is (maintenance).
+
+## event-timeout
+**Status** proposed (2026-10-28). **Gap** no tool or AIXML element sets or shows an event structure's Timeout value:
+the composer builds the terminal unwired (-1), both exports drop the value, and a scripting helper (Timeout Terminal
+→ Create Constant) failed on LabVIEW 2020 `pylabview` (1057 at the cast to `ref{LV.Terminal}`; without the cast
+"Invalid method"). **Proposed** an AIXML attribute or wired net for the Timeout terminal in the composer, read back
+by the reader. **Removes** the "set by hand, check on a render" fallback in `knowledge/labview-mcp.md` and
+`af-shapes.timed-work`. **Evidence** a measurement on LabVIEW 2020, 2026-10-28; labview-mcp `docs/cold-build-atm-cld.md` §4.

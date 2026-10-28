@@ -206,6 +206,8 @@ docs, or NI/AF designers on the NI forum), **observed in production** (the user'
   0 ms timeout makes the loop spin whenever the queue is empty. *Evidence: documented (LabVIEW help, NI forum); the
   busy loop is reasoned.* (`convention: af-shapes.timed-work`.) The pilot's "an event structure with only user-event
   frames needs a Timeout frame" is a labview-mcp build-step limit, not LabVIEW: see `knowledge/labview-mcp.md`.
+  The Timeout value itself cannot be set or read through labview-mcp (`knowledge/labview-mcp.md`, "Event structure
+  Timeout value").
 - **Front-panel Booleans and VI Server.** A value written by VI Server (`Value`, `Ctrl Val.Set`) fires no Value Change
   event; only `Value (Signaling)` does. A latched Boolean cannot be written by VI Server at all (error 1193), so a
   latched Stop in an event structure can only be pressed by a person. A button a test must press is "Switch When

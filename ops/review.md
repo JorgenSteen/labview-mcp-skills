@@ -35,10 +35,10 @@ A finding without evidence is not a finding.
    dead file, or a launcher kept as a project item), not a stop.
 3. **Nets first.** `python <skill>/kit/vi_nets.py <vi> --work <scratch>` answers every override, hook and loop
    wiring row with no LabVIEW call (a whole application of 1411 VIs took about 55 min, audit F); it also shows the
-   dynamic event terminal an export hides. Only what nets do not carry needs an export (frame names, Timeout values,
+   dynamic event terminal an export hides. Only what nets do not carry needs an export (frame names,
    panes, properties): `lvai_convert_vi_to_aixml` into a scratch folder, project closed, after
    `python <skill>/kit/lv_loadability.py` says the VI loads. An AIXML source beside a VI may be older than the VI.
-   Constants (paths, Timeout values, typedef defaults) are not in `vi_nets` dumps: read them from an AIXML export
+   Constants (paths, typedef defaults) are not in `vi_nets` dumps: read them from an AIXML export
    and check its date against the VI's; an older one is unverified. `vi_nets` cannot see Conditional Disable
    structures either: `hygiene.conditional-disable` needs an export. (evaluation 2026-10)
    `lv_loadability.py` needs `--vilib` on a station with several LabVIEW installs; its `--links` on a `.lvlib`
@@ -63,7 +63,7 @@ A finding without evidence is not a finding.
 | private dynamic-dispatch member; static VI inside a dynamic recursion cycle | `.lvclass` scope; dispatch from `lvai_describe_class` or the pane (the `.lvclass` has no `IsStaticMethod` property, evaluation 2026-10) | broken VI |
 | a handler before Call Parent that is meant to keep the actor running | Handle Error nets | the parent still returns `stop actor?` = T |
 | side work chained on Handle Error's `error in` | Handle Error nets | skipped at every normal stop (error 43) |
-| 0 ms Timeout with non-blocking work | event structure Timeout value (export) | busy loop |
+| 0 ms Timeout with non-blocking work | event structure Timeout value (a render: every export drops it, `knowledge/labview-mcp.md`) | busy loop |
 | a child's library referencing its caller | link info of the child's files (read by `kit/lv_loadability.py`), not a raw grep, which hits cached types | dependency cycle |
 
 ## Convention rows (cite the id; read the rule in `.labview/conventions/`)

@@ -194,6 +194,11 @@ source: default
 runs when no event has come for a while (an idle or watchdog check). Otherwise there is no Timeout frame, or an empty
 one where the build tool needs it (`knowledge/labview-mcp.md`; LabVIEW itself needs one only when the Timeout
 terminal is wired). Never use a 0 ms Timeout with non-blocking work (a busy loop).
+- **An idle or watchdog check is built without a Timeout value where it can be:** a node whose own wired timeout
+  does the job (`Dequeue Element`'s `timeout in ms`, a second loop on `Wait on Notification` with a timeout), because
+  no tool or AIXML element sets an event structure's Timeout value (`knowledge/labview-mcp.md`, "Event structure
+  Timeout value"). Where the user wants the Timeout frame itself, its value is set by hand in the IDE and checked on
+  a render; say so in the report.
 source: default
 
 ## hook-vis
