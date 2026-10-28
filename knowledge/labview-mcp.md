@@ -473,7 +473,8 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
   `ref{LV.Terminal}` the run answered 1057 at the cast, without it the helper was written broken ("Invalid method");
   the composer's Terminal refnum class does not match what that LabVIEW returns. On `grpc`/2026 the cast compiled
   (2026-10-26) but no run was proven. So: avoid the need (`convention: af-shapes.timed-work`); otherwise set the value
-  by hand in the IDE and check it on `lvai_render_diagrams` (a constant wired to the structure's top-left terminal).
+  by hand in the IDE and check it on `lvai_render_diagrams` (a constant wired to the structure's top-left terminal). Every
+  regeneration from AIXML (an edit is one) resets it to -1: set it again afterwards and say so in the report.
   *Measured 2026-10-28 (LabVIEW 2020 20.0.1f1).* > MCP-candidate: event-timeout
 
 ### lvai_set_vi_icon and icon work
