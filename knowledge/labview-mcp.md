@@ -492,6 +492,10 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
   "Use Default if Unwired" (refused by AIXML) on the tunnel it created: `ops/helper-loop.md`, step 5. Its bundle step
   closes and saves the active project. Offline check or hand fix of the specs and the flag: `set_user_event_specs.py`,
   `set_use_default.py` (state 1 with the flag, 0 without). [1.8.0–1.8.5; 2.2] (pilot rules 39, 60)
+  **On `pylabview` it is the other way round:** the composer refuses a user-event frame whose registration does not
+  reach the event structure by wire ("Event Data Node 0: no registration carries the user event 'stop'"); with the
+  `ref{EventReg}{...}` refnum tunnelled in, it wires the dynamic terminal and writes the specs itself, and
+  `lvai_wire_dynamic_events` answers `alreadyWired` (LabVIEW 2020, 2026-10-29; `ops/helper-loop.md`, step 3).
   > MCP-candidate: wire-dynamic-events-fix
 - An event structure whose frames are all user events fails the spec step ("no dIdx on this event structure"): add an
   empty Timeout frame (a build-step limit, not LabVIEW's). `lvai_set_event_data_fields` on a VI not yet a member

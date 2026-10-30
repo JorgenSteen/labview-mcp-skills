@@ -98,6 +98,15 @@ the class itself: no `pa_save_member` after it. Its answer gives the execution s
 read it again cold. Its unsaved-edit check does not see edits made by scripting (labview-mcp measured it), so commit
 before each hook as above.
 
+**When the tool cannot run**, e.g. on LabVIEW 2020 `pylabview` ("lvai_af_hook_read could not be composed: ... Call
+'Clear Errors.vi' has no input 'specific error code to clear (0: all)'", 2026-10-29), the kit does each shape, with
+`kit/pa_save_member.xml` after each and no dry run: B-after `pa_insert_series2.xml` (after Call Parent the roles
+swap: `hook in` = the side facing the indicator); B `pa_insert_series_branch.xml` (also on a wire with no
+branches); C `af_add_hook_call_node.xml` (from a node's terminal, e.g. a series hook's class output; A from the
+panel terminal is unmeasured with it); D
+`pa_insert_seq_hook.xml`; D-close `pa_close_join.xml`. Its refusals are not there: check each hook's pane yourself
+and read the override cold afterwards. Order for a helper loop: `ops/helper-loop.md`, step 11.
+
 **A. Branch beside Call Parent:** `shape: "branch"`. It taps the **panel** terminal, so the hook runs beside
 everything else on that wire. Only the class terminal is wired unless `wireError` is set. (pilot rules 28, 74)
 

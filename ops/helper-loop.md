@@ -68,7 +68,10 @@ or when a concern is off, follow the surrounding code instead.
    The stubs are written into the LabVIEW installation (`<LabVIEW>\user.lib\LV_MCP\`), outside the repo: report
    them as a side effect. Check that the path the answer names is the project's LabVIEW and the stub's save version
    is that LabVIEW's (`kit/lv_save_version.py`): with a second LabVIEW running they went to the newer one
-   (`knowledge/labview-mcp.md`, "A second LabVIEW started during the session"). Pass `removeBadWires: false` to `lvai_add_class_method` until the stubs are swapped
+   (`knowledge/labview-mcp.md`, "A second LabVIEW started during the session"). It also picked the NEWEST INSTALLED
+   LabVIEW's `user.lib` with only LabVIEW 2020 running (and reused stubs found there, `reused: true`): then build each
+   stub yourself with `lvai_generate_vi` into the project LabVIEW's `user.lib\LV_MCP\`, same pane as the accessor
+   (measured 2026-10-29, four stubs, 20.0). Pass `removeBadWires: false` to `lvai_add_class_method` until the stubs are swapped
    (`knowledge/labview-mcp.md`, "lvai_add_class_method").
    **Class terminals per member:** a member that goes in series on the class wire or writes a field returns the
    object: `createResources`, `createEvents` and `init` declare `<C> in` AND `<C> out` in their AIXML and get
@@ -84,7 +87,22 @@ or when a concern is off, follow the surrounding code instead.
    loop VI still destroyed them itself and `close` destroyed them again (error 0, 5 of 5): do not copy that, and do not
    build on a second destroy answering 0.
 3. **Loop VI AIXML** at the member path (`convention: af-shapes.helper-loop-vi`), class terminal `<C> in` as a `path`
-   stand-in, accessor and `Send` calls as stubs:
+   stand-in, accessor and `Send` calls as stubs.
+   **On `pylabview` the registration is an input from the start** (measured on LabVIEW 2020, one actor, 2026-10-29:
+   cold 10/10, early stop 5/5, Last Ack 0). The composer refuses the Register-inside form below ("Event Data Node 0:
+   no registration carries the user event 'stop'") and needs the refnum to reach the event structure by wire:
+   - the loop VI: a `<Control _name="Event Registration Refnum" type="ref{EventReg}{<events type>}">` on a free input
+     slot (e.g. `ref{EventReg}{ref{UserEvent}{bool.stop}.stop}`), into the loop by an `In` tunnel, into the case
+     structure, through BOTH case frames (the Error frame passes it straight out: that is step 7c, done in AIXML) and
+     into the event structure by an `In` tunnel; each event frame passes it to an `Out` tunnel; out of the loop by an
+     `Out` tunnel into `Unregister For Events`. No `Register For Events`, no `Read events` in the loop VI.
+   - `init`: `Register For Events`' output to an `<Indicator>` of the same `ref{EventReg}{...}` type on a free output
+     slot (measured 2), instead of `kit/pa_reg_indicator.xml`.
+   - then steps 4-7 only check: `lvai_wire_dynamic_events` answers `alreadyWired` (the composer wired the dynamic
+     terminal and wrote the spec rows itself), step 7's `--check` reads the rows and no use-default tunnel is needed;
+     steps 7b and 7c are skipped (`kit/pa_reg_to_control.xml` and `pa_reg_indicator.xml` failed with 1055 on LabVIEW
+     2020 anyway). The `init` → loop wire in step 11 is the same (`kit/pa_wire_nodes.xml`, wire ends 2, broken F).
+   - On `grpc` this form is unmeasured: there the bullets below hold.
    - **Registration, outside the loop, for now** (`convention: af-shapes.registration`): author it in the loop VI as
      below, because the dynamic wiring (step 5) needs a Register node to wire from; step 7b then replaces it with a
      refnum input fed by `init`. `Read events` → `Unbundle By Name` →
@@ -212,6 +230,12 @@ or when a concern is off, follow the surrounding code instead.
       (`Event Registration Refnum`; the lowercase spelling also matched, 2026-10-26); `source hits` and `sink hits` 1, `wire ends` 2, `wire broken` F. It does not save:
       `pa_save_member`. Measured on two actors, 2026-10 (one of them a root whose `init` also launches the nested
       actors).
+    - **When `lvai_af_add_hook` cannot run** (`ops/override.md`, "When the tool cannot run"), put `init` in FIRST, so
+      no insert meets a branched wire: Pre Launch Init `createResources` by `kit/pa_insert_series2.xml` (B-after);
+      Actor Core `init` by `kit/pa_insert_series_branch.xml` (kept branches 0), the loop from `init`'s class output
+      by `kit/af_add_hook_call_node.xml` (shape C), the stop hook by `kit/pa_insert_seq_hook.xml` (D), then
+      `kit/pa_close_join.xml` (D-close) and `kit/pa_wire_nodes.xml` for the refnum; `pa_save_member` after each.
+      Measured on LabVIEW 2020 `pylabview`, 2026-10-29 (cold 10/10, early stop 5/5).
     - The kit's branch hook wires the class terminal only: the loop's `error in` stays unwired (no error), as in the
       measured run. That is the user's decision (2026-10-09): no extra wiring.
     - No Stop Core override is made for the loop (`convention: af-shapes.resources`).
@@ -279,6 +303,11 @@ side effects: <...>   commits <hashes>   LabVIEW calls <n>   issues: <exact erro
 - Unregister must follow the loop by data flow (its refnum from the loop's output tunnel). Fed from the refnum control
   it runs as soon as the loop VI starts, the stop event never arrives, and every stop hangs the actor until LabVIEW is
   killed (measured in an evaluation, 2026-10).
+- Anything after the loop that has no wire from it runs at the VI's START: an exit-log line whose Open File and
+  timestamp took no error from Unregister's Merge opened the file before the first tick, and its write overwrote
+  the first tick line (LabVIEW 2020, 2026-10-29). Chain it on that merged error. On `pylabview` an append cannot use
+  `Set File Position` (refused): Open (open or create) → `Read from Text File` (moves to the end) → `Write to Text
+  File` → `Close File` worked.
 - Merge Errors with the loop's error first hides an error from Unregister (a null refnum answers 1055): a clean run
   does not prove the registration is released.
 - `lvai_add_class_method` with `aixml` and `vi` re-converts the VI: dynamic wiring, specs and data fields are lost.
