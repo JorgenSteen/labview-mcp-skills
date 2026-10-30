@@ -36,7 +36,7 @@ with its guards and the user's go-ahead.
    | one LabVIEW, `possibleDialogs` not empty | Stop. A modal dialog blocks the service. Report the title and what the screenshot shows. The user answers it; never press a LabVIEW dialog yourself. |
    | one LabVIEW, `hiddenUnrecognised` not empty | Look at each one before going on: LabVIEW dialogs have reported themselves hidden (labview-mcp measured it). |
    | one LabVIEW, nothing flagged | step 4 (the service is not up yet) |
-   | more than one LabVIEW process | Stop and ask the user which one is meant. |
+   | more than one LabVIEW process | Stop and ask the user which one is meant. The same holds when a second one appears LATER in the session: the tools then follow the newest (`knowledge/labview-mcp.md`, "A second LabVIEW started during the session"). |
 
 3. **Start LabVIEW.**
    - **Check `LVAutoSave` first.** `lvai_ensure_labview` deletes those files by default. That is right for leftover

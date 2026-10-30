@@ -37,17 +37,22 @@ not repeated here.
   it in the session's start line and in every brief (`session/brief.md`).
 - **A per-call fallback.** A call that the `pylabview` route refuses may be re-run with `backend: "grpc"`: that call
   only, with the gRPC service answering (`lvai_status`), and reported. If the user has ruled out gRPC altogether, stop
-  and ask instead. Refused on `pylabview`, measured on LabVIEW 2026 Q3 (2026-10-26): a `ref{UserEvent}` type in
-  `lvai_create_typedef` ("carrierRefused"), `lvai_placeholder_subvi` and `lvai_add_class_method`'s pre-check
-  ("unreadable type"); `Set File Position` ("is not a primitive") in `lvai_add_class_method`. The same calls ran on
-  `grpc`. `lvai_add_class_method`'s `pylabview` pre-check also composes in a scratch folder, so a stub placed next to
-  the caller is not found: use `lvai_placeholder_subvi` stubs.
-- **Not refused but broken on `pylabview`:** a case structure on an error cluster (`Error`/`No Error` selectors, as in
-  `createResources`, `ops/override.md` shape F) is composed so that the VI loads broken ("Case Structure: Selector
-  values are not unique / No case for some selector values", cold state 0), while `lvai_add_class_method` answers ok
-  and verifiedOnDisk. The same AIXML on `grpc` gave state 1. Generate such VIs with `backend: "grpc"`; only a cold
-  sweep catches it. The `pylabview` reader also drops wires in an export of such a VI ("2 sources" comments).
-  *Measured 2026-10-26 on LabVIEW 2026 Q3.*
+  and ask instead. Still refused on `pylabview`: `Set File Position` ("is not a primitive") in
+  `lvai_add_class_method`. `lvai_add_class_method`'s `pylabview` pre-check also composes in a scratch folder, so a
+  stub placed next to the caller is not found: use `lvai_placeholder_subvi` stubs.
+- **Two `pylabview` gaps are fixed in newer composers; an older build still has them.** labview-mcp's own
+  `docs/aixml-backends.md` says which (paragraphs dated 2026-10-28); measured on LabVIEW 2020 with the fixed composer.
+  - A `ref{UserEvent}` (or other typed refnum) INSIDE a cluster or array, e.g. the helper loop's events typedef
+    `cluster{ref{UserEvent}{bool.stop}.stop}`: an older composer refuses it in `lvai_create_typedef`
+    ("carrierRefused"), `lvai_placeholder_subvi` and `lvai_add_class_method`'s pre-check ("unreadable type"). That
+    refusal is the sign: then the per-call fallback above.
+  - A case structure on an error cluster (`Error`/`No Error`, as in `createResources`, `ops/override.md` shape F):
+    an older composer loaded it broken when the `Error` frame came first in the AIXML ("Case Structure: Selector
+    values are not unique / No case for some selector values", cold state 0) while the tool answered ok and
+    verifiedOnDisk. It is not refused, so check: `lvai_exec_state` right after generating such a VI. State 0 with
+    that message means an older build: regenerate with `backend: "grpc"`, or write the `No Error` frame first. The
+    `pylabview` reader dropped wires in an export of such a VI ("2 sources" comments; not re-checked since the fix).
+    *Measured 2026-10-26 on LabVIEW 2026 Q3; the fix 2026-10-28 on LabVIEW 2020.*
 - **What else differs on `pylabview`** (measured 2026-10-26, a whole actor build with overrides, hooks, a helper loop,
   icons and a typedef field on that route): `lvai_ensure_labview`'s `"state": "ready"` means LabVIEW answers over
   ActiveX, and NI's gRPC service was not asked; no tool validates through NI, so no `LVMCP Validate*` scratch VIs pile
@@ -56,9 +61,23 @@ not repeated here.
 - **On a LabVIEW older than the one that last ran a tool, its cached helper may be too new.** The `pylabview` helper
   cache (`%TEMP%\LabVIEWMCP\helpers-pylabview\`) is shared by every LabVIEW on the station; a helper saved there by
   LabVIEW 2026 is refused by LabVIEW 2020: `lvai_swap_subvis` answered `ok` false, `viNotOpened`, "File version is
-  later than the current LabVIEW version" (0x465), nothing saved. Re-run that call with `regenerateHelper: true` and
-  `helperViPath` set to a folder of this session's own (e.g. `<repo>/mcp_temp/helpers/`), so the next 2026 session's
-  cache is left alone; later calls reuse that path. *Measured 2026-10-28 on LabVIEW 2020 20.0.1f1.*
+  later than the current LabVIEW version" (0x465), nothing saved. Seen once, expect it on every `pylabview` helper of
+  the session. Re-run the refused call once with a fresh helper in a folder of this session's own (e.g.
+  `<repo>/mcp_temp/helpers/`), so the other LabVIEW's cache is left alone; later calls reuse that path. The knobs
+  differ per tool: `regenerateHelper: true` + `helperViPath` (`lvai_swap_subvis`, `lvai_add_class_field`);
+  `regenerateHelpers: true` + `helperDirectory` (`lvai_bind_class_fields`, whose answer then wrongly blames the
+  `.ctl`: "a source .ctl that is not a typedef"). No knob on `pylabview`: `lvai_close_active_project` (its helper
+  options are for the grpc helper only: close the project by hand or wait until the cache is right again) and
+  `lvai_create_accessors`' icon step (answers ok with "THE ICON WAS NOT SET": set the icons later). *Measured
+  2026-10-28/29 on LabVIEW 2020 20.0.1f1.*
+- **A second LabVIEW started during the session changes the tools' target.** The server follows the NEWEST running
+  LabVIEW (`pylv_status`: `labviewInUse`), and all versions share one ActiveX registration, so with two running
+  neither the version a helper is composed for nor the instance a call reaches is defined: stubs from
+  `lvai_placeholder_subvi` went into LabVIEW 2026's `user.lib` as 26.x files, a 2020 session's helpers were rewritten
+  in 2026 format, and a later save could write the product in the newer version. Read `labviewInUse` (and
+  `lvai_labview_state`'s process list) before each structural step; when a second LabVIEW appears, stop the LabVIEW
+  work and ask the user (`session/start.md`, step 2: more than one LabVIEW). *Measured 2026-10-29, LabVIEW 2020 with
+  2026 started beside it.*
 
 ### A failed, hung or blocked call: stop and report
 - **`DeadlineExceeded` does not stop the work.** The VI Server helper keeps running inside LabVIEW, and every later
@@ -479,17 +498,20 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
   answers `ok:false`, state 0: expected until membership and swaps. A frame selector takes the refnum or cluster
   **element** label (` <stop>\3A User Event `). Panel flags: see the scripting quirks. [1.8.0–1.8.5]
   (pilot rules 39, 62, 65, 66) > MCP-candidate: generate-with-events-fixes
-- **Event structure Timeout value: no route.** AIXML has no element for the Timeout terminal; the composer builds the
-  terminal and leaves it unwired (-1, never), and both exports (NI's and the `pylabview` reader) drop the value, so an
-  export can neither set nor show it (labview-mcp `docs/cold-build-atm-cld.md` §4). A Timeout-only frame is spelled
-  `<CaseFrame selector=" Timeout ">` and builds with `lvai_generate_vi_with_events` (state 1). The scripting route
-  (Timeout Terminal → Create Constant, a derived helper) failed on LabVIEW 2020 `pylabview`: with the cast to
-  `ref{LV.Terminal}` the run answered 1057 at the cast, without it the helper was written broken ("Invalid method");
-  the composer's Terminal refnum class does not match what that LabVIEW returns. On `grpc`/2026 the cast compiled
-  (2026-10-26) but no run was proven. So: avoid the need (`convention: af-shapes.timed-work`); otherwise set the value
-  by hand in the IDE and check it on `lvai_render_diagrams` (a constant wired to the structure's top-left terminal). Every
-  regeneration from AIXML (an edit is one) resets it to -1: set it again afterwards and say so in the report.
-  *Measured 2026-10-28 (LabVIEW 2020 20.0.1f1).* > MCP-candidate: event-timeout
+- **Event structure Timeout value: `timeoutin` on `pylabview`.** A Timeout-only frame is spelled
+  `<CaseFrame selector=" Timeout ">` and builds with `lvai_generate_vi_with_events` (state 1). The value: newer
+  `pylabview` composers read `timeoutin="<net>"` on the `<Structure _name="Event Structure">`, a net as a Case
+  Structure's `selectin` (a constant inside the loop, or a control through an input tunnel), and the `pylabview` reader
+  writes it back, so a regeneration keeps it. Check the build first: `lvai_aixml_reference` with `node: "timeoutin"`
+  returns its passage, or nothing on an older build. Measured on LabVIEW 2020 (2026-10-29): fed 200, 500 and 300 ms,
+  the Timeout frame stopped the loop after 200, 501 and 300 ms.
+  - **Without `timeoutin`** (an older build, or `grpc`: NI's converter is not known to read it): the terminal stays
+    unwired (-1, never) and both exports drop the value (labview-mcp `docs/cold-build-atm-cld.md` §4). Avoid the need
+    (`convention: af-shapes.timed-work`), or set the value by hand in the IDE and check it on `lvai_render_diagrams` (a
+    constant wired to the structure's top-left terminal); every regeneration resets it to -1, so set it again and say
+    so in the report. The scripting route (Timeout Terminal → Create Constant, a derived helper) failed on LabVIEW 2020
+    `pylabview` (1057 at the cast to `ref{LV.Terminal}`, the composer's refnum class not the one that LabVIEW returns).
+  *Measured 2026-10-28/29 (LabVIEW 2020 20.0.1f1).* > MCP-candidate: event-timeout
 
 ### lvai_set_vi_icon and icon work
 - With an image it sets the VI's own layer and **flattens** the icon: editable text layers are lost (27–36 % of
@@ -529,7 +551,9 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
 - An actor's wiring without exports, `ops/review.md` > MCP-candidate: af-describe-actor
 - AF hook shapes the tools refuse or lack (a series insert on a branched wire, D, D-close, D-append, a node's error
   output into a log VI), `ops/override.md` > MCP-candidate: add-hook
-- **A new project** (no tool; `lvai_lvproj_reference` calls `.lvproj` generation unsupported). Measured VI Server
+- **A new project** (no tool of its own; `lvai_lvproj_reference` calls `.lvproj` generation unsupported). But
+  `lvai_create_class` with a `projectPath` that does not exist yet created the project itself (LabVIEW 2020,
+  `pylabview`, 2026-10-29): for an actor's first class that is enough. Otherwise, measured VI Server
   spellings (a harness run, 2026-10), in a helper VI: `{LV.Application}` Invoke `Project.New` (outputs
   `Project\3ANew`) → `{LV.Project}` read `My Computer` → `{LV.TargetItem}` Invoke `AddItem` (inputs `Name`, `Path`,
   `Type` = `Folder`; `Path` must be an EMPTY path) per virtual folder → `{LV.Project}` Invoke `Save` (input `Path`)

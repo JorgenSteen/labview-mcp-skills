@@ -213,10 +213,11 @@ and releases are the project's own. Order a check after a release by its error w
 - **The refnum check** (`af-shapes.pli-failure-cleanup`): after the creates, `Read` the events (fresh error chain) →
   Unbundle By Name → `Not A Number/Path/Refnum?` per refnum → Select(error cluster with the project's code, no error)
   → into the same Merge Errors as the creates.
-- **Generate `createResources` on `grpc`** (`backend: "grpc"` on `lvai_add_class_method`). The `pylabview` composer
-  writes an error-cluster case structure (`Error`/`No Error`) that loads broken ("Selector values are not unique / No
-  case for some selector values") while the tool answers ok and verifiedOnDisk; only the cold sweep shows it
-  (`knowledge/labview-mcp.md`, "The AIXML backend"). Measured 2026-10-26.
+- **Write the `No Error` frame first, and read `lvai_exec_state` right after generating `createResources`.** An
+  older `pylabview` composer loads an error-cluster case structure broken when `Error` comes first ("Selector values
+  are not unique / No case for some selector values") while the tool answers ok and verifiedOnDisk; state 0 with that
+  message means such a build: regenerate on `grpc` (`knowledge/labview-mcp.md`, "The AIXML backend"). Measured
+  2026-10-26; fixed in newer composers 2026-10-28.
 - **The forced-failure launch:** with the project open, `lvai_swap_subvis` the create call inside `createResources`
   (e.g. `createEvents`) onto a same-pane member that creates nothing (`init` served) or one that returns an error;
   save; close the project; run ONE launch through the launcher (`ops/run-checks.md`). Expect: Launch returns the
@@ -250,7 +251,7 @@ in 2.2 it failed the same way with no loaded caller at all (`knowledge/labview-m
 - **A new body for a series hook** (e.g. `createResources` hooked B-after into PLI), measured 2026-10-26: commit;
   `lvai_af_remove_hook` (`dryRun` first; read `bypassed`, `sinksReconnected`); close the project;
   `kit/remove_members.py <.lvclass> "<hook>.vi"` (no `--delete-files`); open; `lvai_add_class_method` as a FIRST run
-  with the new AIXML (a re-run gave 56003, see above; `grpc` for an error-cluster case structure, shape F); re-swap its
+  with the new AIXML (a re-run gave 56003, see above; for an error-cluster case structure the exec-state check of shape F); re-swap its
   stubs; `lvai_af_add_hook` with the shape it had (`seriesAfter`, dry run first); then scope and folder again, because
   a first run puts the member public at the class root (`lvai_move_to_folder`; `kit/set_scope.py`, project closed);
   close, cold sweep, `check_membership.py`, export, run.

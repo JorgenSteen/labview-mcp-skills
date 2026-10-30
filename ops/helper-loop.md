@@ -66,7 +66,9 @@ or when a concern is off, follow the surrounding code instead.
      adding of a `.vi` as unmeasured: check the `.lvclass` afterwards.
    Author each in AIXML with the class as a `path` stand-in and the accessors as `lvai_placeholder_subvi` stubs.
    The stubs are written into the LabVIEW installation (`<LabVIEW>\user.lib\LV_MCP\`), outside the repo: report
-   them as a side effect. Pass `removeBadWires: false` to `lvai_add_class_method` until the stubs are swapped
+   them as a side effect. Check that the path the answer names is the project's LabVIEW and the stub's save version
+   is that LabVIEW's (`kit/lv_save_version.py`): with a second LabVIEW running they went to the newer one
+   (`knowledge/labview-mcp.md`, "A second LabVIEW started during the session"). Pass `removeBadWires: false` to `lvai_add_class_method` until the stubs are swapped
    (`knowledge/labview-mcp.md`, "lvai_add_class_method").
    **Class terminals per member:** a member that goes in series on the class wire or writes a field returns the
    object: `createResources`, `createEvents` and `init` declare `<C> in` AND `<C> out` in their AIXML and get
@@ -99,10 +101,9 @@ or when a concern is off, follow the surrounding code instead.
      (2026-10, state 1 after steps 5–7).
    - Frames select the element label, e.g. ` <stop>\3A User Event `. Timeout frame per `convention:
      af-shapes.timed-work`; an event structure whose frames are all user events needs an empty one for the spec step (step 5).
-     The Timeout frame's VALUE cannot be authored: AIXML has no element for it and the structure stays at -1 (never).
-     An idle check that needs a real value is built per `af-shapes.timed-work` (a wired timeout on another node), or
-     the value is set by hand in the IDE afterwards and checked on a render (`knowledge/labview-mcp.md`, "Event
-     structure Timeout value").
+     The Timeout frame's VALUE: `timeoutin="<net>"` on the event structure, on a `pylabview` build that has it;
+     otherwise the structure stays at -1 (never), and an idle check is built per `af-shapes.timed-work` or the value
+     is set by hand (`knowledge/labview-mcp.md`, "Event structure Timeout value").
    - Sends to its own actor: `Read Self Enqueuer` → a generated `Send <method>.vi` (protected: the VI must be a member).
      The message class must exist first (`lvai_create_message_class`; messages before overrides, `knowledge/labview-
      mcp.md`, "Evidence, git, build order"); in this AIXML the `Send` VI is a stub, swapped in step 9.

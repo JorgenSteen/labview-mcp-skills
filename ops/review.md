@@ -63,7 +63,7 @@ A finding without evidence is not a finding.
 | private dynamic-dispatch member; static VI inside a dynamic recursion cycle | `.lvclass` scope; dispatch from `lvai_describe_class` or the pane (the `.lvclass` has no `IsStaticMethod` property, evaluation 2026-10) | broken VI |
 | a handler before Call Parent that is meant to keep the actor running | Handle Error nets | the parent still returns `stop actor?` = T |
 | side work chained on Handle Error's `error in` | Handle Error nets | skipped at every normal stop (error 43) |
-| 0 ms Timeout with non-blocking work | event structure Timeout value (a render: every export drops it, `knowledge/labview-mcp.md`) | busy loop |
+| 0 ms Timeout with non-blocking work | event structure Timeout value (`timeoutin` in a `pylabview` export from a build that has it; else a render, `knowledge/labview-mcp.md`) | busy loop |
 | a child's library referencing its caller | link info of the child's files (read by `kit/lv_loadability.py`), not a raw grep, which hits cached types | dependency cycle |
 
 ## Convention rows (cite the id; read the rule in `.labview/conventions/`)

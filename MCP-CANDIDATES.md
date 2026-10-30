@@ -412,7 +412,8 @@ service" in `knowledge/labview-mcp.md`.
   TR-5 (rule candidates 100–111) is used here as evidence; they live in `knowledge/labview-mcp.md`; the pilot's own rules file stays as it is (maintenance).
 
 ## event-timeout
-**Status** proposed (2026-10-28). **Gap** no tool or AIXML element sets or shows an event structure's Timeout value:
+**Status** built in a labview-mcp fork (2026-10-29): AIXML attribute `timeoutin="<net>"` on the Event Structure,
+composed and read back on `pylabview`, measured on LabVIEW 2020; not upstream yet, not on `grpc`. Was: **Gap** no tool or AIXML element sets or shows an event structure's Timeout value:
 the composer builds the terminal unwired (-1), both exports drop the value, and a scripting helper (Timeout Terminal
 → Create Constant) failed on LabVIEW 2020 `pylabview` (1057 at the cast to `ref{LV.Terminal}`; without the cast
 "Invalid method"). **Proposed** an AIXML attribute or wired net for the Timeout terminal in the composer, read back
