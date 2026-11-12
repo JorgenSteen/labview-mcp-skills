@@ -22,7 +22,9 @@ gap descriptions and measured facts in `knowledge/labview-mcp.md`, in the form o
 **Baseline:** the entries were measured with labview-mcp 1.7.2 to 1.9.5, each gap with its version in
 `knowledge/labview-mcp.md`. **Checked against 2.2.4 on 2026-10-26** from its source and tool texts (not re-run
 here): the statuses below say what shipped; much of it came from this skill's own entries, through a fork. Check an
-entry against the newest release again before submitting it.
+entry against the newest release again before submitting it. **Re-checked against 2.6.8 on 2026-11-12** for the tools
+added since 2.2.4 (`lvai_check_build_contract`, `lvai_dqmh_add_helper_loop`, two more DQMH tools): none replaces an
+entry here; `lvai_restart_labview` and `lvai_answer_dialog` are still fork-only.
 
 **Evidence ids:** "pilot rule N" = the pilot project's toolchain rules; S1–S10 = its MCP suggestions;
 S11–S16, "rule candidate 100–111" and letter-number ids (MC-1, KT-1, ...) = the skills audit (`skillsaudit/`).
@@ -39,7 +41,7 @@ brief. **Removes** that rule in `knowledge/labview-mcp.md` and `session/brief.md
 `lvai_status`, answers `DeadlineExceeded` (~2.5 h once). **Proposed** on deadline abort the helper or answer
 `stillRunning: true` with its name; `lvai_status` answers from the service thread with `busy: <tool> since <s>`.
 **Evidence** rule candidates 104, 105; S11; CS-2, BR-1, RS-1 (open). **Workaround** no further call; window list and CPU
-samples. **Removes** the `DeadlineExceeded` workaround text; the busy route in `session/restart.md`.
+samples (`lvai_labview_state` `cpuSampleSeconds`; `kit/wait_lv_idle.ps1` for a long wait). **Removes** the `DeadlineExceeded` workaround text; the busy route in `session/restart.md`.
 
 ## ensure-labview-complete
 **Status** partly shipped in 2.2 (`lvai_labview_state` tells not-running and dialog apart; the service comes up with LabVIEW, so Nigel is a fallback only); still open: an `LVAutoSave` count and dry run. Was: proposed. **Gap** `lvai_status` does not tell "LabVIEW not running" from "running, service not up (Nigel
@@ -58,7 +60,7 @@ Conditional Disable symbols set on a target. **Proposed** `lvai_exec_state(viPat
 which variant it checked. **Removes** the coverage note in `ops/sweep.md`.
 
 ## dialog-detection
-**Status** partly shipped in 2.2 (`lvai_labview_state`: dialogs with screenshots, no LabVIEW call); answering one (`lvai_answer_dialog`) exists only in a fork build; calls still only time out. Was: proposed (S9); its dependency-check half (MC-2) is covered by `offline-loadability`. **Gap** a modal dialog (`Find the VI
+**Status** partly shipped in 2.2 (`lvai_labview_state`: dialogs with screenshots, no LabVIEW call); answering one (`lvai_answer_dialog`) exists only in a fork build (not ported as of 2.6.8); calls still only time out. Was: proposed (S9); its dependency-check half (MC-2) is covered by `offline-loadability`. **Gap** a modal dialog (`Find the VI
 Named …`, a library search, a save prompt, autosave recovery) blocks the service; the agent sees only a timeout.
 **Proposed** detect a modal window of LabVIEW and answer `blocked by dialog "<title>"` with its buttons; answer it only
 on an explicit confirm. **Evidence** pilot rule 12; rule candidate 103 (720 s); S12. **Workaround** `lv_windows.ps1`;
@@ -97,7 +99,7 @@ project first` / `open and activate <project> first`; `lvai_exec_state` says whe
 and the per-step state lines in the ops files.
 
 ## restart-with-guards
-**Status** in a fork build only (`lvai_restart_labview`); not in the official 2.2.4. Was: proposed (S2, S9); refinements RS-1, RS-3..RS-5 settled (RS-2 replaced by the user's Q30); KT-5, KT-6 are kit TODOs. **Gap** nothing stops or restarts
+**Status** in a fork build only (`lvai_restart_labview`); not in the official release as of 2.6.8 (its source says the fork's restart and dialog tools are not ported). Was: proposed (S2, S9); refinements RS-1, RS-3..RS-5 settled (RS-2 replaced by the user's Q30); KT-5, KT-6 are kit TODOs. **Gap** nothing stops or restarts
 LabVIEW; a hung helper loop is freed only by a restart. **Proposed** `lvai_restart_labview(confirm: true)`: refuse and
 list unsaved VIs (every instance), dialogs, running VIs; close, tell "busy" from "dialog", start, wait for gRPC, report
 port, uptime, steps; optionally reopen the Nigel chat (`--lv-version`, `--lv-bitness`); `ensure_labview` says "still

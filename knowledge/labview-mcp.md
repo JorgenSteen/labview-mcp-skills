@@ -84,8 +84,8 @@ not repeated here.
   call answers `DeadlineExceeded`, `lvai_status` included, until it ends (a cold sweep ran ~2.5 h past its 300 s
   deadline). Make no further LabVIEW call and do not retry with a larger budget: that starts the load again. Check
   without LabVIEW: `lvai_labview_state` (dialogs with screenshots, `*` titles; it makes no LabVIEW call) and
-  LabVIEW's CPU time sampled twice at least 15 s apart (`kit/wait_lv_idle.ps1`; one idle sample can be stale within
-  minutes). Report "busy since <time>". [1.8.5] (audit rule
+  LabVIEW's CPU time sampled twice (`lvai_labview_state` `cpuSampleSeconds: 30`, or `kit/wait_lv_idle.ps1` in the
+  background for a long wait; one idle sample can be stale within minutes). Report "busy since <time>". [1.8.5] (audit rule
   candidate 104) > MCP-candidate: deadline-abort
 - **A modal dialog blocks the whole gRPC service** until a person answers it; the call only times out. Sources met: a
   missing dependency (`Find the VI Named "<qualified name>"`, which held a bind for 720 s), a library item whose file
@@ -551,7 +551,7 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
 - Front-panel properties, `ops/helper-loop.md`; a search-and-replace in a VI description, "LabVIEW scripting quirks"
   > MCP-candidate: control-property-setters
 - Close or restart LabVIEW, `session/restart.md` (a labview-mcp build with `lvai_restart_labview` runs the guards
-  itself; the official release has none as of 2.2.4) > MCP-candidate: restart-with-guards
+  itself; the official release has none as of 2.6.8) > MCP-candidate: restart-with-guards
 - An actor's wiring without exports, `ops/review.md` > MCP-candidate: af-describe-actor
 - AF hook shapes the tools refuse or lack (a series insert on a branched wire, D, D-close, D-append, a node's error
   output into a log VI), `ops/override.md` > MCP-candidate: add-hook

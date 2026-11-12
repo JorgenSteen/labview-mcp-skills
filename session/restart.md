@@ -26,7 +26,7 @@ How a timed-out call blocks the service: `knowledge/labview-mcp.md`, "A failed, 
   - the window list (`lvai_labview_state`) shows only LabVIEW's own frame windows (Getting Started, the hidden system
     windows) and the Nigel chat: no VI panel or diagram, no project window, no dialog, no `*` title;
   - `LVAutoSave` holds no files;
-  - LabVIEW is idle (`<skill>/kit/wait_lv_idle.ps1 -Once`, quiet);
+  - LabVIEW is idle (`lvai_labview_state`'s CPU sample, quiet);
   - if the service answers, `lvai_vis_in_memory` lists only labview-mcp's own helpers and VIs this session made
     (step 5).
   Anything else open, or any check that cannot run, means it is not empty: the go-ahead rule applies. Write in the
@@ -54,7 +54,8 @@ How a timed-out call blocks the service: `knowledge/labview-mcp.md`, "A failed, 
   not right before a close. Once any validation has run, the close ends in the save dialog anyway (next bullet). On
   the `pylabview` backend it validates nothing and reads the main and project instances only (the add-on instance is
   gRPC-only; `knowledge/labview-mcp.md`, "The AIXML backend").
-- **A labview-mcp build with `lvai_restart_labview`** (not in the official release as of 2.2.4): it runs these
+- **A labview-mcp build with `lvai_restart_labview`** (a fork build only: not in the official release as of 2.6.8,
+  checked 2026-11-12): it runs these
   guards itself (unsaved VIs in every instance, dialogs, running VIs, recovery copies) and refuses rather than
   closing over the user's work. The ownership and go-ahead rules above still decide whether to call it; report its
   answer in the format below.
@@ -82,9 +83,10 @@ Any guard that fails: stop and report; nothing is closed.
      discard those edits with no dialog. Stop, list them, and ask.
    - Files this session made and has not saved: save them now, through the open project.
 3. **Does the service answer?** `lvai_status`. If it answers `DeadlineExceeded` or nothing, a helper may still run
-   inside LabVIEW and steps 4–6 cannot run. Sample LabVIEW's CPU, with no LabVIEW call:
-   `powershell -NoProfile -ExecutionPolicy Bypass -File <skill>/kit/wait_lv_idle.ps1 -Once` twice, at least 15 s
-   apart (exit 0 quiet, 1 busy), or without `-Once` to wait until it is idle (`-MaxMinutes` bounds the wait).
+   inside LabVIEW and steps 4–6 cannot run. Sample LabVIEW's CPU, with no LabVIEW call: `lvai_labview_state` with
+   `cpuSampleSeconds: 30`, twice in a row (quiet = under 1 CPU s in the 30 s). To wait until it is idle, run
+   `powershell -NoProfile -ExecutionPolicy Bypass -File <skill>/kit/wait_lv_idle.ps1` in the background
+   (`-MaxMinutes` bounds the wait): one call instead of one per sample.
    - **Busy:** never close a busy LabVIEW; it does not take the close message.
      Wait, re-sample, and report "busy since <time>" with the samples. One idle sample can be stale within minutes
      (a sweep read 0 s over 20 s, then 11.3 s over 15 s a minute later).
