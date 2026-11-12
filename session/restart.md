@@ -63,7 +63,8 @@ for both. A subagent runs this file only when its brief hands it the restart and
 - Tools: `lvai_labview_state` (no LabVIEW call), `lvai_vis_in_memory`; `lvai_restart_labview` and
   `lvai_answer_dialog` where the build has them. Kit (without the tool): `<skill>/kit/lv_close.ps1`,
   `wait_lv_idle.ps1`, `read_saved_answer.py`. Call `lvai_vis_in_memory` once at the session start (the restart tool
-  needs its helper and never generates it): on the gRPC
+  needs its helper and never generates it; with a project open, `context: main`, so the probe is not adopted into
+  it): on the gRPC
   backend it generates its helper the first time, and that validation leaves an `LVMCP Validate` VI in memory, so
   not right before a close. Once any validation has run, the close ends in the save dialog anyway (next bullet). On
   the `pylabview` backend it validates nothing and reads the main and project instances only (the add-on instance is
@@ -88,8 +89,8 @@ so in the report).
    stop here, before the tool, and ask ("Unattended" above); the question names the PID, the open project and
    windows, the files a close may rewrite, and who closes the user's project. The tool knows only the LabVIEW its
    own server process started: after a server restart (`/mcp` reconnect, a plugin update) it asks for a go-ahead
-   for a LabVIEW this session did start. Then use "Steps without the tool", where the PID `session/start.md`
-   recorded decides.
+   for a LabVIEW this session did start (`lvai_labview_state`: `recordedAsThisServers` empty or another PID). Then
+   use "Steps without the tool", where the PID `session/start.md` recorded decides.
 2. **Save what this session made** and has not saved, through the open project. The tool refuses on any `*` window
    (`unsaved`); it saves nothing of yours.
 3. **Call `lvai_restart_labview`:** `mode` `close` or `restart`; `projectPath` = the `.lvproj` this session has
@@ -104,7 +105,10 @@ so in the report).
      user, then call again with their words.
    - More than one LabVIEW, a visible possible dialog, a busy CPU: no go-ahead opens these. Ask which LabVIEW is
      meant; read the dialog's screenshot, and the user answers it; for busy, wait and call again later, and report
-     "busy since <time>" (a long wait: `kit/wait_lv_idle.ps1` in the background, then call again).
+     "busy since <time>" (a long wait: `kit/wait_lv_idle.ps1` in the background, then call again). A LabVIEW 2026
+     started minutes ago with a project open stayed busy ~3.5 min (up to 12 CPU s per 30 s, 2026-11-12): sample the
+     CPU before the first call. The tool's own project close runs on `grpc` (an internal call), so on a `pylabview`
+     session a first-time grpc helper there can leave an `LVMCP Validate` VI: check the window list after a refusal.
    - `hiddenWindows`: ownership does not open this guard (the tool checks the windows before the ownership); only
      the user's go-ahead does, and the answer then lists each window under `overriddenHiddenWindows`: report them.
      A hidden window has no screenshot: name it (title, class) in the question. LabVIEW 2020's own hidden `Boolean`
@@ -217,15 +221,18 @@ anything else of the user's means ask. Report every kill with the quote. Afterwa
   port n/a); `NI.NigelLocalService` PID unchanged. `LVNigelChat` may have
   ended with LabVIEW: not a failure.
 - `LVAutoSave` count before and after; a clear by the start is a side effect.
-- One cold `lvai_exec_state` on a VI the caller names, else one this session made: state 1 (for 1562, after the class call).
+- One cold `lvai_exec_state` on a VI the caller names, else one this session made, else `n/a`: state 1 (for 1562, after
+  the class call; the tool's own wait for the service does not count as a call of this session).
 - Sizing (measured, labview-mcp 1.8.5): close 4.0–5.5 s; start 32–40 s (`lvai_ensure_labview` may answer `ok:false`,
   "starting" at its 40 s budget: normal, call `lvai_status`); the whole route about 10 LabVIEW calls, ~4 min. On
-  `pylabview`, LabVIEW 2020 (2026-11-12): close 2.7 s, start 10.8 s, the kit route ~2.5 min.
+  `pylabview`, LabVIEW 2020 (2026-11-12): close 2.7 s, start 10.8 s, the kit route ~2.5 min. The tool on LabVIEW
+  2026 with NI's service (2026-11-12): close 3.3 s, start 31.8 s, 69 s in all, after a ~4 min wait for idle.
 
 ## Report
 ```
 restart    mode <close | restart>  route <lvai_restart_labview | kit>  LabVIEW <this session's (PID <n>) | user's: go-ahead "<words>" (<date>, <source>)>
 guards     window list: unsaved <none | list>  dialogs <none | list>  user working <no | asked: answer>
+           busy <no | refused at <time> (<s> CPU s/<s> s), idle at <time>>
            service <ok | DeadlineExceeded: CPU <s> s/<s> s at <time>, <time>>  project <path> closed <code>
            in memory: onlyServiceAndHelpers <per instance>, modified <none | list>
 before     LabVIEW PID <n> start <time> up <s> s port <p>  labview-mcp <version>

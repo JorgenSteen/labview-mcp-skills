@@ -128,6 +128,7 @@ These protect the files and the toolchain. They are not conventions and cannot b
 | Review an AF design or a built actor against the conventions | `ops/review.md` |
 | LabVIEW or the labview-mcp service does not answer; start of a session | `session/start.md` |
 | Write a brief for a LabVIEW subagent, or brief a labview-mcp agent | `session/brief.md` |
+| Build a multi-VI application: the build contract first, conventions written into it | labview-mcp's own instructions; `session/brief.md` |
 | Restart LabVIEW unattended | `session/restart.md` |
 | End a session: status, side-effects report, commit | `session/close.md` |
 | Scripts and helper VIs (AIXML) | `kit/README.md` |

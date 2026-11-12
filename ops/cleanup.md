@@ -95,9 +95,11 @@ LabVIEW 2020 VIs became 2026; not measured for `lvai_layout_diagrams`, so scan t
    - `git status --short` shows **only the `.vi` files of this batch**. Size changes say nothing (a version
      conversion changed files by -4988 to +336 bytes). A `.lvclass`, `.lvlib`, `.ctl` or `.lvproj` change means
      something else happened: stop and report.
-   - Commit the batch by explicit paths.
+   - Commit the batch by explicit paths. The message says what the batch did, not that it is proven: step 7 proves it.
 7. **AFTER sweep** (`ops/sweep.md`, steps 3–9) and compare with step 2: every VI has the state it had before (a VI
-   broken before stays `pre-existing`, not a cleanup failure), the control reads `0 7`, membership is unchanged.
+   broken before stays `pre-existing`, not a cleanup failure), the control reads `0 7`, membership is unchanged. A VI
+   whose state changed: restore it from the start commit with the project closed (`git checkout <start HEAD> --
+   <path>`), commit the restore, and report it as a cleanup failure.
 8. **Panel settings,** only for listed VIs that have a Switch When Released button, panel-on-call flags or a hidden
    control. A re-save is the moment to check them, although no change is expected.
    - Find them in the VI's AIXML source. Without a source, offline from the file: `pylv_extract` shows the execution

@@ -44,8 +44,14 @@ with its guards and the user's go-ahead.
      they may be the user's unsaved work. If the count is above 0, ask the user before starting: recover by hand
      first, or let the start clear them. Never pass `keepAutoSave: true` on your own; the recovery dialog would
      block every call.
-   - **Which LabVIEW:** `lvai_list_labview_installations` shows which one would be started (the newest, preferring
-     32-bit, which hosts the AI service). If it is not the one the project needs, ask.
+   - **Which LabVIEW:** the one the user specified (`labviewExe` in `~/.labviewmcp/settings.json`), else the one the
+     project's files call for: `project.json` `labview_version`, else the version the `.lvproj` was saved in
+     (`<skill>/kit/lv_save_version.py`). `lvai_list_labview_installations` shows which one the server would start
+     and why (`selectionSource`: `running`, `settings`, `remembered` = only the LabVIEW last seen running by any
+     session, `installed` = the newest). If that is another one, pin the project's for this start: copy the settings
+     file, add `"labviewExe": "<path to LabVIEW.exe>"` (double backslashes; the server reads the file on every call),
+     run `lvai_ensure_labview`, then restore the copy byte for byte and report the pin as a side effect. No version
+     can be told: ask.
    - **`lvai_ensure_labview`.** It verifies that the launched process survives (`launchMethod`; none surviving is
      `launch-did-not-survive`, never a hopeful "starting"). While LabVIEW is still coming up, calling it once more is
      right: the second call finds the instance and waits.

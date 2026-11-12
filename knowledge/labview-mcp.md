@@ -157,9 +157,9 @@ probe VI run while a project is open is adopted into that project. > MCP-candida
   another application instance. It gives no per-VI result for `viPath`. [1.8.5] (pilot rule 87)
 
 ### Helper VIs (the kit)
-- Generate kit helpers (`<skill>/kit/*.xml`) with `lvai_generate_vi` (`measurePane: false`) into the project's
-  proof folder when `project.json` names one (`proof_folder`), otherwise `<repo>\mcp_temp\helpers\<name>.vi`
-  (the user's rule, 2026-10-16; it replaces `%TEMP%\LabVIEWMCP\helpers` from 2026-10-13). Generate while NO project is active: a helper generated or exported while a project
+- Generate kit helpers (`<skill>/kit/*.xml`) with `lvai_generate_vi` (`measurePane: false`) into
+  `<repo>\mcp_temp\helpers\<name>.vi`, never into `proof_folder` (the user's rule, 2026-10-16: scratch goes to
+  `mcp_temp/`; it replaces `%TEMP%\LabVIEWMCP\helpers` from 2026-10-13). Generate while NO project is active: a helper generated or exported while a project
   is active is adopted into it (a foreign project's window turned `*` in an evaluation, 2026-10), and survives the
   close sweep. A cached
   helper is current when its answer carries every output its `.xml` names; otherwise regenerate it and run again (no

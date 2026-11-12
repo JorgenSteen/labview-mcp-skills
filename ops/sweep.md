@@ -28,7 +28,9 @@ sweep reads only and applies no convention, so it runs the same in local mode an
 
 ## Steps
 
-1. **Precheck.** `lvai_status`: note `serverVersion` and `labviewUpSeconds`. Close the active project (above).
+1. **Precheck.** LabVIEW answers: on `grpc` `lvai_status` (note `serverVersion` and `labviewUpSeconds`); on `pylabview`
+   `lvai_ensure_labview` answers `ready` and `pylv_status` gives `serverVersion` (`lvai_status` answers `ok: false`
+   there by design). Close the active project (above).
    Record `git status --short` (without git: the manifest, `conventions/dot-labview.md`, "No git").
 2. **Loadability** (on code this session did not build): `python <skill>/kit/lv_loadability.py <folders>`, offline,
    seconds. Sweep only folders whose VIs all resolve. List the others as `not loadable: <folder>: <missing
@@ -65,8 +67,9 @@ sweep reads only and applies no convention, so it runs the same in local mode an
    - List every line that is not state 1 with its state and code. An answer saved to a file because it is too large
      is read with `<skill>/kit/read_saved_answer.py`, never by running the call again.
 8. **Compare with the baseline.**
-   - The first sweep of a folder before a change is its BEFORE baseline: keep the reports in `proof_folder` (or the
-     scratch folder) as `<id>-sweep-before-<i>.txt`.
+   - The first sweep of a folder before a change is its BEFORE baseline: keep the reports in the scratch folder
+     (`<repo>/mcp_temp/sweep/`) as `<id>-sweep-before-<i>.txt`. A task that keeps proof copies them to
+     `proof_folder` at its end, never in the middle of an op that checks `git status`.
    - After the change, per path: state 1 before and after = fine; 1 before, not 1 after = **failure of this task**;
      not 1 before and after = **pre-existing** (reported; on code the task does not touch it is not fixed, `SKILL.md`,
      "Scope (maintenance)"); a VI the task added = must read 1.
