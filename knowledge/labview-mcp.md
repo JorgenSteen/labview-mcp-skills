@@ -546,8 +546,9 @@ Each gap: effect, workaround, version measured. Long routes are in the ops files
 
 ### No official tool yet (kit routes only)
 - Member rename, `ops/rename.md` > MCP-candidate: rename-member
-- Clean Up Diagram, `ops/cleanup.md` (`lvai_layout_diagram` is labview-mcp's own layout, not NI's Clean Up: which one
-  a project uses is `convention: hygiene`) > MCP-candidate: cleanup-diagram
+- NI's Clean Up Diagram on every listed VI, `ops/cleanup.md` engine `ni` (`lvai_layout_diagram` is labview-mcp's
+  own layout, which hands only a too-dense or tangled diagram to NI's Clean Up; which engine a project uses is
+  `convention: hygiene.cleanup-diagram`) > MCP-candidate: cleanup-diagram
 - Front-panel properties, `ops/helper-loop.md`; a search-and-replace in a VI description, "LabVIEW scripting quirks"
   > MCP-candidate: control-property-setters
 - Close or restart LabVIEW, `session/restart.md` (a labview-mcp build with `lvai_restart_labview` runs the guards

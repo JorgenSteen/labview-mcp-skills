@@ -70,7 +70,7 @@ There is one file per concern, and each file can be swapped or switched off on i
 | `layout.md` | library and class layout, virtual folders, typedef placement, scope, accessors |
 | `icons.md` | the icon standard (+ `icon-spec.json`) and when icons are made |
 | `configuration.md` | how settings are stored and read: INI files, the configuration class, metadata, who reads |
-| `hygiene.md` | Clean Up Diagram policy, tests, commit messages, Conditional Disable comments |
+| `hygiene.md` | diagram layout policy and engine (labview-mcp's layout or NI's Clean Up), tests, commit messages, Conditional Disable comments |
 
 The safety rules (save version, commit before a structural step, one LabVIEW caller, the side-effects report) are
 not conventions. They live in `SKILL.md` and cannot be switched off.

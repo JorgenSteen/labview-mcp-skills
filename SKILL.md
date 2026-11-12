@@ -121,7 +121,7 @@ These protect the files and the toolchain. They are not conventions and cannot b
 | Add, change or remove a class field and its accessors | `ops/class-field.md` |
 | Rename a class member, class, library or typedef (always through LabVIEW) | `ops/rename.md` |
 | Icons: standard, apply, read back | `ops/icons.md` |
-| Clean Up Diagram on generated VIs | `ops/cleanup.md` |
+| Lay out generated VIs: labview-mcp's layout or NI's Clean Up Diagram | `ops/cleanup.md` |
 | Where scratch output goes; create `mcp_temp/` | `labview-temp-folder/SKILL.md` |
 | Cold sweep: every VI runnable, membership consistent | `ops/sweep.md` |
 | Run the project's test VIs and behaviour runs | `ops/run-checks.md` |

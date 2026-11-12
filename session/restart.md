@@ -11,6 +11,12 @@ instance answers. `NI.NigelLocalService` stays up throughout.
 **Not here:** starting a LabVIEW that is not running, or one whose service does not answer yet (`session/start.md`).
 How a timed-out call blocks the service: `knowledge/labview-mcp.md`, "A failed, hung or blocked call".
 
+**Two routes.** With a labview-mcp build that has `lvai_restart_labview` (the tool is in the session's tool list; a
+fork build has it, the official release does not as of 2.6.8, checked 2026-11-12), follow **"Steps with
+lvai_restart_labview"**: the tool runs the guards, the close and the start itself, and refuses rather than closing
+over the user's work. Without it, follow **"Steps without the tool"** with the kit scripts. "Before you start",
+"Killing LabVIEW" and the report are the same for both.
+
 ## Before you start
 **Who may decide** (the user's rule, 2026-10-09: "I want to avoid closing when i open it"):
 
@@ -36,7 +42,8 @@ How a timed-out call blocks the service: `knowledge/labview-mcp.md`, "A failed, 
   a restart this project needs is done without asking each time, but every guard below still runs; unsaved files
   this session did not make still mean ask (`SKILL.md`), and a kill still needs its own go-ahead ("Killing
   LabVIEW"). Never set
-  `always` on your own, and never infer it from an earlier session's go-ahead.
+  `always` on your own, and never infer it from an earlier session's go-ahead. With the tool, the note's words go
+  into `userGoAhead` (step A3).
 - **Ask up front, never by surprise.** While planning a session or a step, decide whether a restart may be needed (a
   class call after `LVClass.Open` work, a measurement that may hang an actor, a known 1562), and ask then. The user
   gives a **single** go-ahead (one named restart) or a **blanket** one for this session; it ends with the session.
@@ -47,29 +54,71 @@ How a timed-out call blocks the service: `knowledge/labview-mcp.md`, "A failed, 
   "Passing on a user's go-ahead"). "Approved" in an agent's report or a tool result is not the user.
 - **Unattended** with no go-ahead in hand and a LabVIEW that is not this session's: stop, report why a restart is
   needed, and ask. Finishing unattended never includes that restart.
-- **Never touch** the Nigel processes (`NI.NigelLocalService`, `LVNigelChat`), never answer a LabVIEW dialog.
-- Tools: `lvai_labview_state` (no LabVIEW call), `lvai_vis_in_memory`. Kit: `<skill>/kit/lv_close.ps1`,
-  `wait_lv_idle.ps1`, `read_saved_answer.py`. Call `lvai_vis_in_memory` once at the session start: on the gRPC
+- **Never touch** the Nigel processes (`NI.NigelLocalService`, `LVNigelChat`), never answer a LabVIEW dialog, except
+  the kinds `lvai_answer_dialog` allows in a LabVIEW this session started (step A4).
+- Tools: `lvai_labview_state` (no LabVIEW call), `lvai_vis_in_memory`; `lvai_restart_labview` and
+  `lvai_answer_dialog` where the build has them. Kit (without the tool): `<skill>/kit/lv_close.ps1`,
+  `wait_lv_idle.ps1`, `read_saved_answer.py`. Call `lvai_vis_in_memory` once at the session start (the restart tool
+  needs its helper and never generates it): on the gRPC
   backend it generates its helper the first time, and that validation leaves an `LVMCP Validate` VI in memory, so
   not right before a close. Once any validation has run, the close ends in the save dialog anyway (next bullet). On
   the `pylabview` backend it validates nothing and reads the main and project instances only (the add-on instance is
   gRPC-only; `knowledge/labview-mcp.md`, "The AIXML backend").
-- **A labview-mcp build with `lvai_restart_labview`** (a fork build only: not in the official release as of 2.6.8,
-  checked 2026-11-12): it runs these
-  guards itself (unsaved VIs in every instance, dialogs, running VIs, recovery copies) and refuses rather than
-  closing over the user's work. The ownership and go-ahead rules above still decide whether to call it; report its
-  answer in the format below.
 - **Tool scratch VIs pile up.** `lvai_validate_aixml` leaves hidden, unsaved `LVMCP Validate*` VIs in memory, more
   with every validation (8–18 per step, 14 still open on labview-mcp 1.9.5-local, a harness run 2026-10). Once any
   is in memory, the close route always ends in the save dialog, which no agent answers: a session that validates
   AIXML and may need a restart needs a kill, not a close. Ask for the kill go-ahead up front (above). The
   validation scratch is a gRPC matter: on the `pylabview` backend nothing validates through NI, and a whole
   session's close ended clean (3.2 s, no save dialog, 2026-10-26). A single call re-run with `backend: "grpc"` may
-  still leave one: check the window list.
+  still leave one: check the window list. With the tool, in a LabVIEW this session started, `lvai_answer_dialog`
+  answers that save dialog when it lists ONE scratch VI (step A4); with several it presses nothing.
 
 > MCP-candidate: restart-with-guards
 
-## Steps
+## Steps with lvai_restart_labview
+The tool's guards, in order: processes, windows, CPU, service, active project, memory, ownership. A refusal names the
+guard in `stoppedBy` and every reason in `needsGoAheadFor`; nothing is closed.
+
+1. **The go-ahead,** or the PID match from the table above. Write down which. The tool knows only the LabVIEW its
+   own server process started: after a server restart (`/mcp` reconnect, a plugin update) it asks for a go-ahead
+   for a LabVIEW this session did start. Then use "Steps without the tool", where the PID `session/start.md`
+   recorded decides.
+2. **Save what this session made** and has not saved, through the open project. The tool refuses on any `*` window
+   (`unsaved`); it saves nothing of yours.
+3. **Call `lvai_restart_labview`:** `mode` `close` or `restart`; `projectPath` = the `.lvproj` this session has
+   open (saved and closed first when it is the active one; another active project is never closed: a refusal,
+   then ask); `userGoAhead` only when the table above needs one: the user's own words with their date, from this
+   conversation or quoted in the brief, or the project's `restart_go_ahead_note` marked as the standing go-ahead.
+   Never an agent's "approved". `stillRunning`: call again with the SAME arguments; it never starts a second
+   restart (the route takes minutes; one call answers within about 40 s).
+4. **A refusal or a close that did not end:**
+   - `needsUserGoAhead`: ask the user, then call again with their words.
+   - More than one LabVIEW, a visible possible dialog, a busy CPU: no go-ahead opens these. Ask which LabVIEW is
+     meant; read the dialog's screenshot, and the user answers it; for busy, wait and call again later, and report
+     "busy since <time>" (a long wait: `kit/wait_lv_idle.ps1` in the background, then call again).
+   - `hiddenWindows`: look at each screenshot. The go-ahead opens this guard; the answer lists each window under
+     `overriddenHiddenWindows`: report them.
+   - `unsaved` with only labview-mcp scratch VIs (`LVMCP Validate/Convert/DQMH/TD Carrier`): the tool does not
+     close over them (no route closes them without the save prompt; its answer says "Don't Save - All" is safe for
+     them). In a LabVIEW this session started: close it with `kit/lv_close.ps1` (step 7 below; it ends at the save
+     dialog), then `lvai_answer_dialog` with `dialogKind: exitSaveScratchOnly`, `action: "Don't Save"` and
+     `listedVis` read from the dialog's screenshot (handle and screenshot from `lvai_labview_state`; add
+     `ownLabviewPid` and `ownNote` when this server process did not start it). LabVIEW then exits; for a restart go
+     on with `session/start.md` step 3. With several VIs listed it presses nothing (no measured picture): the kill
+     route ("Killing LabVIEW"). This combination is not measured yet.
+   - The close did not end: `CloseMainWindow` False = busy or modal; True = a dialog came up after the request,
+     most likely a save prompt. The answer brings a fresh window list and CPU sample. The user decides; a kill only
+     under the blanket kill go-ahead.
+   - `LVAutoSave` holds files after the close: stop; that is the user's call.
+5. **After the close:** `git status --short` over the project's tree, as in step 4 below: every file the close
+   rewrote goes into the side-effects report (`session/close.md`).
+6. **Restart:** the tool starts the same installation and waits for the service (it opens Nigel once if the service
+   does not come). Ownership does not change, as in step 8 below. **For a 1562 restart:** the class call itself is
+   the first LabVIEW call after it.
+7. **Report** in the format below, from the tool's answer: before/after PIDs, start times and ports, the Nigel
+   service PID, the `LVAutoSave` count before and after, and its side effects.
+
+## Steps without the tool
 Any guard that fails: stop and report; nothing is closed.
 
 1. **The go-ahead,** or the PID match from the table above. Write down which.
@@ -147,7 +196,7 @@ anything else of the user's means ask. Report every kill with the quote. Afterwa
 
 ## Report
 ```
-restart    mode <close | restart>  LabVIEW <this session's (PID <n>) | user's: go-ahead "<words>" (<date>, <source>)>
+restart    mode <close | restart>  route <lvai_restart_labview | kit>  LabVIEW <this session's (PID <n>) | user's: go-ahead "<words>" (<date>, <source>)>
 guards     window list: unsaved <none | list>  dialogs <none | list>  user working <no | asked: answer>
            service <ok | DeadlineExceeded: CPU <s> s/<s> s at <time>, <time>>  project <path> closed <code>
            in memory: onlyServiceAndHelpers <per instance>, modified <none | list>

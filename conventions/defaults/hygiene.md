@@ -7,9 +7,14 @@ written: (setup fills in the date)
 > not conventions, and are not in this file.
 
 ## cleanup-diagram
-Clean Up Diagram runs only on VIs the bot generated or regenerated, never on existing hand-laid VIs.
+A diagram layout runs only on VIs the bot generated or regenerated, never on existing hand-laid VIs.
 - **New VI:** the best result is a layout in the style of the VIs around it (their rails, direction, habits).
-- **If that cannot be done:** Clean Up Diagram is better than the raw generated layout.
+- **If that cannot be done, the engine** (`ops/cleanup.md`):
+  - `labview-mcp`: labview-mcp's own layout (`lvai_layout_diagrams`): columns by data flow, the error chain as one
+    rail along the bottom, controls left, indicators right; a diagram too dense or tangled for it goes to NI's Clean
+    Up by itself. Every labview-mcp tool that generates a VI already runs it.
+  - `ni`: LabVIEW's Clean Up Diagram on every listed VI (it replaces labview-mcp's layout).
+  Setup asks which. Until the project answers: `ni`, the route this skill has always run.
 - **A request to clean up all VIs of existing code:** list those VIs and ask first.
 source: default
 

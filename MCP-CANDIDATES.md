@@ -99,7 +99,7 @@ project first` / `open and activate <project> first`; `lvai_exec_state` says whe
 and the per-step state lines in the ops files.
 
 ## restart-with-guards
-**Status** in a fork build only (`lvai_restart_labview`); not in the official release as of 2.6.8 (its source says the fork's restart and dialog tools are not ported). Was: proposed (S2, S9); refinements RS-1, RS-3..RS-5 settled (RS-2 replaced by the user's Q30); KT-5, KT-6 are kit TODOs. **Gap** nothing stops or restarts
+**Status** in a fork build only (`lvai_restart_labview`); not in the official release as of 2.6.8 (its source says the fork's restart and dialog tools are not ported). `session/restart.md` calls it where the build has it and keeps the kit route for the official release. Was: proposed (S2, S9); refinements RS-1, RS-3..RS-5 settled (RS-2 replaced by the user's Q30); KT-5, KT-6 are kit TODOs. **Gap** nothing stops or restarts
 LabVIEW; a hung helper loop is freed only by a restart. **Proposed** `lvai_restart_labview(confirm: true)`: refuse and
 list unsaved VIs (every instance), dialogs, running VIs; close, tell "busy" from "dialog", start, wait for gRPC, report
 port, uptime, steps; optionally reopen the Nigel chat (`--lv-version`, `--lv-bitness`); `ensure_labview` says "still
@@ -123,9 +123,13 @@ sweep (116 VIs in 22 s); rule candidate 108 (~30 s per VI when the library reloa
 `pa_exec_state_sweep(_file).xml`, `sweep_paths.py`, `check_membership.py`. **Removes** `ops/sweep.md` steps 2–6.
 
 ## cleanup-diagram
-**Status** proposed (S3). **Gap** no tool runs Clean Up Diagram. **Proposed** `lvai_cleanup_diagram(viPaths | folder)`,
-project closed, code per VI, saved in the project's Save version. **Evidence** pilot rule 46. **Workaround**
-`pa_cleanup_diagram(_file).xml`. **Removes** `ops/cleanup.md` steps 3–6.
+**Status** partly shipped: `lvai_layout_diagram(s)` is labview-mcp's own layout (every generating tool runs it since
+2026-10-16), and since 2.4.4 it hands a diagram too dense or tangled for it to NI's Clean Up by itself
+(`layoutEngine`); `ops/cleanup.md` uses it as engine `labview-mcp`. Still open: NI's Clean Up on EVERY listed VI as a
+choice of the tool (e.g. `engine: "ni"`), which engine `ni` does with the kit. Was: proposed (S3). **Gap** no tool
+runs NI's Clean Up Diagram on a VI the caller names. **Proposed** `lvai_cleanup_diagram(viPaths | folder)`, or an
+engine choice on `lvai_layout_diagrams`; project closed, code per VI, saved in the project's Save version.
+**Evidence** pilot rule 46. **Workaround** `pa_cleanup_diagram(_file).xml`. **Removes** `ops/cleanup.md` steps 3–6.
 
 ## create-override
 **Status** shipped in 2.2 (`lvai_create_override`; the parent's help text it keeps is replaced with `lvai_set_vi_descriptions`). Was: proposed (S6). **Gap** no tool makes an override with Call Parent; AIXML cannot author Call Parent.
