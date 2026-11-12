@@ -23,10 +23,13 @@ icons (`ops/icons.md`); the sweep itself (`ops/sweep.md`).
 - **The list:** only the VIs this task generated or regenerated, written down before step 1 (the step that made
   them knows them; `git diff --name-only <start commit>` helps, but a VI merely re-saved by another op is not on
   it). Never a folder by default. Overrides edited by script (not generated) are on it only when the user asks.
-  With engine `labview-mcp`, a VI a labview-mcp tool generated already has that layout (the generators'
-  `cleanUpDiagram` step; it skips a DQMH `Main.vi`, and a layout that did not finish answers `restored`, the raw VI):
-  list only the generated VIs a kit helper or a script changed afterwards, a DQMH `Main.vi`, and those whose
-  generation answered `restored`. With `ni`, list every VI this task generated or regenerated.
+  With engine `labview-mcp`, a VI already has that layout when a generating tool wrote it with its `cleanUpDiagram`
+  step (`lvai_generate_vi(s)`, `lvai_add_class_method`, `lvai_swap_subvis`, the event and test generators; the
+  answer names the step). List the rest: VIs written by `lvai_convert_aixml_to_vi`, `pylv_rebuild` or `pylv_apply`
+  (no layout step), generated with `cleanUpDiagram: false`, changed by a kit helper or a script afterwards, a DQMH
+  `Main.vi` (the step skips it), and those whose step answered `restored` (the raw VI). A step slimmed on success
+  (`{"step": "cleanUpDiagram", "slimmed": true}`) cannot show `restored`: when it is unclear, list the VI; a second
+  pass of labview-mcp's layout costs only time. With `ni`, list every VI this task generated or regenerated.
 - **The neighbours' style first, where the convention asks for it.** The toolchain has no measured route to lay out
   a diagram in a given style; how close it can get is an open measurement. Say so to the user, and run this op only
   where the convention's engine is the chosen fallback.
@@ -56,7 +59,9 @@ LabVIEW 2020 VIs became 2026; not measured for `lvai_layout_diagrams`, so scan t
 
 ## Steps
 
-1. **Precheck.** `lvai_status`; project closed; `git status --short` recorded.
+1. **Precheck.** LabVIEW answers (`grpc`: `lvai_status`; `pylabview`: `lvai_ensure_labview` answers `ready`, it starts
+   nothing while one runs, and `lvai_status` answers `ok: false` there by design); one LabVIEW only
+   (`lvai_labview_state`); project closed; `git status --short` recorded.
 2. **BEFORE sweep** of the listed VIs: `ops/sweep.md` steps 3–9, with the `.vi` paths as arguments. Keep the report.
 3. **Engine `ni`: path lists:**
    `python <skill>/kit/sweep_paths.py <vi> [...] --no-control --from 0 --to 5 --out <scratch>/clean_0.txt`.
@@ -70,15 +75,19 @@ LabVIEW 2020 VIs became 2026; not measured for `lvai_layout_diagrams`, so scan t
    generated VIs; 4–5 s per VI on an older tree whose libraries load with each VI. Size the remaining batches so
    one call needs at most half its timeout, then run them in order.
 
-   3A. **Engine `labview-mcp`:** `lvai_layout_diagrams` with `viPaths` = the list, one absolute path per line (never
-   a folder: a folder takes every `.vi` under it, hand-laid ones included) and `timeoutSeconds` passed explicitly.
-   A first call with up to 5 VIs, step 6 for them, then the rest in one call. `parallel` workers run on `pylabview`
-   only.
+**Engine `labview-mcp`, instead of steps 3-5:**
 
-   4A. **Read its answer,** one row per VI: a failed VI is named with its `errorKind` and the others go on (list it;
-   no blind retry). `layoutEngine` (`lvai_layout_diagram` or `LabVIEW Clean Up Diagram`) and `tangledFallback` per VI
-   go into the report. Structure kinds it does not lay out yet (sequences, timed loops, in-place, disable) move whole
-   and are named in the answer: report them. The tool keeps a backup per VI; git is still the undo.
+3A. **Layout:** `lvai_layout_diagrams` with `viPaths` = the list, one absolute path per line (never a folder: a
+    folder takes every `.vi` under it, hand-laid ones included) and `timeoutSeconds` passed explicitly. A first call
+    with up to 5 VIs, step 6 for them, then the rest in one call. `parallel` workers run on `pylabview` only.
+4A. **Read its answer,** one row per VI: a failed VI is named with its `errorKind` and the others go on (list it;
+    no blind retry). `layoutEngine` (`lvai_layout_diagram` or `LabVIEW Clean Up Diagram`) and `tangledFallback` per
+    VI go into the report. Structure kinds it does not lay out yet (sequences, timed loops, in-place, disable) move
+    whole and are named in the answer: report them. The tool keeps a backup per VI under
+    `%TEMP%\LabVIEWMCP\layout\` (no knob to move it into `mcp_temp/`): name it in the side effects. Git is still the undo.
+
+**Both engines:**
+
 6. **Per batch:**
    - `ok count` = the batch's N (engine `labview-mcp`: the answer's totals); list every line whose code is not 0
      (every failed row).
@@ -103,7 +112,7 @@ LabVIEW 2020 VIs became 2026; not measured for `lvai_layout_diagrams`, so scan t
 
 ```
 cleanup <n> VIs (generated by <step>)  engine <labview-mcp | ni>  start HEAD <hash>  batches <n> (<N1> + <N2> ...)  <s> s per VI
-codes: <ok>/<N> code 0   not 0: <path> <code> | none
+codes: <ok>/<N> code 0   not 0: <path> <code> | none   (engine labview-mcp: laidOut <n>, failed <path errorKind | none>)
 labview-mcp: layoutEngine ours <n> / NI <n>  tangledFallback <list | none>  moved whole <list | none>   (engine ni: n/a)
 versions: before <v> after <v>  (conflict: <asked: answer> | none)   git: only .vi of each batch yes/no
 sweep before/after: <same | changed: path state>   control 0 7   membership unchanged yes/no

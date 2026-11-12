@@ -99,7 +99,7 @@ project first` / `open and activate <project> first`; `lvai_exec_state` says whe
 and the per-step state lines in the ops files.
 
 ## restart-with-guards
-**Status** in a fork build only (`lvai_restart_labview`); not in the official release as of 2.6.8 (its source says the fork's restart and dialog tools are not ported). `session/restart.md` calls it where the build has it and keeps the kit route for the official release. Was: proposed (S2, S9); refinements RS-1, RS-3..RS-5 settled (RS-2 replaced by the user's Q30); KT-5, KT-6 are kit TODOs. **Gap** nothing stops or restarts
+**Status** in a fork build only (`lvai_restart_labview`); not in the official release as of 2.6.8 (its source says the fork's restart and dialog tools are not ported). `session/restart.md` calls it where the build has it and keeps the kit route for the official release. Still open in the fork's tool (measured 2026-11-12, LabVIEW 2020, `pylabview`): its `service` guard needs NI's service, so with none it refuses even the LabVIEW its own server started; and LabVIEW 2020's own hidden `Boolean` window trips `hiddenWindows` on every start. Both should be pylabview-aware (memory over ActiveX, that window known). Was: proposed (S2, S9); refinements RS-1, RS-3..RS-5 settled (RS-2 replaced by the user's Q30); KT-5, KT-6 are kit TODOs. **Gap** nothing stops or restarts
 LabVIEW; a hung helper loop is freed only by a restart. **Proposed** `lvai_restart_labview(confirm: true)`: refuse and
 list unsaved VIs (every instance), dialogs, running VIs; close, tell "busy" from "dialog", start, wait for gRPC, report
 port, uptime, steps; optionally reopen the Nigel chat (`--lv-version`, `--lv-bitness`); `ensure_labview` says "still
